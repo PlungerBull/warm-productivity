@@ -144,7 +144,7 @@ When one app displays or interacts with another app's data, it can edit a **scop
 
 | From App | Editing In | Editable Fields | For Full Edit |
 |---|---|---|---|
-| Notes | Expenses (slash commands) | Amount (with sign), title, date, category, bank account. All mandatory fields — can auto-promote to ledger. | Open Expense Tracker (for exchange rate, people splits, description) |
+| Notes | Expenses (slash commands) | Amount (with sign), title, date, category, bank account. All mandatory fields — goes directly to ledger if date is today/past. | Open Expense Tracker (for exchange rate, people splits, description) |
 | Notes | To-Dos (slash commands) | Title, due date, completed (checkbox), category, hashtag | Open To-Do (for priority, recurrence, streaks) |
 | Expense Tracker | Notes (descriptions) | Content only | Open Notes |
 | To-Do | Notes (descriptions) | Content only | Open Notes |
@@ -152,10 +152,9 @@ When one app displays or interacts with another app's data, it can edit a **scop
 | Expense Tracker | To-Dos (linked tasks from Expense Planning) | Title, due date, recurrence pattern (via linked task) | Open To-Do (for non-financial task fields like priority) |
 | Expense Tracker | Expense Planning records (inbox with `linked_task_id`) | Full expense data: title, amount, currency, bank account, category, exchange rate, description | N/A (Expense Tracker owns the inbox table) |
 
-**[Phase 1 — Data Layer]** The Expense Planning section in the Expense Tracker is a **filtered view of the inbox table** — it shows all `expense_transaction_inbox` records that have a `linked_task_id`, sorted by the linked task's `due_date`. Both recurring and one-off planned expenses live here. From here, the user can:
+**[Phase 1 — Data Layer]** The Expense Planning section in the Expense Tracker is a **filtered view of the inbox table** — it shows all `expense_transaction_inbox` records that have a `linked_task_id`, sorted by the linked task's `due_date`. Both recurring and one-off planned expenses live here. There is no separate creation form in the Planning section — planned expenses are created via the FAB by setting a future date (see Future-date routing below). From this view, the user can:
 
 - **View** all upcoming planned expenses sorted by the linked task's due date
-- **Create** new planned expenses — both recurring (with recurrence pattern) and one-off. This creates an `expense_transaction_inbox` record with financial data (`date = null`) plus a linked `todo_task` with `due_date` (and optionally a `todo_recurrence_rule` for recurring expenses). The task handles scheduling; the inbox record holds the financial data.
 - **Edit** inbox templates directly. Changes to financial fields apply to all future generated expenses.
 - **Register/confirm** a planned expense when it happens, which completes the linked task, triggering the inbox → ledger promotion flow. The expense registers to the ledger with the **completion date** (not the task's due date).
 
@@ -163,7 +162,7 @@ When one app displays or interacts with another app's data, it can edit a **scop
 
 The linked tasks also appear in the To-Do app as normal tasks, where the user sees the restricted cross-app expense fields (title, amount, currency, category — read from the linked inbox record) plus normal to-do fields (due date, recurrence, completed status). Completing the task from the To-Do app triggers the same expense generation flow.
 
-**Future-date routing:** When a user adds an expense with a future date (any date after today) from the Expense Tracker, the system creates an `expense_transaction_inbox` record (`date = null`) and a linked `todo_task` with the future date as `due_date`. The expense appears in Expense Planning. When the user adds an expense with today's date or a past date, a normal expense is created directly (inbox or ledger depending on field completeness).
+**Future-date routing:** When a user adds an expense with a future date (any date after today) via the FAB, the system creates an `expense_transaction_inbox` record (`date = null`) and a linked `todo_task` with the future date as `due_date` (plus a `todo_recurrence_rule` if the user sets a recurrence pattern). The expense appears in Expense Planning. When the user adds an expense with today's date or a past date, a normal expense is created directly (inbox or ledger depending on field completeness).
 
 **One occurrence at a time:** For recurring planned expenses, the inbox template is persistent and the linked task shows the next due date. When registered, a ledger entry is generated with the completion date and the linked task's `due_date` advances to the next occurrence. Schedule anchoring is configurable per recurrence rule (anchor to original schedule or from last completion). One-off planned expenses are consumed (deleted) on registration. This keeps the list clean — one row per recurring expense, plus any one-off planned expenses.
 
@@ -336,7 +335,7 @@ The generated expense is NOT automatically deleted. Once an expense exists, it's
 
 **In Expense Tracker:**
 
-- "Expense Planning" section → filtered view of `expense_transaction_inbox` where `linked_task_id IS NOT NULL`, sorted by linked task's `due_date`. Includes both recurring templates (persistent, `date = null`) and one-off planned expenses. Shows full expense data plus linked task's due date. The user manages inbox templates here — editing updates the record directly. Allows **creating new planned expenses** (recurring or one-off, which also creates linked tasks) and **registering/confirming** them when they happen (which completes the linked task, promoting to ledger with the completion date). Also auto-populated when a user adds an expense with a future date.
+- "Expense Planning" section → filtered view of `expense_transaction_inbox` where `linked_task_id IS NOT NULL`, sorted by linked task's `due_date`. Includes both recurring templates (persistent, `date = null`) and one-off planned expenses. Shows full expense data plus linked task's due date. The user manages inbox templates here — editing updates the record directly. Allows **registering/confirming** planned expenses when they happen (which completes the linked task, promoting to ledger with the completion date). No creation form in this section — planned expenses are created via the FAB by setting a future date.
 - "Overdue" section → subset of Expense Planning where linked task's `due_date` is today or past and task not completed. Shows planned expenses whose due date has passed without confirmation.
 - "Generated from task" indicator on individual expenses → shows when an expense was created by a task completion, tappable to open in To-Do
 - Each generated expense is otherwise a normal ledger entry — fully editable, deletable, reconcilable
@@ -358,14 +357,13 @@ Every cross-app event in one table. Scan this when you need to know what fires w
 |---|---|---|---|---|
 | User adds description to expense | Expense Tracker | note_entries | No | `expense_note` |
 | User adds description to task | To-Do | note_entries | No | `task_note` |
-| User types `/expense` in note | Notes | expense_transaction_inbox or expense_transactions (can auto-promote to ledger if all fields present and date is today/past) | Yes (slash command processing) | `note_created_expense` |
+| User types `/expense` in note | Notes | expense_transaction_inbox or expense_transactions (goes directly to ledger if all fields present and date is today/past) | Yes (slash command processing) | `note_created_expense` |
 | User types `/todo` in note | Notes | todo_tasks | Yes (slash command processing) | `note_created_task` |
 | User checks `/todo` checkbox in note | Notes | Updates todo_tasks | No (direct sync) | Uses existing `note_created_task` link |
 | User completes task in To-Do | To-Do | Updates checkbox in note_entries | No (direct sync) | Uses existing `note_created_task` link |
 | User completes task with financial data (first time, no linked inbox record) | To-Do | expense_transaction_inbox (with `linked_task_id`, `date = null`) | Yes (expense from task completion) | `task_expense` |
 | User completes recurring task (linked inbox template exists with financial fields filled) | To-Do | expense_transactions (direct to ledger from inbox template, with completion date) | Yes (task completion promotion) | `task_expense` |
-| User creates planned expense in Expense Tracker (recurring or one-off) | Expense Tracker | expense_transaction_inbox (`date = null`) + linked todo_tasks with `due_date` (+ todo_recurrence_rules if recurring) | Yes (planned expense creation) | N/A (entity_link created on task completion) |
-| User adds expense with future date in Expense Tracker | Expense Tracker | expense_transaction_inbox (`date = null`) + linked todo_task with future `due_date` | Yes (planned expense creation) | N/A (entity_link created on task completion) |
+| User adds expense with future date via FAB (recurring or one-off) | Expense Tracker | expense_transaction_inbox (`date = null`) + linked todo_task with future `due_date` (+ todo_recurrence_rules if recurring) | Yes (planned expense creation) | N/A (entity_link created on task completion) |
 | User registers/confirms planned expense in Expense Tracker | Expense Tracker | Completes linked todo_task → promotes inbox → ledger (with completion date) | Yes (task completion promotion) | `task_expense` (created at this point) |
 | User deletes item ("remove from here") | Any | Sets deleted_at on entity_link only | No | N/A |
 | User deletes item ("delete everywhere") | Any | Sets deleted_at on item and all entity_links | No | N/A |

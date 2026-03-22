@@ -34,14 +34,17 @@ It is built first because it is the most complex app and because building it als
 
 Each phase hardens completely before the next begins. "Hardened" means: locally tested, deployed to production, tested in real deployment, confirmed stable.
 
+UI polish passes happen at natural milestones — after a group of phases delivers a usable feature set. The first polish pass comes after Phases 1–2, when core tracking and search are functional but before reconciliation adds complexity.
+
 | Phase | Name | Scope |
 |---|---|---|
 | 1 | Core Tracking | Inbox/ledger, categories, hashtags, multi-currency, accounts, descriptions, CSV import |
 | 2 | Search & Filtering | Category breakdown, hashtag filtering, search |
+| — | **UI Polish Pass 1** | Visual refinement of all Phase 1–2 screens: spacing, alignment, transitions, empty states, loading states, error states, dark mode consistency, accessibility |
 | 3 | Reconciliation | Batch reconciliation, field locking |
 | 4 | People & Transfers | `/` syntax, person accounts, debt tracking, cross-user sharing |
-| 5 | Expense Planning + Recurrence | Planned expenses, recurring templates, overdue section |
-| 6 | Polish & Utilities | Receipt photos, CSV export |
+| 5 | Expense Planning + Recurrence | Planned expenses, recurring templates, overdue section, shared recurrence engine |
+| 6 | Polish & Utilities | Receipt photos, CSV export, final full-app polish pass |
 
 **Deferred to Step 12 (Cross-App UI):** Budget tracking UI, dashboard, future-date routing.
 **Deferred to Step 13 (AI Layer):** Voice entry, natural language parsing.
@@ -229,9 +232,9 @@ Layout:
 - Sorted per user's `transaction_sort_preference` (date or created_at)
 - **Swipe to delete** — soft deletes the record (sets `deleted_at`)
 
-**Promotion trigger:** Promotion is triggered explicitly by the user tapping the confirm/checkmark button, not by field completion alone. When the user taps confirm, the system checks: are all required fields filled AND is the date today or in the past? If yes → promote to ledger atomically. If no → keep in inbox, highlight any missing required fields. The user can finish filling in the last field and then tap confirm again. This means a transaction can have all required fields filled and still sit in the inbox until the user explicitly confirms. Once promoted to the ledger, further edits are made via the Ledger transaction detail view.
+**Promotion trigger:** Promotion is user-initiated, not automatic. When all mandatory fields are filled (title, amount, date, bank account, category) and the date is today or past, the inbox item shows a **ready indicator** (small green dot or checkmark badge on the row) and a small **Promote button** becomes available. The user taps Promote to move the expense to the ledger. This lets users add optional fields (hashtags, description, receipt photo) before promoting. If any mandatory field is missing, the Promote button is hidden and the row shows a visual indicator for missing fields instead. Once promoted, further edits are made via the Ledger transaction detail view.
 
-**Recurring templates never appear in the Inbox.** Records with `is_recurring = true` have `date = null` permanently. Since promotion requires `date IS NOT NULL AND date <= today`, recurring templates are mathematically excluded from auto-promotion. They are visible only in the Expense Planning section (Phase 5) and are not shown in the Inbox list.
+**Recurring templates never appear in the Inbox.** Records with `is_recurring = true` have `date = null` permanently. Since promotion requires `date IS NOT NULL AND date <= today`, recurring templates can never become ready for promotion. They are visible only in the Expense Planning section (Phase 5) and are not shown in the Inbox list.
 
 ---
 
@@ -275,7 +278,7 @@ Half-screen bottom sheet. Slides up from the bottom when any transaction row is 
 Required fields for ledger promotion: **title, amount, date, bank account, category**. Exchange rate is never a required field — it auto-populates from the global `exchange_rates` table for the transaction date and is always available as a fallback. The user can override it manually but it will never block promotion.
 
 - Missing required fields are highlighted with a subtle red indicator on each empty row
-- A **Confirm** button (checkmark, top-right of modal) is visible. Tapping it triggers the promotion check: all required fields filled AND date ≤ today? If yes → promotes to ledger atomically and modal closes. If no → modal stays open, missing fields highlighted
+- A small **Promote** button (top-right of modal) is visible only when all required fields are filled AND date ≤ today. Tapping it promotes to ledger atomically and the modal closes. When any required field is missing, the Promote button is hidden and missing fields are highlighted with a subtle red indicator
 - No reconciliation row shown (inbox transactions cannot be reconciled)
 
 **Ledger-only behaviour:**
@@ -381,191 +384,112 @@ The raw command text is stored in `source_text` on the transaction record.
 
 ```
 Budgeting Tab
-└── Main View (current or past month)
-    ├── [← / →] Month navigator
-    ├── [Tap budget amount on any row] → Inline edit (current month only)
-    └── [Tap category row] → Filtered transaction list for that category + month
+└── Main View (3-month table, scrollable)
+    ├── [← / →] 3-month window navigator
+    ├── [Tap budget amount on current month column] → Inline edit
+    └── [Tap category row] → Filtered transaction list for that category (current month)
 ```
 
 ---
 
-#### Screen 1 — Main View (Current Month)
+#### Screen 1 — Main View (3-Month Table)
 
-**What it is:** The default view when the user taps the Budgeting tab. Shows overall budget health and a per-category breakdown for the current month.
+**What it is:** The default view when the user taps the Budgeting tab. Shows a table of expenses by category per month, displaying a rolling 3-month window. The rightmost column is always the current month. The user can scroll backward to see older months.
 
 **Layout:**
 
 ```
-┌──────────────────────────────────────────┐
-│  Budgeting                               │
-├──────────────────────────────────────────┤
-│  [←]        March 2026        [→]        │  ← month navigator. [→] disabled on current month
-├──────────────────────────────────────────┤
-│                                          │
-│  ┌────────────────────────────────────┐  │
-│  │  Total                             │  │
-│  │  S/ 1,340 of S/ 2,100 spent        │  │
-│  │  [████████████░░░░░░░░░░░░░░░░░]   │  │  ← overall progress bar
-│  │  S/ 760 remaining                  │  │  ← green if within budget, red if over
-│  └────────────────────────────────────┘  │
-│                                          │
-│  #Food                                   │
-│  S/ 320 / S/ 500                         │
-│  [███████████░░░░░░░░░░░░░░░░░░]  64%    │
-│  ──────────────────────────────────────  │
-│                                          │
-│  #Transport                              │
-│  S/ 190 / S/ 200                         │
-│  [████████████████████████████░]  95%    │  ← nearly full, could be shown in amber
-│  ──────────────────────────────────────  │
-│                                          │
-│  #Housing                            ⚠   │  ← warning icon
-│  S/ 620 / S/ 500                         │  ← amount shown in red
-│  [████████████████████████████████]      │  ← bar filled, red
-│  S/ 120 over budget                      │  ← red helper text
-│  ──────────────────────────────────────  │
-│                                          │
-│  #Entertainment                          │
-│  S/ 0 / S/ 150                           │
-│  [░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░]   0%   │
-│  ──────────────────────────────────────  │
-│                                          │
-│  @Debt                                   │
-│  S/ 0 / S/ 0                             │  ← Debt is always 0 budget, excluded from totals
-│  ──────────────────────────────────────  │
-└──────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────┐
+│  Budgeting                                               │
+├──────────────────────────────────────────────────────────┤
+│  [←]    Jan 2026  ·  Feb 2026  ·  Mar 2026    [→]       │  ← 3-month window. [→] disabled when current month is rightmost
+├──────────────────────────────────────────────────────────┤
+│                                                          │
+│  ┌────────────────────────────────────────────────────┐  │
+│  │  Total          S/ 1,980   S/ 2,050   S/ 1,340    │  │
+│  │  Budget         S/ 2,100   S/ 2,100   S/ 2,100    │  │
+│  │  Remaining      S/ 120     S/ 50      S/ 760      │  │  ← green if within, red if over
+│  └────────────────────────────────────────────────────┘  │
+│                                                          │
+│  Category       Jan 2026   Feb 2026   Mar 2026          │
+│  ─────────────────────────────────────────────────────  │
+│  Food           S/ 450     S/ 480     S/ 320            │
+│                 / S/ 500   / S/ 500   / S/ 500          │  ← budget below spend
+│  ─────────────────────────────────────────────────────  │
+│  Transport      S/ 180     S/ 210     S/ 190            │
+│                 / S/ 200   / S/ 200   / S/ 200          │
+│  ─────────────────────────────────────────────────────  │
+│  Housing    ⚠   S/ 520     S/ 490     S/ 620            │  ← ⚠ if current month over budget
+│                 / S/ 500   / S/ 500   / S/ 500          │
+│  ─────────────────────────────────────────────────────  │
+│  Entertainment  S/ 120     S/ 80      S/ 0              │
+│                 / S/ 150   / S/ 150   / S/ 150          │
+│  ─────────────────────────────────────────────────────  │
+│  @Debt          S/ 0       S/ 0       S/ 0              │  ← excluded from totals
+│                 / S/ 0     / S/ 0     / S/ 0            │
+│  ─────────────────────────────────────────────────────  │
+└──────────────────────────────────────────────────────────┘
 ```
 
-**Category list details:**
+**Table details:**
 
-- Ordered by spend percentage descending — most at-risk categories always surface to the top
-- Each category row contains: hashtag name, current spend / budget amount, progress bar, percentage
-- @Debt category is always shown last and excluded from the overall summary totals (budget = 0 by default, can be changed)
-- Tapping a category row navigates to a filtered transaction list showing only transactions for that category within the month currently being viewed — not all-time.
+- Categories as rows, months as columns — 3 months visible at a time
+- Each cell shows: actual spend (top) and budget amount (bottom, prefixed with `/`)
+- Ordered by current month's spend percentage descending — most at-risk categories surface to the top
+- @Debt category is always shown last and excluded from the summary totals (budget = 0 by default, can be changed)
+- Tapping a category row navigates to a filtered transaction list showing transactions for that category within the current month
+- Cells where spend exceeds budget are highlighted in red
+- The 3-month window slides with [← →] arrows. [→] is disabled when the current month is the rightmost column. [←] goes as far back as budget data exists
 
-**Progress bar states:**
+**Summary card:**
+- Shows total spend vs total budget for each of the 3 visible months
+- "S/ 760 remaining" in green when current month is within budget
+- "S/ 120 over budget" in red if current month total is overspent
+
+**Progress bar on current month:** The current month column (rightmost) includes a small progress bar below each cell, using the same colour logic:
 
 | State | Threshold | Bar colour | Amount colour | Extra |
 |---|---|---|---|---|
-| Safe | 0–79% | Primary brand colour | Default | — |
-| Warning | 80–99% | Amber | Default | — |
-| Over budget | 100%+ | Red, full bar | Red | ⚠ icon next to name + "S/ X over budget" line |
+| Safe | 0-79% | Primary brand colour | Default | -- |
+| Warning | 80-99% | Amber | Default | -- |
+| Over budget | 100%+ | Red, full bar | Red | Warning icon next to category name + "S/ X over budget" line |
 
-**Summary card:**
-- Shows total spend vs total budget across all categories (excluding @Debt)
-- "S/ 760 remaining" in green when within budget overall
-- "S/ 120 over budget" in red if total overspent
-- Progress bar follows same colour logic as category bars
+Past month columns show final numbers only — no progress bars (they're always 100% final).
 
 ---
 
 #### Screen 2 — Inline Budget Edit (Current Month Only)
 
-**Triggered by:** Tapping the budget amount ("S/ 500") on any category row.
+**Triggered by:** Tapping the budget amount in the current month column on any category row.
 
-**What it is:** The budget amount on that row becomes an editable text field in place. No modal, no sheet — the edit happens inline within the list.
-
-**Layout (row in edit state):**
-
-```
-│  #Food                                   │
-│  S/ 320 / [  500  ✓]                     │  ← amount becomes input field with confirm
-│  [███████████░░░░░░░░░░░░░░░░░░]  64%    │
-```
+**What it is:** The budget amount in that cell becomes an editable text field in place. No modal, no sheet — the edit happens inline within the table.
 
 **Behaviour:**
 - Tapping the budget figure opens the numeric keyboard and highlights the current value
-- The progress bar and percentage update live as the user types a new number
-- The summary card at the top also updates live
-- Confirming: tap the ✓ button next to the field, or tap the Return key on the keyboard
-- Cancelling: tap anywhere outside the row
+- The progress bar and summary card update live as the user types a new number
+- Confirming: tap the checkmark button next to the field, or tap the Return key on the keyboard
+- Cancelling: tap anywhere outside the cell
 - The new budget amount is saved immediately on confirm
-- Past months: budget amounts are displayed as plain text (not tappable). A small lock icon (🔒) sits next to the amount to communicate it is read-only
+- Past month columns: budget amounts are displayed as plain text (not tappable). A small lock icon sits next to the amount to communicate it is read-only
 
 ---
 
-#### Screen 3 — Historical View (Past Month)
-
-**Triggered by:** Tapping [←] in the month navigator to go back in time.
-
-**What it is:** Identical layout to the current month view but fully read-only. Shows final spend and budget for that completed month. The data is locked — it represents exactly how that month ended.
-
-**Layout:**
-
-```
-┌──────────────────────────────────────────┐
-│  Budgeting                               │
-├──────────────────────────────────────────┤
-│  [←]      February 2026       [→]        │  ← [→] enabled (can navigate forward to March)
-├──────────────────────────────────────────┤
-│                                          │
-│  ┌────────────────────────────────────┐  │
-│  │  Total                             │  │
-│  │  S/ 1,980 of S/ 2,100 spent        │  │
-│  │  [███████████████████████████░░░]  │  │
-│  │  S/ 120 remaining                  │  │
-│  └────────────────────────────────────┘  │
-│                                          │
-│  #Food                                   │
-│  S/ 480 / S/ 500 🔒                      │  ← lock icon next to budget amount
-│  [███████████████████████████░░░]  96%   │
-│  ──────────────────────────────────────  │
-│  ...                                     │
-└──────────────────────────────────────────┘
-```
-
-**Key differences from current month view:**
-- Month navigator [→] is enabled (to navigate forward toward current month)
-- All budget amounts show a 🔒 icon and are not tappable — no inline editing
-- Progress bars and percentages reflect final end-of-month state
-- Everything is read-only — no edits can be made
-
-**How far back can the user navigate?** As far back as reconciliations exist. If there is no budget data for a given month (before budget mode was enabled), show an empty state: "No budget data for January 2026. Budget mode was enabled in February 2026."
-
----
-
-#### Screen 4 — Budget Setup (First Enable)
+#### Screen 3 — Budget Setup (First Enable)
 
 **Triggered by:** The user turning on "Budget Mode" in Settings for the first time.
 
-**What it is:** Not a wizard or modal flow. When the toggle is enabled in Settings, the Budgeting tab appears in the tab bar and the user is navigated there automatically. The tab opens showing all categories with S/ 0 (or blank) budget amounts and a persistent banner at the top prompting them to set their budgets.
-
-**Layout:**
-
-```
-┌──────────────────────────────────────────┐
-│  Budgeting                               │
-├──────────────────────────────────────────┤
-│  [←]        March 2026        [→]        │
-├──────────────────────────────────────────┤
-│  ┌────────────────────────────────────┐  │
-│  │  💡 Set a budget for each category │  │
-│  │  to start tracking your spending.  │  │
-│  │  Tap any amount to set it.         │  │  ← dismissible banner, stays until all are set
-│  └────────────────────────────────────┘  │
-│                                          │
-│  #Food                                   │
-│  S/ 0 / [Set budget]                     │  ← placeholder text instead of S/ 0
-│  [░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░]        │
-│  ──────────────────────────────────────  │
-│  #Transport                              │
-│  S/ 0 / [Set budget]                     │
-│  [░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░]        │
-│  ──────────────────────────────────────  │
-│  ...                                     │
-└──────────────────────────────────────────┘
-```
+**What it is:** Not a wizard or modal flow. When the toggle is enabled in Settings, the Budgeting tab appears in the tab bar and the user is navigated there automatically. The tab opens showing the 3-month table with all categories showing S/ 0 (or blank) budget amounts and a persistent banner at the top prompting them to set their budgets.
 
 **Behaviour:**
 - The banner dismisses automatically once all categories have a budget amount set (including @Debt which can stay at 0)
-- The user sets budgets by tapping each "[Set budget]" placeholder — same inline edit interaction as Screen 2
+- The user sets budgets by tapping each "[Set budget]" placeholder in the current month column — same inline edit interaction as Screen 2
 - The user can also ignore some categories and come back later — the banner stays visible until all are set
 - Setting a budget to 0 is valid (user explicitly does not budget for that category)
 - @Debt pre-fills at 0 and does not show the "[Set budget]" placeholder — it shows "S/ 0" directly as its default is intentional
 
 ---
 
-#### Screen 5 — New Category Prompt (Budget Mode Active)
+#### Screen 4 — New Category Prompt (Budget Mode Active)
 
 **Triggered by:** User creates a new category while budget mode is enabled.
 
@@ -598,33 +522,35 @@ Budgeting Tab
 **Behaviour:**
 - Tapping [✕] or "Set to 0 for now" sets the budget to S/ 0 and closes the sheet
 - The category appears in the Budgeting tab with S/ 0 budget immediately
-- If the user closes the sheet without setting (tapping ✕), the banner prompt from Screen 4 reappears in the Budgeting tab until the budget is set
+- If the user closes the sheet without setting (tapping ✕), the banner prompt from Screen 3 reappears in the Budgeting tab until the budget is set
 
 ---
 
 #### States Summary
 
-| State | Month nav | Inline editing | Budget amounts | Lock icon |
+| State | 3-month nav | Inline editing | Budget amounts | Lock icon |
 |---|---|---|---|---|
-| Current month | [←] only | ✅ tap to edit | Editable | — |
-| Past month | [← →] both | — | Read-only | ✅ |
-| First enable | [←] only | ✅ tap to edit | Blank / "Set budget" | — |
+| Current month column | [← →] | Tap to edit | Editable | — |
+| Past month columns | [← →] | — | Read-only | Lock icon |
+| First enable | [← →] | Tap to edit (current month) | Blank / "Set budget" | — |
 
 ---
 
 #### Edge Cases
 
-1. **New month starts:** Budget locking is enforced client-side by date comparison — a month is considered locked once its last day has passed relative to the user's `display_timezone`. No database lock column is needed. When the app opens or comes to foreground, it checks the current date; if the viewed month is in the past, the UI renders in read-only mode. The current month view resets all spend to S/ 0 but carries the same budget amounts forward.
+1. **New month starts:** Budget locking is enforced client-side by date comparison — a month is considered locked once its last day has passed relative to the user's `display_timezone`. No database lock column is needed. When the app opens or comes to foreground, it checks the current date; past month columns render as read-only. The current month column resets all spend to S/ 0 but carries the same budget amounts forward. The 3-month window shifts so the new current month is the rightmost column.
 
-2. **Changing a budget amount mid-month:** Fully allowed. The progress bar recalculates immediately against the new amount. No retroactive changes to previous months
+2. **Changing a budget amount mid-month:** Fully allowed. The progress bar and table recalculate immediately against the new amount. No retroactive changes to previous months.
 
-3. **Disabling budget mode:** Toggled off in Settings. The Budgeting tab disappears from the tab bar. All historical budget data is preserved — if the user re-enables later, all past months are still visible
+3. **Disabling budget mode:** Toggled off in Settings. The Budgeting tab disappears from the tab bar. All historical budget data is preserved — if the user re-enables later, all past months are still visible in the table.
 
-4. **Category with no transactions this month:** Shows S/ 0 / S/ 500 with an empty progress bar. Not hidden — the user should see they haven't spent in that category
+4. **Category with no transactions this month:** Shows S/ 0 / S/ 500 in the current month column with an empty progress bar. Not hidden — the user should see they haven't spent in that category.
 
-5. **Category deleted while budget mode active:** Budget row is soft-deleted alongside the category. Historical months that referenced that category still show the category name and amounts correctly (read-only). The deleted category no longer appears in the current month view
+5. **Category deleted while budget mode active:** Budget row is soft-deleted alongside the category. Historical months that referenced that category still show the category name and amounts correctly (read-only). The deleted category no longer appears in the current month column.
 
-6. **@Other category:** Shown in the list with a budget if set. Works identically to user-created categories. Not excluded from totals
+6. **@Other category:** Shown in the table with a budget if set. Works identically to user-created categories. Not excluded from totals.
+
+7. **How far back can the user scroll?** As far back as budget data exists. If there is no budget data for a given month (before budget mode was enabled), show an empty state: "No budget data for January 2026. Budget mode was enabled in February 2026."
 
 ---
 
@@ -812,7 +738,7 @@ Standard grouped list. Changes apply immediately — no save button.
 
 ### Phase 1 — Core Tracking
 
-- **Inbox/Ledger routing** — expenses go to inbox when any mandatory field is missing, auto-promote when complete and date is today or past
+- **Inbox/Ledger routing** — expenses go to inbox when any mandatory field is missing. When all mandatory fields are present and date is today or past, a ready indicator and Promote button appear. User taps Promote to move to ledger
 - **Transaction creation** — via FAB command line or toolbar buttons
 - **Transaction editing** — via Transaction Detail Modal
 - **Transaction deletion** — swipe to delete (soft delete, tombstone)
@@ -852,6 +778,21 @@ Import behaviour:
 - Category breakdown views with hashtag-level sub-grouping
 - Filter by individual hashtag across categories
 - Search across all expenses (title, description)
+
+### UI Polish Pass 1 (after Phases 1–2)
+
+A dedicated refinement pass over all existing screens before adding new feature complexity. No new features — only visual and interaction quality improvements.
+
+- **Spacing & alignment** — audit every screen against the 4pt grid; fix inconsistencies
+- **Transitions & animations** — smooth navigation transitions, list insertion/deletion animations, FAB open/close
+- **Empty states** — polished empty state illustrations/messages for inbox, ledger, search results, category views
+- **Loading states** — skeleton views or shimmer placeholders where data loads asynchronously
+- **Error states** — consistent error banners, retry affordances, offline indicators
+- **Dark mode** — audit every screen for contrast, readability, and color token correctness in dark mode
+- **Accessibility** — VoiceOver labels, Dynamic Type support, sufficient contrast ratios
+- **Micro-interactions** — haptic feedback on key actions (promote, delete, FAB tap), pull-to-refresh feel
+- **Typography & color consistency** — verify all text uses SharedUI typography tokens, all colors use SharedUI color tokens
+- **Platform conventions** — swipe actions, context menus, keyboard shortcuts (iPad), scroll behavior
 
 ### Phase 3 — Reconciliation
 - Batch creation, assignment, completion, un-reconcile
@@ -916,7 +857,7 @@ See System Architecture — Expense Tracker Tables, Shared Tables, and Entity Li
 ## Edge Cases & Constraints
 
 **Inbox promotion rules**
-Mandatory fields for ledger: `title` (not 'UNTITLED'), `amount_cents`, `date` (today or past), `account_id`, `category_id`, `exchange_rate` (if account currency ≠ main currency). All must be present. Promotion is automatic and immediate when the last field is filled — no user confirmation needed.
+Mandatory fields for ledger: `title` (not 'UNTITLED'), `amount_cents`, `date` (today or past), `account_id`, `category_id`, `exchange_rate` (if account currency ≠ main currency). All must be present. When all mandatory fields are filled and date is today or past, the inbox item shows a ready indicator and a small Promote button. The user taps Promote to move the expense to the ledger — promotion is user-initiated, not automatic. This lets users add optional fields (hashtags, description, receipt photo) before promoting.
 
 **Direct-to-ledger creation**
 If all mandatory fields are provided at creation time and the date is today or past, the record bypasses the inbox entirely and lands directly in the ledger.

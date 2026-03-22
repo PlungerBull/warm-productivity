@@ -1,0 +1,2057 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Expense Tracker — UI Polish Pass 1</title>
+<style>
+  /* ===== DESIGN TOKENS (SharedUI) ===== */
+  :root {
+    --wp-primary: #c2410c;
+    --wp-secondary: #b45309;
+    --wp-background: #ffffff;
+    --wp-surface: #fafaf9;
+    --wp-grouped-bg: #f5f5f4;
+    --wp-error: #dc2626;
+    --wp-success: #16a34a;
+    --wp-warning: #d97706;
+    --wp-text-primary: #1c1917;
+    --wp-text-secondary: #78716c;
+    --wp-text-tertiary: #a8a29e;
+    --wp-border: #e7e5e4;
+    --wp-on-primary: #ffffff;
+    --wp-income: #16a34a;
+    --wp-expense: #dc2626;
+    --wp-hashtag: #4f6bed;
+
+    --sp-xxs: 4px;
+    --sp-xs: 8px;
+    --sp-sm: 12px;
+    --sp-md: 16px;
+    --sp-lg: 24px;
+    --sp-xl: 32px;
+    --sp-xxl: 48px;
+
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+
+    --font-large-title: 34px;
+    --font-title: 22px;
+    --font-headline: 17px;
+    --font-body: 17px;
+    --font-callout: 16px;
+    --font-caption: 12px;
+  }
+
+  .dark {
+    --wp-primary: #ea580c;
+    --wp-secondary: #d97706;
+    --wp-background: #1c1917;
+    --wp-surface: #292524;
+    --wp-grouped-bg: #1c1917;
+    --wp-error: #ef4444;
+    --wp-success: #22c55e;
+    --wp-warning: #f59e0b;
+    --wp-text-primary: #fafaf9;
+    --wp-text-secondary: #a8a29e;
+    --wp-text-tertiary: #78716c;
+    --wp-border: #44403c;
+    --wp-on-primary: #ffffff;
+    --wp-income: #22c55e;
+    --wp-expense: #ef4444;
+  }
+
+  /* ===== RESET & BASE ===== */
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif;
+    background: #f5f5f4;
+    color: #1c1917;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ===== PAGE LAYOUT ===== */
+  .page-header {
+    text-align: center;
+    padding: 80px 24px 48px;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  .page-header h1 {
+    font-size: 40px;
+    font-weight: 700;
+    letter-spacing: -1px;
+    color: #1c1917;
+    margin-bottom: 8px;
+  }
+  .page-header p {
+    font-size: 17px;
+    color: #78716c;
+    line-height: 1.6;
+  }
+
+  .section-divider {
+    max-width: 1200px;
+    margin: 64px auto 40px;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .section-divider::before,
+  .section-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #e7e5e4;
+  }
+  .section-divider span {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #a8a29e;
+    white-space: nowrap;
+  }
+
+  .screen-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 48px;
+    padding: 0 24px;
+    max-width: 1400px;
+    margin: 0 auto 24px;
+  }
+
+  .screen-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .screen-label {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #a8a29e;
+  }
+
+  .change-note {
+    max-width: 375px;
+    background: #fff7ed;
+    border: 1px solid #fed7aa;
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: #9a3412;
+  }
+  .change-note strong {
+    font-weight: 600;
+  }
+
+  /* ===== PHONE FRAME ===== */
+  .phone {
+    width: 375px;
+    height: 812px;
+    background: var(--wp-background);
+    border-radius: 44px;
+    overflow: hidden;
+    box-shadow:
+      0 0 0 1px rgba(0,0,0,0.04),
+      0 8px 40px rgba(0,0,0,0.08),
+      0 24px 80px rgba(0,0,0,0.06);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+  .phone.dark {
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,0.06),
+      0 8px 40px rgba(0,0,0,0.3),
+      0 24px 80px rgba(0,0,0,0.2);
+  }
+
+  /* Status bar */
+  .status-bar {
+    height: 54px;
+    padding: 14px 32px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-shrink: 0;
+    background: var(--wp-background);
+  }
+  .status-bar .time {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--wp-text-primary);
+  }
+  .status-bar .icons {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+    color: var(--wp-text-primary);
+    font-size: 12px;
+  }
+  .status-bar .icons svg {
+    width: 16px;
+    height: 12px;
+    fill: currentColor;
+  }
+
+  /* Phone content area */
+  .phone-content {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Tab bar */
+  .tab-bar {
+    height: 83px;
+    padding: 8px 0 34px;
+    display: flex;
+    justify-content: center;
+    gap: 80px;
+    align-items: flex-start;
+    background: var(--wp-surface);
+    border-top: 0.5px solid var(--wp-border);
+    flex-shrink: 0;
+  }
+  .tab-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    font-size: 10px;
+    color: var(--wp-text-tertiary);
+  }
+  .tab-item.active {
+    color: var(--wp-primary);
+  }
+  .tab-item svg {
+    width: 24px;
+    height: 24px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  /* ===== SHARED COMPONENT STYLES ===== */
+  .nav-title {
+    font-size: var(--font-large-title);
+    font-weight: 700;
+    color: var(--wp-text-primary);
+    letter-spacing: -0.5px;
+  }
+  .nav-title-small {
+    font-size: var(--font-title);
+    font-weight: 600;
+    color: var(--wp-text-primary);
+    letter-spacing: -0.3px;
+  }
+
+  .list-row {
+    display: flex;
+    align-items: center;
+    padding: 12px var(--sp-md);
+    gap: var(--sp-sm);
+    min-height: 44px;
+  }
+  .list-row + .list-row {
+    border-top: 0.5px solid var(--wp-border);
+  }
+
+  .amount {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum';
+    font-weight: 500;
+    text-align: right;
+  }
+  .amount.expense { color: var(--wp-expense); }
+  .amount.income { color: var(--wp-income); }
+
+  .grouped-section {
+    background: var(--wp-surface);
+    border-radius: var(--radius-md);
+    margin: 0 var(--sp-md);
+    overflow: hidden;
+  }
+
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--sp-xs) var(--sp-md);
+  }
+  .section-header-label {
+    font-size: var(--font-caption);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--wp-text-secondary);
+  }
+  .section-header-btn {
+    font-size: 18px;
+    color: var(--wp-primary);
+    line-height: 1;
+  }
+
+  .symbol {
+    font-weight: 700;
+    font-size: 14px;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    flex-shrink: 0;
+    font-family: -apple-system, 'SF Pro Text', monospace;
+  }
+  .symbol.dollar { background: rgba(22,163,74,0.1); color: #16a34a; }
+  .symbol.at { background: rgba(194,65,12,0.1); color: #c2410c; }
+  .symbol.hash { background: rgba(79,107,237,0.1); color: #4f6bed; }
+
+  /* FAB */
+  .fab {
+    position: absolute;
+    bottom: 100px;
+    right: 24px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--wp-primary);
+    color: var(--wp-on-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    font-weight: 300;
+    box-shadow: 0 4px 16px rgba(194,65,12,0.3);
+  }
+
+  /* Chip */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    background: var(--wp-grouped-bg);
+    color: var(--wp-text-secondary);
+  }
+
+  /* Status dot */
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .dot.green { background: var(--wp-success); }
+  .dot.amber { background: var(--wp-warning); }
+  .dot.red { background: var(--wp-error); }
+
+  /* Badge */
+  .badge {
+    background: var(--wp-primary);
+    color: var(--wp-on-primary);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 1px 7px;
+    border-radius: 10px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Button */
+  .btn-primary {
+    background: var(--wp-primary);
+    color: var(--wp-on-primary);
+    border: none;
+    border-radius: var(--radius-md);
+    padding: 16px;
+    font-size: var(--font-headline);
+    font-weight: 600;
+    width: 100%;
+    text-align: center;
+    font-family: inherit;
+  }
+  .btn-apple {
+    background: var(--wp-text-primary);
+    color: var(--wp-background);
+    border: none;
+    border-radius: var(--radius-md);
+    padding: 16px;
+    font-size: var(--font-headline);
+    font-weight: 600;
+    width: 100%;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-family: inherit;
+  }
+
+  /* Input field */
+  .field {
+    background: var(--wp-grouped-bg);
+    border: 1px solid var(--wp-border);
+    border-radius: var(--radius-sm);
+    padding: 12px var(--sp-md);
+    font-size: var(--font-body);
+    color: var(--wp-text-primary);
+    width: 100%;
+    font-family: inherit;
+  }
+  .field::placeholder { color: var(--wp-text-tertiary); }
+  .field-label {
+    font-size: var(--font-caption);
+    font-weight: 500;
+    color: var(--wp-text-secondary);
+    margin-bottom: 6px;
+  }
+
+  /* Scrollable content */
+  .scroll-area {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  /* Search bar */
+  .search-bar {
+    margin: 0 var(--sp-md);
+    background: var(--wp-grouped-bg);
+    border-radius: var(--radius-sm);
+    padding: 10px var(--sp-sm);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--wp-text-tertiary);
+    font-size: 15px;
+  }
+  .search-bar svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.5;
+    flex-shrink: 0;
+  }
+
+  /* Error banner */
+  .error-banner {
+    margin: var(--sp-xs) var(--sp-md);
+    padding: var(--sp-sm) var(--sp-md);
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: flex-start;
+    gap: var(--sp-xs);
+    font-size: 13px;
+    color: #991b1b;
+    line-height: 1.4;
+  }
+  .dark .error-banner {
+    background: rgba(239,68,68,0.1);
+    border-color: rgba(239,68,68,0.2);
+    color: #fca5a5;
+  }
+
+  /* Shimmer */
+  .shimmer {
+    background: linear-gradient(90deg, var(--wp-grouped-bg) 25%, var(--wp-border) 50%, var(--wp-grouped-bg) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+    border-radius: 4px;
+  }
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* ===== FOOTER ===== */
+  .page-footer {
+    text-align: center;
+    padding: 64px 24px 48px;
+    font-size: 13px;
+    color: #a8a29e;
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== PAGE HEADER ===== -->
+<div class="page-header">
+  <h1>UI Polish Pass 1</h1>
+  <p>Expense Tracker mockups aligned to the Warm Productivity design system. Things 3 restraint, YNAB approachability, warm minimalism throughout.</p>
+</div>
+
+
+<!-- ============================================================ -->
+<!-- SECTION 1: SIGN IN -->
+<!-- ============================================================ -->
+<div class="section-divider"><span>Sign In</span></div>
+
+<div class="screen-row">
+
+  <!-- Sign In — Light -->
+  <div class="screen-wrapper">
+    <div class="screen-label">Light</div>
+    <div class="phone">
+      <div class="status-bar">
+        <span class="time">9:41</span>
+        <span class="icons">
+          <svg viewBox="0 0 16 12"><rect x="0" y="3" width="3" height="9" rx="0.5"/><rect x="4.5" y="1.5" width="3" height="10.5" rx="0.5"/><rect x="9" y="0" width="3" height="12" rx="0.5"/></svg>
+          <svg viewBox="0 0 16 12"><path d="M1 4.5C3.5 1.5 7 0 8 0s4.5 1.5 7 4.5M3.5 7C5.2 5 6.8 4 8 4s2.8 1 4.5 3M6 9.5C6.7 8.5 7.4 8 8 8s1.3.5 2 1.5"/></svg>
+          <svg viewBox="0 0 25 12"><rect x="0" y="1" width="22" height="10" rx="2" stroke="currentColor" stroke-width="1" fill="none"/><rect x="23" y="4" width="2" height="4" rx="0.5"/><rect x="2" y="3" width="16" height="6" rx="1"/></svg>
+        </span>
+      </div>
+      <div class="phone-content" style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding: 0 var(--sp-xl);">
+        <div style="flex:1;"></div>
+        <!-- App icon -->
+        <svg width="72" height="72" viewBox="0 0 72 72" fill="none" style="margin-bottom: 24px;">
+          <rect x="4" y="4" width="64" height="64" rx="16" stroke="#c2410c" stroke-width="2.5" fill="none"/>
+          <path d="M22 48V24h20M22 36h16M42 24v24" stroke="#c2410c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div style="font-size: var(--font-title); font-weight: 600; color: var(--wp-text-primary); margin-bottom: 6px;">Warm Productivity</div>
+        <div style="font-size: var(--font-callout); color: var(--wp-text-secondary); margin-bottom: 4px;">Expense Tracker</div>
+        <div style="flex:1;"></div>
+        <button class="btn-apple" style="margin-bottom: 20px;">
+          <svg width="18" height="22" viewBox="0 0 18 22" fill="currentColor"><path d="M13.1 0c.1 1-.4 2.1-1 2.8-.7.8-1.8 1.4-2.8 1.3-.1-1.1.4-2.2 1-2.9C11 .4 12.2-.1 13.1 0zm3.5 7.6c-.2.1-2.2 1.3-2.2 3.8 0 2.9 2.6 4 2.7 4 0 .1-.4 1.4-1.4 2.8-.8 1.2-1.7 2.4-3 2.4s-1.7-.8-3.2-.8c-1.4 0-2 .8-3.2.8-1.2 0-2.1-1.3-3-2.5C1.2 16 .1 13.2.1 10.6.1 7.8 1.8 6.3 3.5 6.3c1.2 0 2.2.8 2.9.8.7 0 1.9-.9 3.3-.9.6 0 2.3.2 3.4 1.4h-.5z"/></svg>
+          Sign in with Apple
+        </button>
+        <div style="font-size: var(--font-caption); color: var(--wp-text-tertiary); text-align:center; padding-bottom: 32px; line-height: 1.5;">Your data stays private. We use Apple's<br>authentication — no passwords stored.</div>
+      </div>
+      <div class="tab-bar" style="visibility:hidden;"></div>
+    </div>
+    <div class="change-note">
+      <strong>Polish:</strong> Centered layout with generous breathing room. Line-art icon instead of filled. Privacy reassurance text below the fold. No tab bar on auth screens.
+    </div>
+  </div>
+
+  <!-- Sign In — Dark -->
+  <div class="screen-wrapper">
+    <div class="screen-label">Dark</div>
+    <div class="phone dark">
+      <div class="status-bar">
+        <span class="time">9:41</span>
+        <span class="icons">
+          <svg viewBox="0 0 16 12"><rect x="0" y="3" width="3" height="9" rx="0.5"/><rect x="4.5" y="1.5" width="3" height="10.5" rx="0.5"/><rect x="9" y="0" width="3" height="12" rx="0.5"/></svg>
+          <svg viewBox="0 0 16 12"><path d="M1 4.5C3.5 1.5 7 0 8 0s4.5 1.5 7 4.5M3.5 7C5.2 5 6.8 4 8 4s2.8 1 4.5 3M6 9.5C6.7 8.5 7.4 8 8 8s1.3.5 2 1.5"/></svg>
+          <svg viewBox="0 0 25 12"><rect x="0" y="1" width="22" height="10" rx="2" stroke="currentColor" stroke-width="1" fill="none"/><rect x="23" y="4" width="2" height="4" rx="0.5"/><rect x="2" y="3" width="16" height="6" rx="1"/></svg>
+        </span>
+      </div>
+      <div class="phone-content" style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding: 0 var(--sp-xl);">
+        <div style="flex:1;"></div>
+        <svg width="72" height="72" viewBox="0 0 72 72" fill="none" style="margin-bottom: 24px;">
+          <rect x="4" y="4" width="64" height="64" rx="16" stroke="#ea580c" stroke-width="2.5" fill="none"/>
+          <path d="M22 48V24h20M22 36h16M42 24v24" stroke="#ea580c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div style="font-size: var(--font-title); font-weight: 600; color: var(--wp-text-primary); margin-bottom: 6px;">Warm Productivity</div>
+        <div style="font-size: var(--font-callout); color: var(--wp-text-secondary); margin-bottom: 4px;">Expense Tracker</div>
+        <div style="flex:1;"></div>
+        <button class="btn-apple" style="margin-bottom: 20px; background: #fafaf9; color: #1c1917;">
+          <svg width="18" height="22" viewBox="0 0 18 22" fill="currentColor"><path d="M13.1 0c.1 1-.4 2.1-1 2.8-.7.8-1.8 1.4-2.8 1.3-.1-1.1.4-2.2 1-2.9C11 .4 12.2-.1 13.1 0zm3.5 7.6c-.2.1-2.2 1.3-2.2 3.8 0 2.9 2.6 4 2.7 4 0 .1-.4 1.4-1.4 2.8-.8 1.2-1.7 2.4-3 2.4s-1.7-.8-3.2-.8c-1.4 0-2 .8-3.2.8-1.2 0-2.1-1.3-3-2.5C1.2 16 .1 13.2.1 10.6.1 7.8 1.8 6.3 3.5 6.3c1.2 0 2.2.8 2.9.8.7 0 1.9-.9 3.3-.9.6 0 2.3.2 3.4 1.4h-.5z"/></svg>
+          Sign in with Apple
+        </button>
+        <div style="font-size: var(--font-caption); color: var(--wp-text-tertiary); text-align:center; padding-bottom: 32px; line-height: 1.5;">Your data stays private. We use Apple's<br>authentication — no passwords stored.</div>
+      </div>
+      <div class="tab-bar" style="visibility:hidden;"></div>
+    </div>
+    <div class="change-note">
+      <strong>Dark:</strong> Primary shifts to #ea580c for contrast. Apple button inverts to light. All tokens from CSS variables — zero hardcoded overrides needed.
+    </div>
+  </div>
+
+</div>
+
+
+<!-- ============================================================ -->
+<!-- SECTION 2: ONBOARDING -->
+<!-- ============================================================ -->
+<div class="section-divider"><span>Setup / Onboarding</span></div>
+
+<div class="screen-row">
+  <div class="screen-wrapper">
+    <div class="screen-label">Single-Screen Setup</div>
+    <div class="phone">
+      <div class="status-bar">
+        <span class="time">9:41</span>
+        <span class="icons">
+          <svg viewBox="0 0 16 12"><rect x="0" y="3" width="3" height="9" rx="0.5"/><rect x="4.5" y="1.5" width="3" height="10.5" rx="0.5"/><rect x="9" y="0" width="3" height="12" rx="0.5"/></svg>
+          <svg viewBox="0 0 16 12"><path d="M1 4.5C3.5 1.5 7 0 8 0s4.5 1.5 7 4.5M3.5 7C5.2 5 6.8 4 8 4s2.8 1 4.5 3M6 9.5C6.7 8.5 7.4 8 8 8s1.3.5 2 1.5"/></svg>
+          <svg viewBox="0 0 25 12"><rect x="0" y="1" width="22" height="10" rx="2" stroke="currentColor" stroke-width="1" fill="none"/><rect x="23" y="4" width="2" height="4" rx="0.5"/><rect x="2" y="3" width="16" height="6" rx="1"/></svg>
+        </span>
+      </div>
+      <div class="phone-content" style="padding: var(--sp-lg) var(--sp-lg);">
+        <div style="flex:1; display:flex; flex-direction:column;">
+          <div style="font-size: var(--font-large-title); font-weight: 700; color: var(--wp-text-primary); letter-spacing: -0.5px; margin-top: var(--sp-xl);">Let's get<br>you started.</div>
+          <div style="font-size: var(--font-callout); color: var(--wp-text-secondary); margin-top: var(--sp-xs); line-height: 1.5;">Two quick things and you're in.</div>
+
+          <div style="margin-top: var(--sp-xxl);">
+            <div class="field-label">Home Currency</div>
+            <div class="field" style="display:flex; justify-content:space-between; align-items:center;">
+              <span>US Dollar (USD)</span>
+              <svg width="12" height="8" viewBox="0 0 12 8" fill="none" stroke="var(--wp-text-tertiary)" stroke-width="1.5" stroke-linecap="round"><path d="M1 1.5l5 5 5-5"/></svg>
+            </div>
+          </div>
+
+          <div style="margin-top: var(--sp-lg);">
+            <div class="field-label">First Bank Account</div>
+            <div class="field" style="color: var(--wp-text-tertiary);">e.g., Chase Checking</div>
+          </div>
+
+          <div style="flex:1;"></div>
+
+          <button class="btn-primary" style="margin-bottom: var(--sp-xl);">Get Started</button>
+        </div>
+      </div>
+    </div>
+    <div class="change-note">
+      <strong>Polish:</strong> No wizard, no pagination dots, no skippable steps. Two fields and a button. Large title anchors the hierarchy. "Two quick things" sets expectations. Keyboard would push content up naturally.
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================================================ -->
+<!-- SECTION 3: TRANSACTIONS SIDEBAR -->
+<!-- ============================================================ -->
+<div class="section-divider"><span>Transactions Sidebar</span></div>
+
+<div class="screen-row">
+
+  <!-- Sidebar — Light -->
+  <div class="screen-wrapper">
+    <div class="screen-label">Light</div>
+    <div class="phone">
+      <div class="status-bar">
+        <span class="time">9:41</span>
+        <span class="icons">
+          <svg viewBox="0 0 16 12"><rect x="0" y="3" width="3" height="9" rx="0.5"/><rect x="4.5" y="1.5" width="3" height="10.5" rx="0.5"/><rect x="9" y="0" width="3" height="12" rx="0.5"/></svg>
+          <svg viewBox="0 0 16 12"><path d="M1 4.5C3.5 1.5 7 0 8 0s4.5 1.5 7 4.5M3.5 7C5.2 5 6.8 4 8 4s2.8 1 4.5 3M6 9.5C6.7 8.5 7.4 8 8 8s1.3.5 2 1.5"/></svg>
+          <svg viewBox="0 0 25 12"><rect x="0" y="1" width="22" height="10" rx="2" stroke="currentColor" stroke-width="1" fill="none"/><rect x="23" y="4" width="2" height="4" rx="0.5"/><rect x="2" y="3" width="16" height="6" rx="1"/></svg>
+        </span>
+      </div>
+      <div class="phone-content">
+        <div class="scroll-area" style="padding-top: var(--sp-xs);">
+          <!-- Title -->
+          <div style="padding: var(--sp-md) var(--sp-md) var(--sp-lg);">
+            <div class="nav-title">Transactions</div>
+          </div>
+
+          <!-- Inbox row -->
+          <div class="grouped-section" style="margin-bottom: var(--sp-sm);">
+            <div class="list-row" style="cursor: pointer;">
+              <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="var(--wp-primary)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8l3-5h10l3 5"/><rect x="2" y="8" width="18" height="11" rx="2"/><path d="M2 8h5l2 3h4l2-3h5"/></svg>
+              <span style="font-size: var(--font-body); color: var(--wp-text-primary); flex:1;">Inbox</span>
+              <span class="badge">3</span>
+              <svg width="7" height="12" viewBox="0 0 7 12" fill="none" stroke="var(--wp-text-tertiary)" stroke-width="1.5" stroke-linecap="round"><path d="M1 1l5 5-5 5"/></svg>
+            </div>
+          </div>
+
+          <!-- Ledger row -->
+          <div class="grouped-section" style="margin-bottom: var(--sp-lg);">
+            <div class="list-row" style="cursor: pointer;">
+              <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="var(--wp-primary)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h14a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V6a2 2 0 012-2z"/><path d="M2 10h18"/></svg>
+              <span style="font-size: var(--font-body); color: var(--wp-text-primary); flex:1;">Ledger</span>
+              <svg width="7" height="12" viewBox="0 0 7 12" fill="none" stroke="var(--wp-text-tertiary)" stroke-width="1.5" stroke-linecap="round"><path d="M1 1l5 5-5 5"/></svg>
+            </div>
+          </div>
+
+          <!-- Bank Accounts -->
+          <div class="section-header">
+            <span class="section-header-label">Bank Accounts</span>
+            <span class="section-header-btn">+</span>
+          </div>
+          <div class="grouped-section" style="margin-bottom: var(--sp-lg);">
+            <div class="list-row">
+              <span class="symbol dollar">$</span>
+              <div style="flex:1;">
+                <div style="font-size: var(--font-body); color: var(--wp-text-primary);">Chase Checking</div>
+              </div>
+              <span class="amount" style="color: var(--wp-text-primary); font-size: var(--font-body);">$4,280.50</span>
+            </div>
+            <div class="list-row">
+              <span class="symbol dollar" style="background: rgba(79,107,237,0.1); color: #4f6bed;">$</span>
+              <div style="flex:1;">
+                <div style="font-size: var(--font-body); color: var(--wp-text-primary);">Amex Platinum</div>
+              </div>
+              <span class="amount expense" style="font-size: var(--font-body);">-$1,230.00</span>
+            </div>
+            <div class="list-row">
+              <span class="symbol dollar" style="background: rgba(168,162,158,0.1); color: #78716c;">$</span>
+              <div style="flex:1;">
+                <div style="font-size: var(--font-body); color: var(--wp-text-primary);">Cash</div>
+              </div>
+              <span class="amount" style="color: var(--wp-text-primary); font-size: var(--font-body);">$340.00</span>
+            </div>
+          </div>
+
+          <!-- Categories -->
+          <div class="section-header">
+            <span class="section-header-label">Categories</span>
+            <span class="section-header-btn">+</span>
+          </div>
+          <div class="grouped-section" style="margin-bottom: var(--sp-lg);">
+            <div class="list-row">
+              <span class="symbol at">@</span>
+              <div style="flex:1;">
+                <div style="font-size: var(--font-body); color: var(--wp-text-primary);">Groceries</div>
+              </div>
+              <span class="amount" style="color: var(--wp-text-secondary); font-size: var(--font-callout);">$482.30</span>
+            </div>
+            <div class="list-row">
+              <span class="symbol at" style="background: rgba(79,107,237,0.1); color: #4f6bed;">@</span>
+              <div style="flex:1;">
+                <div style="font-size: var(--font-body); color: var(--wp-text-primary);">Transport</div>
+              </div>
+              <span class="amount" style="color: var(--wp-text-secondary); font-size: var(--font-callout);">$128.00</span>
+            </div>
+            <div class="list-row">
+              <span class="symbol at" style="background: rgba(217,119,6,0.1); color: #d97706;">@</span>
+              <div style="flex:1;">
+                <div style="font-size: var(--font-body); color: var(--wp-text-primary);">Dining</div>
+              </div>
+              <span class="amount" style="color: var(--wp-text-secondary); font-size: var(--font-callout);">$95.40</span>
+            </div>
+          </div>
+
+          <!-- Hashtags -->
+          <div class="section-header">
+            <span class="section-header-label">Hashtags</span>
+            <span class="section-header-btn">+</span>
+          </div>
+          <div class="grouped-section" style="margin-bottom: var(--sp-xl);">
+            <div class="list-row">
+              <span class="symbol hash">#</span>
+              <div style="flex:1;">
+                <div style="font-size: var(--font-body); color: var(--wp-text-primary);">vacation</div>
+              </div>
+            </div>
+            <div class="list-row">
+              <span class="symbol hash">#</span>
+              <div style="flex:1;">
+                <div style="font-size: var(--font-body); color: var(--wp-text-primary);">tax-deductible</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- FAB -->
+        <div class="fab">+</div>
+      </div>
+      <div class="tab-bar">
+        <div class="tab-item active">
+          <svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+          <span>Transactions</span>
+        </div>
+        <div class="tab-item">
+          <svg viewBox="0 0 24 24"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.32 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+          <span>Settings</span>
+        </div>
+      </div>
+    </div>
+    <div class="change-note">
+      <strong>Polish:</strong> $ @ # symbols replace generic colored dots. Collapsible sections with + buttons on headers. Inbox/Ledger pinned at top as primary navigation. Amounts right-aligned with tabular-nums. FAB floating bottom-right.
+    </div>
+  </div>
+
+  <!-- Sidebar — Dark -->
+  <div class="screen-wrapper">
+    <div class="screen-label">Dark</div>
+    <div class="phone dark">
+      <div class="status-bar">
+        <span class="time">9:41</span>
+        <span class="icons">
+          <svg viewBox="0 0 16 12"><rect x="0" y="3" width="3" height="9" rx="0.5"/><rect x="4.5" y="1.5" width="3" height="10.5" rx="0.5"/><rect x="9" y="0" width="3" height="12" rx="0.5"/></svg>
+          <svg viewBox="0 0 16 12"><path d="M1 4.5C3.5 1.5 7 0 8 0s4.5 1.5 7 4.5M3.5 7C5.2 5 6.8 4 8 4s2.8 1 4.5 3M6 9.5C6.7 8.5 7.4 8 8 8s1.3.5 2 1.5"/></svg>
+          <svg viewBox="0 0 25 12"><rect x="0" y="1" width="22" height="10" rx="2" stroke="currentColor" stroke-width="1" fill="none"/><rect x="23" y="4" width="2" height="4" rx="0.5"/><rect x="2" y="3" width="16" height="6" rx="1"/></svg>
+        </span>
+      </div>
+      <div class="phone-content">
+        <div class="scroll-area" style="padding-top: var(--sp-xs);">
+          <div style="padding: var(--sp-md) var(--sp-md) var(--sp-lg);">
+            <div class="nav-title">Transactions</div>
+          </div>
+
+          <div class="grouped-section" style="margin-bottom: var(--sp-sm);">
+            <div class="list-row">
+              <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="var(--wp-primary)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8l3-5h10l3 5"/><rect x="2" y="8" width="18" height="11" rx="2"/><path d="M2 8h5l2 3h4l2-3h5"/></svg>
+              <span style="font-size: var(--font-body); color: var(--wp-text-primary); flex:1;">Inbox</span>
+              <span class="badge">3</span>
+              <svg width="7" height="12" viewBox="0 0 7 12" fill="none" stroke="var(--wp-text-tertiary)" stroke-width="1.5" stroke-linecap="round"><path d="M1 1l5 5-5 5"/></svg>
+            </div>
+          </div>
+
+          <div class="grouped-section" style="margin-bottom: var(--sp-lg);">
+            <div class="list-row">
+              <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="var(--wp-primary)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h14a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V6a2 2 0 012-2z"/><path d="M2 10h18"/></svg>
+              <span style="font-size: var(--font-body); color: var(--wp-text-primary); flex:1;">Ledger</span>
+              <svg width="7" height="12" viewBox="0 0 7 12" fill="none" stroke="var(--wp-text-tertiary)" stroke-width="1.5" stroke-linecap="round"><path d="M1 1l5 5-5 5"/></svg>
+            </div>
+          </div>
+
+          <div class="section-header">
+            <span class="section-header-label">Bank Accounts</span>
+            <span class="section-header-btn">+</span>
+          </div>
+          <div class="grouped-section" style="margin-bottom: var(--sp-lg);">
+            <div class="list-row">
+              <span class="symbol dollar">$</span>
+              <div style="flex:1;"><div style="font-size: var(--font-body); color: var(--wp-text-primary);">Chase Checking</div></div>
+              <span class="amount" style="color: var(--wp-text-primary); font-size: var(--font-body);">$4,280.50</span>
+            </div>
+            <div class="list-row">
+              <span class="symbol dollar" style="background: rgba(79,107,237,0.15); color: #6b8af2;">$</span>
+              <div style="flex:1;"><div style="font-size: var(--font-body); color: var(--wp-text-primary);">Amex Platinum</div></div>
+              <span class="amount expense" style="font-size: var(--font-body);">-$1,230.00</span>
+            </div>
+          </div>
+
+          <div class="section-header">
+            <span class="section-header-label">Categories</span>
+            <span class="section-header-btn">+</span>
+          </div>
+          <div class="grouped-section" style="margin-bottom: var(--sp-lg);">
+            <div class="list-row">
+              <span class="symbol at">@</span>
+              <div style="flex:1;"><div style="font-size: var(--font-body); color: var(--wp-text-primary);">Groceries</div></div>
+              <span class="amount" style="color: var(--wp-text-secondary); font-size: var(--font-callout);">$482.30</span>
+            </div>
+            <div class="list-row">
+              <span class="symbol at" style="background: rgba(79,107,237,0.15); color: #6b8af2;">@</span>
+              <div style="flex:1;"><div style="font-size: var(--font-body); color: var(--wp-text-primary);">Transport</div></div>
+              <span class="amount" style="color: var(--wp-text-secondary); font-size: var(--font-callout);">$128.00</span>
+            </div>
+          </div>
+
+          <div class="section-header">
+            <span class="section-header-label">Hashtags</span>
+            <span class="section-header-btn">+</span>
+          </div>
+          <div class="grouped-section" style="margin-bottom: var(--sp-xl);">
+            <div class="list-row">
+              <span class="symbol hash" style="background: rgba(79,107,237,0.15); color: #6b8af2;">#</span>
+              <div style="flex:1;"><div style="font-size: var(--font-body); color: var(--wp-text-primary);">vacation</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="fab" style="background: var(--wp-primary); box-shadow: 0 4px 16px rgba(234,88,12,0.4);">+</div>
+      </div>
+      <div class="tab-bar">
+        <div class="tab-item active">
+          <svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+          <span>Transactions</span>
+        </div>
+        <div class="tab-item">
+          <svg viewBox="0 0 24 24"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.32 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+          <span>Settings</span>
+        </div>
+      </div>
+    </div>
+    <div class="change-note">
+      <strong>Dark:</strong> Surface cards (#292524) float on background (#1c1917). Symbol colors lighten slightly for dark-mode legibility. Same layout, zero structural changes — proving the token system works.
+    </div>
+  </div>
+
+</div>
+
+
+<!-- ============================================================ -->
+<!-- SECTION 4: INBOX LIST -->
+<!-- ============================================================ -->
+<div class="section-divider"><span>Inbox List</span></div>
+
+<div class="screen-row">
+  <div class="screen-wrapper">
+    <div class="screen-label">Inbox with Status Indicators</div>
+    <div class="phone">
+      <div class="status-bar">
+        <span class="time">9:41</span>
+        <span class="icons">
+          <svg viewBox="0 0 16 12"><rect x="0" y="3" width="3" height="9" rx="0.5"/><rect x="4.5" y="1.5" width="3" height="10.5" rx="0.5"/><rect x="9" y="0" width="3" height="12" rx="0.5"/></svg>
+          <svg viewBox="0 0 16 12"><path d="M1 4.5C3.5 1.5 7 0 8 0s4.5 1.5 7 4.5M3.5 7C5.2 5 6.8 4 8 4s2.8 1 4.5 3M6 9.5C6.7 8.5 7.4 8 8 8s1.3.5 2 1.5"/></svg>
+          <svg viewBox="0 0 25 12"><rect x="0" y="1" width="22" height="10" rx="2" stroke="currentColor" stroke-width="1" fill="none"/><rect x="23" y="4" width="2" height="4" rx="0.5"/><rect x="2" y="3" width="16" height="6" rx="1"/></svg>
+        </span>
+      </div>
+      <div class="phone-content">
+        <div style="padding: var(--sp-md) var(--sp-md) 0; display:flex; align-items:center; gap: var(--sp-xs);">
+          <svg width="10" height="16" viewBox="0 0 10 16" fill="none" stroke="var(--wp-primary)" stroke-width="2" stroke-linecap="round"><path d="M8 2L2 8l6 6"/></svg>
+          <span style="font-size: var(--font-body); color: var(--wp-primary);">Transactions</span>
+        </div>
+        <div style="padding: var(--sp-xs) var(--sp-md) var(--sp-md);">
+          <div class="nav-title">Inbox</div>
+          <div style="font-size: var(--font-caption); color: var(--wp-text-secondary); margin-top: 2px;">3 items need attention</div>
+        </div>
+
+        <div class="scroll-area">
+          <!-- Overdue section -->
+          <div style="padding: var(--sp-xs) var(--sp-md);">
+            <span style="font-size: var(--font-caption); font-weight: 600; color: var(--wp-error); text-transform: uppercase; letter-spacing: 0.5px;">Overdue</span>
+          </div>
+          <div class="grouped-section" style="margin-bottom: var(--sp-lg);">
+            <div class="list-row" style="padding: var(--sp-sm) var(--sp-md);">
+              <div class="dot red"></div>
+              <div style="flex:1;">
+                <div style="font-size: var(--font-body); color: var(--wp-text-primary);">Amazon order</div>
+                <div style="font-size: var(--font-caption); color: var(--wp-error); margin-top: 2px;">Mar 18 — missing account, category</div>
+              </div>
+              <span class="amount" style="color: var(--wp-text-primary); font-size: var(--font-body);">$34.99</span>
+            </div>
+          </div>
+
+          <!-- Today -->
+          <div style="padding: var(--sp-xs) var(--sp-md);">
+            <span style="font-size: var(--font-caption); font-weight: 600; color: var(--wp-text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Today</span>
+          </div>
+          <div class="grouped-section" style="margin-bottom: var(--sp-lg);">
+            <div class="list-row" style="padding: var(--sp-sm) var(--sp-md);">
+              <div class="dot green"></div>
+              <div style="flex:1;">
+                <div style="font-size: var(--font-body); color: var(--wp-text-primary);">Coffee at Blue Bottle</div>
+                <div style="font-size: var(--font-caption); color: var(--wp-text-tertiary); margin-top: 2px;">@Dining  $Chase  #daily</div>
+              </div>
+              <span class="amount" style="color: var(--wp-text-primary); font-size: var(--font-body);">$5.40</span>
+            </div>
+            <div class="list-row" style="padding: var(--sp-sm) var(--sp-md);">
+              <div class="dot amber"></div>
+              <div style="flex:1;">
+                <div style="font-size: var(--font-body); color: var(--wp-text-primary);">Uber to airport</div>
+                <div style="font-size: var(--font-caption); color: var(--wp-warning); margin-top: 2px;">Missing category</div>
+              </div>
+              <span class="amount" style="color: var(--wp-text-primary); font-size: var(--font-body);">$42.00</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-bar">
+        <div class="tab-item active">
+          <svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+          <span>Transactions</span>
+        </div>
+        <div class="tab-item">
+          <svg viewBox="0 0 24 24"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.32 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+          <span>Settings</span>
+        </div>
+      </div>
+    </div>
+    <div class="change-note">
+      <strong>Polish:</strong> Green dot = ready to promote (all fields present). Amber = missing some fields. Red = overdue. Missing fields listed inline in context-appropriate color. Subtitle shows count. Minimal rows — just title, status, missing info, amount.
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================================================ -->
+<!-- SECTION 5: LEDGER LIST -->
+<!-- ============================================================ -->
+<div class="section-divider"><span>Ledger List</span></div>
+
+<div class="screen-row">
+  <div class="screen-wrapper">
+    <div class="screen-label">Grouped by Date</div>
+    <div class="phone">
+      <div class="status-bar">
+        <span class="time">9:41</span>
+        <span class="icons">
+          <svg viewBox="0 0 16 12"><rect x="0" y="3" width="3" height="9" rx="0.5"/><rect x="4.5" y="1.5" width="3" height="10.5" rx="0.5"/><rect x="9" y="0" width="3" height="12" rx="0.5"/></svg>
+          <svg viewBox="0 0 16 12"><path d="M1 4.5C3.5 1.5 7 0 8 0s4.5 1.5 7 4.5M3.5 7C5.2 5 6.8 4 8 4s2.8 1 4.5 3M6 9.5C6.7 8.5 7.4 8 8 8s1.3.5 2 1.5"/></svg>
+          <svg viewBox="0 0 25 12"><rect x="0" y="1" width="22" height="10" rx="2" stroke="currentColor" stroke-width="1" fill="none"/><rect x="23" y="4" width="2" height="4" rx="0.5"/><rect x="2" y="3" width="16" height="6" rx="1"/></svg>
+        </span>
+      </div>
+      <div class="phone-content">
+        <div style="padding: var(--sp-md) var(--sp-md) 0; display:flex; align-items:center; gap: var(--sp-xs);">
+          <svg width="10" height="16" viewBox="0 0 10 16" fill="none" stroke="var(--wp-primary)" stroke-width="2" stroke-linecap="round"><path d="M8 2L2 8l6 6"/></svg>
+          <span style="font-size: var(--font-body); color: var(--wp-primary);">Transactions</span>
+        </div>
+        <div style="padding: var(--sp-xs) var(--sp-md) var(--sp-sm);">
+          <div class="nav-title">Ledger</div>
+        </div>
+
+        <!-- Search bar -->
+        <div class="search-bar" style="margin-bottom: var(--sp-md);">
+          <svg viewBox="0 0 20 20"><circle cx="9" cy="9" r="6"/><path d="M14 14l4 4"/></svg>
+          <span>Search transactions</span>
+        </div>
+
+        <div class="scroll-area">
+          <!-- Today -->
+          <div style="padding: var(--sp-xs) var(--sp-md);">
+            <span style="font-size: var(--font-caption); font-weight: 600; color: var(--wp-text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Today, Mar 22</span>
+          </div>
+          <div class="grouped-section" style="margin-bottom: var(--sp-lg);">
+            <div class="list-row" style="padding: var(--sp-sm) var(--sp-md);">
+              <div style="flex:1;">
+                <div style="font-size: var(--font-body); color: var(--wp-text-primary);">Whole Foods</div>
+                <div style="font-size: var(--font-caption); color: var(--wp-text-tertiary); margin-top: 2px;">
+                  <span style="color: #c2410c;">@Groceries</span>
+                  <span style="margin: 0 4px; color: var(--wp-text-tertiary);">·</span>
+                  Chase Checking
+                </div>
+              </div>
+              <span class="amount expense" style="font-size: var(--font-body);">-$67.32</span>
+            </div>
+            <div class="list-row" style="padding: var(--sp-sm) var(--sp-md);">
+              <div style="flex:1;">
+                <div style="font-size: var(--font-body); color: var(--wp-text-primary);">Salary deposit</div>
+                <div style="font-size: var(--font-caption); color: var(--wp-text-tertiary); margin-top: 2px;">
+                  <span style="color: #16a34a;">@Income</span>
+                  <span style="margin: 0 4px; color: var(--wp-text-tertiary);">·</span>
+                  Chase Checking
+                </div>
+              </div>
+              <span class="amount income" style="font-size: var(--font-body);">+$3,200.00</span>
+            </div>
+          </div>
+
+          <!-- Yesterday -->
+          <div style="padding: var(--sp-xs) var(--sp-md);">
+            <span style="font-size: var(--font-caption); font-weight: 600; color: var(--wp-text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Yesterday, Mar 21</span>
+          </div>
+          <div class="grouped-section" style="margin-bottom: var(--sp-lg);">
+            <div class="list-row" style="padding: var(--sp-sm) var(--sp-md);">
+              <div style="flex:1;">
+                <div style="font-size: var(--font-body); color: var(--wp-text-primary);">Metro card refill</div>
+                <div style="font-size: var(--font-caption); color: var(--wp-text-tertiary); margin-top: 2px;">
+                  <span style="color: #4f6bed;">@Transport</span>
+                  <span style="margin: 0 4px; color: var(--wp-text-tertiary);">·</span>
+                  Amex Platinum
+                </div>
+              </div>
+              <span class="amount expense" style="font-size: var(--font-body);">-$33.00</span>
+            </div>
+            <div class="list-row" style="padding: var(--sp-sm) var(--sp-md);">
+              <div style="flex:1;">
+                <div style="font-size: var(--font-body); color: var(--wp-text-primary);">Thai Kitchen</div>
+                <div style="font-size: var(--font-caption); color: var(--wp-text-tertiary); margin-top: 2px;">
+                  <span style="color: #d97706;">@Dining</span>
+                  <span style="margin: 0 4px; color: var(--wp-text-tertiary);">·</span>
+                  Cash
+                </div>
+              </div>
+              <span class="amount expense" style="font-size: var(--font-body);">-$18.50</span>
+            </div>
+            <div class="list-row" style="padding: var(--sp-sm) var(--sp-md);">
+              <div style="flex:1;">
+                <div style="display:flex; align-items:center; gap: 6px;">
+                  <span style="font-size: var(--font-body); color: var(--wp-text-primary);">Airbnb Tokyo</span>
+                  <span class="chip" style="font-size: 11px; padding: 1px 6px;">&yen;12,500</span>
+                </div>
+                <div style="font-size: var(--font-caption); color: var(--wp-text-tertiary); margin-top: 2px;">
+                  <span style="color: #c2410c;">@Travel</span>
+                  <span style="margin: 0 4px; color: var(--wp-text-tertiary);">·</span>
+                  Amex Platinum
+                </div>
+              </div>
+              <span class="amount expense" style="font-size: var(--font-body);">-$85.20</span>
+            </div>
+          </div>
+
+          <!-- March 20 -->
+          <div style="padding: var(--sp-xs) var(--sp-md);">
+            <span style="font-size: var(--font-caption); font-weight: 600; color: var(--wp-text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Wed, Mar 20</span>
+          </div>
+          <div class="grouped-section" style="margin-bottom: var(--sp-lg);">
+            <div class="list-row" style="padding: var(--sp-sm) var(--sp-md);">
+              <div style="flex:1;">
+                <div style="font-size: var(--font-body); color: var(--wp-text-primary);">Netflix</div>
+                <div style="font-size: var(--font-caption); color: var(--wp-text-tertiary); margin-top: 2px;">
+                  <span style="color: #c2410c;">@Entertainment</span>
+                  <span style="margin: 0 4px; color: var(--wp-text-tertiary);">·</span>
+                  Chase Checking
+                </div>
+              </div>
+              <span class="amount expense" style="font-size: var(--font-body);">-$15.49</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-bar">
+        <div class="tab-item active">
+          <svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+          <span>Transactions</span>
+        </div>
+        <div class="tab-item">
+          <svg viewBox="0 0 24 24"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.32 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+          <span>Settings</span>
+        </div>
+      </div>
+    </div>
+    <div class="change-note">
+      <strong>Polish:</strong> Date headers as small caps section labels. Category name colored with its @ color, account in tertiary. Multi-currency row shows foreign amount as a subtle chip alongside the home-currency total. Amounts right-aligned, expenses red, income green.
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================================================ -->
+<!-- SECTION 6: QUICK ENTRY PANEL -->
+<!-- ============================================================ -->
+<div class="section-divider"><span>Quick Entry Panel</span></div>
+
+<div class="screen-row">
+
+  <!-- Complete entry -->
+  <div class="screen-wrapper">
+    <div class="screen-label">Complete Entry (to Ledger)</div>
+    <div class="phone">
+      <div class="status-bar">
+        <span class="time">9:41</span>
+        <span class="icons">
+          <svg viewBox="0 0 16 12"><rect x="0" y="3" width="3" height="9" rx="0.5"/><rect x="4.5" y="1.5" width="3" height="10.5" rx="0.5"/><rect x="9" y="0" width="3" height="12" rx="0.5"/></svg>
+          <svg viewBox="0 0 16 12"><path d="M1 4.5C3.5 1.5 7 0 8 0s4.5 1.5 7 4.5M3.5 7C5.2 5 6.8 4 8 4s2.8 1 4.5 3M6 9.5C6.7 8.5 7.4 8 8 8s1.3.5 2 1.5"/></svg>
+          <svg viewBox="0 0 25 12"><rect x="0" y="1" width="22" height="10" rx="2" stroke="currentColor" stroke-width="1" fill="none"/><rect x="23" y="4" width="2" height="4" rx="0.5"/><rect x="2" y="3" width="16" height="6" rx="1"/></svg>
+        </span>
+      </div>
+      <div class="phone-content" style="position:relative;">
+        <!-- Dimmed background content (sidebar visible above) -->
+        <div style="flex:1; opacity: 0.3; padding: var(--sp-md);">
+          <div class="nav-title" style="margin-bottom: var(--sp-md);">Transactions</div>
+          <div style="background: var(--wp-surface); border-radius: var(--radius-md); padding: var(--sp-sm) var(--sp-md); margin-bottom: var(--sp-xs);">
+            <span style="color: var(--wp-text-secondary); font-size: var(--font-body);">Inbox</span>
+          </div>
+          <div style="background: var(--wp-surface); border-radius: var(--radius-md); padding: var(--sp-sm) var(--sp-md);">
+            <span style="color: var(--wp-text-secondary); font-size: var(--font-body);">Ledger</span>
+          </div>
+        </div>
+
+        <!-- Quick entry panel -->
+        <div style="position:absolute; bottom: 0; left: 0; right: 0; background: var(--wp-surface); border-top-left-radius: var(--radius-lg); border-top-right-radius: var(--radius-lg); box-shadow: 0 -4px 24px rgba(0,0,0,0.08); padding: var(--sp-sm) var(--sp-md) var(--sp-md);">
+          <!-- Handle -->
+          <div style="width: 36px; height: 4px; background: var(--wp-border); border-radius: 2px; margin: 0 auto var(--sp-sm);"></div>
+
+          <!-- Command line -->
+          <div style="background: var(--wp-background); border: 1.5px solid var(--wp-primary); border-radius: var(--radius-sm); padding: var(--sp-sm) var(--sp-md); font-size: var(--font-body); color: var(--wp-text-primary); margin-bottom: var(--sp-sm);">
+            Coffee 5.40 @Dining $Chase
+          </div>
+
+          <!-- Parsed tokens -->
+          <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: var(--sp-sm);">
+            <span class="chip"><span style="color: var(--wp-text-primary); font-weight: 500;">$5.40</span></span>
+            <span class="chip"><span style="color: #c2410c; font-weight: 500;">@Dining</span></span>
+            <span class="chip"><span style="color: #16a34a; font-weight: 500;">$Chase</span></span>
+            <span class="chip"><span style="color: var(--wp-text-secondary);">Today</span></span>
+          </div>
+
+          <!-- Description field -->
+          <div style="background: var(--wp-grouped-bg); border-radius: var(--radius-sm); padding: 10px var(--sp-sm); font-size: var(--font-callout); color: var(--wp-text-tertiary); margin-bottom: var(--sp-sm);">
+            Add a note...
+          </div>
+
+          <!-- Toolbar -->
+          <div style="display: flex; gap: var(--sp-md); padding: var(--sp-xs) 0; margin-bottom: var(--sp-sm);">
+            <span style="font-size: 20px; color: var(--wp-text-secondary); cursor: pointer;">&#x1F4C5;</span>
+            <span style="font-size: 16px; font-weight: 700; color: #c2410c; cursor: pointer;">@</span>
+            <span style="font-size: 16px; font-weight: 700; color: #16a34a; cursor: pointer;">$</span>
+            <span style="font-size: 16px; font-weight: 700; color: #4f6bed; cursor: pointer;">#</span>
+            <span style="font-size: 20px; color: var(--wp-text-secondary); cursor: pointer;">&#x22EF;</span>
+          </div>
+
+          <!-- Save button -->
+          <button class="btn-primary" style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><path d="M2 8l4.5 5L14 3"/></svg>
+            Save to Ledger
+          </button>
+        </div>
+      </div>
+      <div class="tab-bar" style="visibility: hidden;"></div>
+    </div>
+    <div class="change-note">
+      <strong>Polish:</strong> Panel expands from bottom without covering full view. Command line is the hero element with primary border. Parsed tokens as chips. Toolbar buttons use semantic colors. "Save to Ledger" confirms destination. Content visible above — not a modal.
+    </div>
+  </div>
+
+  <!-- Incomplete entry -->
+  <div class="screen-wrapper">
+    <div class="screen-label">Incomplete Entry (to Inbox)</div>
+    <div class="phone">
+      <div class="status-bar">
+        <span class="time">9:41</span>
+        <span class="icons">
+          <svg viewBox="0 0 16 12"><rect x="0" y="3" width="3" height="9" rx="0.5"/><rect x="4.5" y="1.5" width="3" height="10.5" rx="0.5"/><rect x="9" y="0" width="3" height="12" rx="0.5"/></svg>
+          <svg viewBox="0 0 16 12"><path d="M1 4.5C3.5 1.5 7 0 8 0s4.5 1.5 7 4.5M3.5 7C5.2 5 6.8 4 8 4s2.8 1 4.5 3M6 9.5C6.7 8.5 7.4 8 8 8s1.3.5 2 1.5"/></svg>
+          <svg viewBox="0 0 25 12"><rect x="0" y="1" width="22" height="10" rx="2" stroke="currentColor" stroke-width="1" fill="none"/><rect x="23" y="4" width="2" height="4" rx="0.5"/><rect x="2" y="3" width="16" height="6" rx="1"/></svg>
+        </span>
+      </div>
+      <div class="phone-content" style="position:relative;">
+        <div style="flex:1; opacity: 0.3; padding: var(--sp-md);">
+          <div class="nav-title" style="margin-bottom: var(--sp-md);">Transactions</div>
+          <div style="background: var(--wp-surface); border-radius: var(--radius-md); padding: var(--sp-sm) var(--sp-md); margin-bottom: var(--sp-xs);">
+            <span style="color: var(--wp-text-secondary); font-size: var(--font-body);">Inbox</span>
+          </div>
+          <div style="background: var(--wp-surface); border-radius: var(--radius-md); padding: var(--sp-sm) var(--sp-md);">
+            <span style="color: var(--wp-text-secondary); font-size: var(--font-body);">Ledger</span>
+          </div>
+        </div>
+
+        <div style="position:absolute; bottom: 0; left: 0; right: 0; background: var(--wp-surface); border-top-left-radius: var(--radius-lg); border-top-right-radius: var(--radius-lg); box-shadow: 0 -4px 24px rgba(0,0,0,0.08); padding: var(--sp-sm) var(--sp-md) var(--sp-md);">
+          <div style="width: 36px; height: 4px; background: var(--wp-border); border-radius: 2px; margin: 0 auto var(--sp-sm);"></div>
+
+          <div style="background: var(--wp-background); border: 1.5px solid var(--wp-border); border-radius: var(--radius-sm); padding: var(--sp-sm) var(--sp-md); font-size: var(--font-body); color: var(--wp-text-primary); margin-bottom: var(--sp-sm);">
+            Uber to airport 42
+          </div>
+
+          <!-- Parsed tokens with missing fields highlighted -->
+          <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: var(--sp-sm);">
+            <span class="chip"><span style="color: var(--wp-text-primary); font-weight: 500;">$42.00</span></span>
+            <span class="chip" style="background: rgba(217,119,6,0.1); border: 1px solid rgba(217,119,6,0.2);"><span style="color: var(--wp-warning); font-weight: 500;">@Category?</span></span>
+            <span class="chip" style="background: rgba(217,119,6,0.1); border: 1px solid rgba(217,119,6,0.2);"><span style="color: var(--wp-warning); font-weight: 500;">$Account?</span></span>
+            <span class="chip"><span style="color: var(--wp-text-secondary);">Today</span></span>
+          </div>
+
+          <!-- Missing field hint -->
+          <div style="font-size: var(--font-caption); color: var(--wp-warning); margin-bottom: var(--sp-sm); padding: 0 2px;">
+            Missing category and account — will save to Inbox
+          </div>
+
+          <div style="background: var(--wp-grouped-bg); border-radius: var(--radius-sm); padding: 10px var(--sp-sm); font-size: var(--font-callout); color: var(--wp-text-tertiary); margin-bottom: var(--sp-sm);">
+            Add a note...
+          </div>
+
+          <div style="display: flex; gap: var(--sp-md); padding: var(--sp-xs) 0; margin-bottom: var(--sp-sm);">
+            <span style="font-size: 20px; color: var(--wp-text-secondary);">&#x1F4C5;</span>
+            <span style="font-size: 16px; font-weight: 700; color: #c2410c;">@</span>
+            <span style="font-size: 16px; font-weight: 700; color: #16a34a;">$</span>
+            <span style="font-size: 16px; font-weight: 700; color: #4f6bed;">#</span>
+            <span style="font-size: 20px; color: var(--wp-text-secondary);">&#x22EF;</span>
+          </div>
+
+          <button class="btn-primary" style="background: var(--wp-warning); display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <svg width="16" height="16" viewBox="0 0 22 22" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8l3-5h10l3 5"/><rect x="2" y="8" width="18" height="11" rx="2"/><path d="M2 8h5l2 3h4l2-3h5"/></svg>
+            Save to Inbox
+          </button>
+        </div>
+      </div>
+      <div class="tab-bar" style="visibility: hidden;"></div>
+    </div>
+    <div class="change-note">
+      <strong>Polish:</strong> Missing fields shown as amber-highlighted chips with "?" suffix. Hint text explains why it goes to Inbox. Button changes to amber "Save to Inbox" — no ambiguity about destination. Border goes neutral (not primary) since entry is incomplete.
+    </div>
+  </div>
+
+</div>
+
+
+<!-- ============================================================ -->
+<!-- SECTION 7: TRANSACTION DETAIL -->
+<!-- ============================================================ -->
+<div class="section-divider"><span>Transaction Detail</span></div>
+
+<div class="screen-row">
+
+  <!-- Detail — Ledger item -->
+  <div class="screen-wrapper">
+    <div class="screen-label">Ledger Item (Bottom Sheet)</div>
+    <div class="phone">
+      <div class="status-bar">
+        <span class="time">9:41</span>
+        <span class="icons">
+          <svg viewBox="0 0 16 12"><rect x="0" y="3" width="3" height="9" rx="0.5"/><rect x="4.5" y="1.5" width="3" height="10.5" rx="0.5"/><rect x="9" y="0" width="3" height="12" rx="0.5"/></svg>
+          <svg viewBox="0 0 16 12"><path d="M1 4.5C3.5 1.5 7 0 8 0s4.5 1.5 7 4.5M3.5 7C5.2 5 6.8 4 8 4s2.8 1 4.5 3M6 9.5C6.7 8.5 7.4 8 8 8s1.3.5 2 1.5"/></svg>
+          <svg viewBox="0 0 25 12"><rect x="0" y="1" width="22" height="10" rx="2" stroke="currentColor" stroke-width="1" fill="none"/><rect x="23" y="4" width="2" height="4" rx="0.5"/><rect x="2" y="3" width="16" height="6" rx="1"/></svg>
+        </span>
+      </div>
+      <div class="phone-content" style="position: relative;">
+        <!-- Dimmed list behind -->
+        <div style="flex:1; opacity: 0.2; padding: var(--sp-md) var(--sp-md) 0;">
+          <div style="font-size: var(--font-caption); font-weight: 600; color: var(--wp-text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: var(--sp-xs);">Today, Mar 22</div>
+          <div style="background: var(--wp-surface); border-radius: var(--radius-md); padding: var(--sp-sm) var(--sp-md); margin-bottom: var(--sp-xs);">
+            <div style="font-size: var(--font-body); color: var(--wp-text-primary);">Whole Foods</div>
+          </div>
+          <div style="background: var(--wp-surface); border-radius: var(--radius-md); padding: var(--sp-sm) var(--sp-md);">
+            <div style="font-size: var(--font-body); color: var(--wp-text-primary);">Salary deposit</div>
+          </div>
+        </div>
+
+        <!-- Bottom sheet -->
+        <div style="position:absolute; bottom: 0; left: 0; right: 0; top: 35%; background: var(--wp-background); border-top-left-radius: var(--radius-lg); border-top-right-radius: var(--radius-lg); box-shadow: 0 -8px 32px rgba(0,0,0,0.1); display: flex; flex-direction: column;">
+          <div style="width: 36px; height: 4px; background: var(--wp-border); border-radius: 2px; margin: var(--sp-sm) auto;"></div>
+
+          <div style="flex:1; overflow-y: auto; padding: 0 var(--sp-md) var(--sp-md);">
+            <!-- Title section -->
+            <div style="padding: var(--sp-xs) 0 var(--sp-md); border-bottom: 0.5px solid var(--wp-border);">
+              <div style="font-size: var(--font-title); font-weight: 600; color: var(--wp-text-primary);">Whole Foods</div>
+              <div style="font-size: 28px; font-weight: 600; color: var(--wp-expense); font-variant-numeric: tabular-nums; margin-top: 4px;">-$67.32</div>
+            </div>
+
+            <!-- Form fields -->
+            <div style="padding: var(--sp-md) 0;">
+              <!-- Date -->
+              <div style="display: flex; justify-content: space-between; align-items: center; padding: var(--sp-sm) 0; border-bottom: 0.5px solid var(--wp-border);">
+                <span style="font-size: var(--font-body); color: var(--wp-text-secondary);">Date</span>
+                <span style="font-size: var(--font-body); color: var(--wp-text-primary);">Mar 22, 2026</span>
+              </div>
+              <!-- Date chips -->
+              <div style="display: flex; gap: 6px; padding: var(--sp-xs) 0 var(--sp-sm);">
+                <span class="chip" style="background: rgba(194,65,12,0.1); color: var(--wp-primary); font-weight: 500;">Today</span>
+                <span class="chip">Yesterday</span>
+                <span class="chip">Custom...</span>
+              </div>
+
+              <!-- Account -->
+              <div style="display: flex; justify-content: space-between; align-items: center; padding: var(--sp-sm) 0; border-bottom: 0.5px solid var(--wp-border);">
+                <span style="font-size: var(--font-body); color: var(--wp-text-secondary);">Account</span>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <span style="font-size: var(--font-body); color: var(--wp-text-primary);">Chase Checking</span>
+                  <svg width="7" height="12" viewBox="0 0 7 12" fill="none" stroke="var(--wp-text-tertiary)" stroke-width="1.5" stroke-linecap="round"><path d="M1 1l5 5-5 5"/></svg>
+                </div>
+              </div>
+
+              <!-- Category -->
+              <div style="display: flex; justify-content: space-between; align-items: center; padding: var(--sp-sm) 0; border-bottom: 0.5px solid var(--wp-border);">
+                <span style="font-size: var(--font-body); color: var(--wp-text-secondary);">Category</span>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <span style="font-size: var(--font-body); color: #c2410c;">@Groceries</span>
+                  <svg width="7" height="12" viewBox="0 0 7 12" fill="none" stroke="var(--wp-text-tertiary)" stroke-width="1.5" stroke-linecap="round"><path d="M1 1l5 5-5 5"/></svg>
+                </div>
+              </div>
+
+              <!-- Hashtags -->
+              <div style="display: flex; justify-content: space-between; align-items: center; padding: var(--sp-sm) 0; border-bottom: 0.5px solid var(--wp-border);">
+                <span style="font-size: var(--font-body); color: var(--wp-text-secondary);">Hashtags</span>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <span class="chip" style="color: #4f6bed; font-weight: 500;">#weekly</span>
+                  <svg width="7" height="12" viewBox="0 0 7 12" fill="none" stroke="var(--wp-text-tertiary)" stroke-width="1.5" stroke-linecap="round"><path d="M1 1l5 5-5 5"/></svg>
+                </div>
+              </div>
+
+              <!-- Notes -->
+              <div style="padding: var(--sp-sm) 0;">
+                <span style="font-size: var(--font-body); color: var(--wp-text-secondary);">Notes</span>
+                <div style="font-size: var(--font-callout); color: var(--wp-text-tertiary); margin-top: var(--sp-xs);">No notes yet</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-bar" style="visibility: hidden;"></div>
+    </div>
+    <div class="change-note">
+      <strong>Polish:</strong> Half-screen bottom sheet with handle. Title and amount prominent at top. Grouped form rows with consistent label/value alignment. Date quick chips for common choices. Category shows @ with its color. Minimal chrome.
+    </div>
+  </div>
+
+  <!-- Detail — Inbox item with Promote -->
+  <div class="screen-wrapper">
+    <div class="screen-label">Inbox Item (Promote)</div>
+    <div class="phone">
+      <div class="status-bar">
+        <span class="time">9:41</span>
+        <span class="icons">
+          <svg viewBox="0 0 16 12"><rect x="0" y="3" width="3" height="9" rx="0.5"/><rect x="4.5" y="1.5" width="3" height="10.5" rx="0.5"/><rect x="9" y="0" width="3" height="12" rx="0.5"/></svg>
+          <svg viewBox="0 0 16 12"><path d="M1 4.5C3.5 1.5 7 0 8 0s4.5 1.5 7 4.5M3.5 7C5.2 5 6.8 4 8 4s2.8 1 4.5 3M6 9.5C6.7 8.5 7.4 8 8 8s1.3.5 2 1.5"/></svg>
+          <svg viewBox="0 0 25 12"><rect x="0" y="1" width="22" height="10" rx="2" stroke="currentColor" stroke-width="1" fill="none"/><rect x="23" y="4" width="2" height="4" rx="0.5"/><rect x="2" y="3" width="16" height="6" rx="1"/></svg>
+        </span>
+      </div>
+      <div class="phone-content" style="position: relative;">
+        <div style="flex:1; opacity: 0.2; padding: var(--sp-md);">
+          <div style="font-size: var(--font-caption); font-weight: 600; color: var(--wp-text-secondary); text-transform: uppercase; margin-bottom: var(--sp-xs);">Today</div>
+          <div style="background: var(--wp-surface); border-radius: var(--radius-md); padding: var(--sp-sm) var(--sp-md);">
+            <div style="font-size: var(--font-body); color: var(--wp-text-primary);">Coffee at Blue Bottle</div>
+          </div>
+        </div>
+
+        <div style="position:absolute; bottom: 0; left: 0; right: 0; top: 30%; background: var(--wp-background); border-top-left-radius: var(--radius-lg); border-top-right-radius: var(--radius-lg); box-shadow: 0 -8px 32px rgba(0,0,0,0.1); display: flex; flex-direction: column;">
+          <div style="width: 36px; height: 4px; background: var(--wp-border); border-radius: 2px; margin: var(--sp-sm) auto;"></div>
+
+          <div style="flex:1; overflow-y: auto; padding: 0 var(--sp-md) var(--sp-md);">
+            <div style="padding: var(--sp-xs) 0 var(--sp-md); border-bottom: 0.5px solid var(--wp-border);">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <div class="dot green"></div>
+                <span style="font-size: var(--font-caption); color: var(--wp-success); font-weight: 500;">Ready to promote</span>
+              </div>
+              <div style="font-size: var(--font-title); font-weight: 600; color: var(--wp-text-primary); margin-top: 6px;">Coffee at Blue Bottle</div>
+              <div style="font-size: 28px; font-weight: 600; color: var(--wp-expense); font-variant-numeric: tabular-nums; margin-top: 4px;">-$5.40</div>
+            </div>
+
+            <div style="padding: var(--sp-md) 0;">
+              <div style="display: flex; justify-content: space-between; align-items: center; padding: var(--sp-sm) 0; border-bottom: 0.5px solid var(--wp-border);">
+                <span style="font-size: var(--font-body); color: var(--wp-text-secondary);">Date</span>
+                <span style="font-size: var(--font-body); color: var(--wp-text-primary);">Mar 22, 2026</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center; padding: var(--sp-sm) 0; border-bottom: 0.5px solid var(--wp-border);">
+                <span style="font-size: var(--font-body); color: var(--wp-text-secondary);">Account</span>
+                <span style="font-size: var(--font-body); color: var(--wp-text-primary);">Chase Checking</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center; padding: var(--sp-sm) 0; border-bottom: 0.5px solid var(--wp-border);">
+                <span style="font-size: var(--font-body); color: var(--wp-text-secondary);">Category</span>
+                <span style="font-size: var(--font-body); color: #d97706;">@Dining</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center; padding: var(--sp-sm) 0; border-bottom: 0.5px solid var(--wp-border);">
+                <span style="font-size: var(--font-body); color: var(--wp-text-secondary);">Hashtags</span>
+                <span class="chip" style="color: #4f6bed; font-weight: 500;">#daily</span>
+              </div>
+            </div>
+
+            <div style="flex:1;"></div>
+
+            <button class="btn-primary" style="margin-top: var(--sp-md); display: flex; align-items: center; justify-content: center; gap: 8px;">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><path d="M8 12V4M4 8l4-4 4 4"/></svg>
+              Promote to Ledger
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="tab-bar" style="visibility: hidden;"></div>
+    </div>
+    <div class="change-note">
+      <strong>Polish:</strong> Green "Ready to promote" badge at top. Same form layout as ledger detail. Promote button is primary-colored and prominent at bottom. All fields filled = green status indicator. One tap to move to ledger.
+    </div>
+  </div>
+
+</div>
+
+
+<!-- ============================================================ -->
+<!-- SECTION 8: SEARCH -->
+<!-- ============================================================ -->
+<div class="section-divider"><span>Search</span></div>
+
+<div class="screen-row">
+  <div class="screen-wrapper">
+    <div class="screen-label">Full-Screen Search</div>
+    <div class="phone">
+      <div class="status-bar">
+        <span class="time">9:41</span>
+        <span class="icons">
+          <svg viewBox="0 0 16 12"><rect x="0" y="3" width="3" height="9" rx="0.5"/><rect x="4.5" y="1.5" width="3" height="10.5" rx="0.5"/><rect x="9" y="0" width="3" height="12" rx="0.5"/></svg>
+          <svg viewBox="0 0 16 12"><path d="M1 4.5C3.5 1.5 7 0 8 0s4.5 1.5 7 4.5M3.5 7C5.2 5 6.8 4 8 4s2.8 1 4.5 3M6 9.5C6.7 8.5 7.4 8 8 8s1.3.5 2 1.5"/></svg>
+          <svg viewBox="0 0 25 12"><rect x="0" y="1" width="22" height="10" rx="2" stroke="currentColor" stroke-width="1" fill="none"/><rect x="23" y="4" width="2" height="4" rx="0.5"/><rect x="2" y="3" width="16" height="6" rx="1"/></svg>
+        </span>
+      </div>
+      <div class="phone-content">
+        <!-- Search bar active -->
+        <div style="padding: var(--sp-md) var(--sp-md) var(--sp-sm); display: flex; align-items: center; gap: var(--sp-sm);">
+          <div style="flex:1; background: var(--wp-grouped-bg); border-radius: var(--radius-sm); padding: 10px var(--sp-sm); display: flex; align-items: center; gap: 8px;">
+            <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="var(--wp-text-tertiary)" stroke-width="1.5"><circle cx="9" cy="9" r="6"/><path d="M14 14l4 4"/></svg>
+            <span style="font-size: 15px; color: var(--wp-text-primary);">coffee</span>
+          </div>
+          <span style="font-size: var(--font-body); color: var(--wp-primary);">Cancel</span>
+        </div>
+
+        <div class="scroll-area">
+          <!-- Ledger results -->
+          <div style="padding: var(--sp-xs) var(--sp-md);">
+            <span style="font-size: var(--font-caption); font-weight: 600; color: var(--wp-text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Ledger (4 results)</span>
+          </div>
+          <div class="grouped-section" style="margin-bottom: var(--sp-lg);">
+            <div class="list-row" style="padding: var(--sp-sm) var(--sp-md);">
+              <div style="flex:1;">
+                <div style="font-size: var(--font-body); color: var(--wp-text-primary);"><span style="background: rgba(194,65,12,0.12); padding: 1px 2px; border-radius: 3px; color: var(--wp-primary);">Coffee</span> at Blue Bottle</div>
+                <div style="font-size: var(--font-caption); color: var(--wp-text-tertiary); margin-top: 2px;">Mar 22 · <span style="color: #d97706;">@Dining</span></div>
+              </div>
+              <span class="amount expense" style="font-size: var(--font-body);">-$5.40</span>
+            </div>
+            <div class="list-row" style="padding: var(--sp-sm) var(--sp-md);">
+              <div style="flex:1;">
+                <div style="font-size: var(--font-body); color: var(--wp-text-primary);">Starbucks <span style="background: rgba(194,65,12,0.12); padding: 1px 2px; border-radius: 3px; color: var(--wp-primary);">coffee</span></div>
+                <div style="font-size: var(--font-caption); color: var(--wp-text-tertiary); margin-top: 2px;">Mar 19 · <span style="color: #d97706;">@Dining</span></div>
+              </div>
+              <span class="amount expense" style="font-size: var(--font-body);">-$6.25</span>
+            </div>
+            <div class="list-row" style="padding: var(--sp-sm) var(--sp-md);">
+              <div style="flex:1;">
+                <div style="font-size: var(--font-body); color: var(--wp-text-primary);"><span style="background: rgba(194,65,12,0.12); padding: 1px 2px; border-radius: 3px; color: var(--wp-primary);">Coffee</span> beans (Trader Joe's)</div>
+                <div style="font-size: var(--font-caption); color: var(--wp-text-tertiary); margin-top: 2px;">Mar 15 · <span style="color: #c2410c;">@Groceries</span></div>
+              </div>
+              <span class="amount expense" style="font-size: var(--font-body);">-$12.99</span>
+            </div>
+            <div class="list-row" style="padding: var(--sp-sm) var(--sp-md);">
+              <div style="flex:1;">
+                <div style="font-size: var(--font-body); color: var(--wp-text-primary);">Blue Bottle <span style="background: rgba(194,65,12,0.12); padding: 1px 2px; border-radius: 3px; color: var(--wp-primary);">coffee</span> sub</div>
+                <div style="font-size: var(--font-caption); color: var(--wp-text-tertiary); margin-top: 2px;">Mar 1 · <span style="color: #c2410c;">@Subscriptions</span></div>
+              </div>
+              <span class="amount expense" style="font-size: var(--font-body);">-$18.00</span>
+            </div>
+          </div>
+
+          <!-- Inbox results -->
+          <div style="padding: var(--sp-xs) var(--sp-md);">
+            <span style="font-size: var(--font-caption); font-weight: 600; color: var(--wp-text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Inbox (1 result)</span>
+          </div>
+          <div class="grouped-section" style="margin-bottom: var(--sp-lg);">
+            <div class="list-row" style="padding: var(--sp-sm) var(--sp-md);">
+              <div class="dot amber"></div>
+              <div style="flex:1;">
+                <div style="font-size: var(--font-body); color: var(--wp-text-primary);">Airport <span style="background: rgba(194,65,12,0.12); padding: 1px 2px; border-radius: 3px; color: var(--wp-primary);">coffee</span></div>
+                <div style="font-size: var(--font-caption); color: var(--wp-warning); margin-top: 2px;">Missing account, category</div>
+              </div>
+              <span class="amount" style="color: var(--wp-text-primary); font-size: var(--font-body);">$4.50</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-bar" style="visibility: hidden;"></div>
+    </div>
+    <div class="change-note">
+      <strong>Polish:</strong> Full-screen search with inline cancel. Results grouped by Ledger/Inbox with counts. Search term highlighted with warm orange tint. Inbox results show status dots and missing field warnings. Clean, scannable.
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================================================ -->
+<!-- SECTION 9: EMPTY STATES -->
+<!-- ============================================================ -->
+<div class="section-divider"><span>Empty States</span></div>
+
+<div class="screen-row">
+
+  <!-- First launch sidebar -->
+  <div class="screen-wrapper">
+    <div class="screen-label">First Launch</div>
+    <div class="phone">
+      <div class="status-bar">
+        <span class="time">9:41</span>
+        <span class="icons">
+          <svg viewBox="0 0 16 12"><rect x="0" y="3" width="3" height="9" rx="0.5"/><rect x="4.5" y="1.5" width="3" height="10.5" rx="0.5"/><rect x="9" y="0" width="3" height="12" rx="0.5"/></svg>
+          <svg viewBox="0 0 16 12"><path d="M1 4.5C3.5 1.5 7 0 8 0s4.5 1.5 7 4.5M3.5 7C5.2 5 6.8 4 8 4s2.8 1 4.5 3M6 9.5C6.7 8.5 7.4 8 8 8s1.3.5 2 1.5"/></svg>
+          <svg viewBox="0 0 25 12"><rect x="0" y="1" width="22" height="10" rx="2" stroke="currentColor" stroke-width="1" fill="none"/><rect x="23" y="4" width="2" height="4" rx="0.5"/><rect x="2" y="3" width="16" height="6" rx="1"/></svg>
+        </span>
+      </div>
+      <div class="phone-content">
+        <div class="scroll-area" style="padding-top: var(--sp-xs);">
+          <div style="padding: var(--sp-md) var(--sp-md) var(--sp-lg);">
+            <div class="nav-title">Transactions</div>
+          </div>
+
+          <div class="grouped-section" style="margin-bottom: var(--sp-sm);">
+            <div class="list-row">
+              <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="var(--wp-primary)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8l3-5h10l3 5"/><rect x="2" y="8" width="18" height="11" rx="2"/><path d="M2 8h5l2 3h4l2-3h5"/></svg>
+              <span style="font-size: var(--font-body); color: var(--wp-text-primary); flex:1;">Inbox</span>
+              <svg width="7" height="12" viewBox="0 0 7 12" fill="none" stroke="var(--wp-text-tertiary)" stroke-width="1.5" stroke-linecap="round"><path d="M1 1l5 5-5 5"/></svg>
+            </div>
+          </div>
+          <div class="grouped-section" style="margin-bottom: var(--sp-lg);">
+            <div class="list-row">
+              <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="var(--wp-primary)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h14a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V6a2 2 0 012-2z"/><path d="M2 10h18"/></svg>
+              <span style="font-size: var(--font-body); color: var(--wp-text-primary); flex:1;">Ledger</span>
+              <svg width="7" height="12" viewBox="0 0 7 12" fill="none" stroke="var(--wp-text-tertiary)" stroke-width="1.5" stroke-linecap="round"><path d="M1 1l5 5-5 5"/></svg>
+            </div>
+          </div>
+
+          <!-- Empty bank accounts -->
+          <div class="section-header">
+            <span class="section-header-label">Bank Accounts</span>
+            <span class="section-header-btn">+</span>
+          </div>
+          <div class="grouped-section" style="margin-bottom: var(--sp-lg);">
+            <div style="padding: var(--sp-lg) var(--sp-md); text-align: center;">
+              <div style="font-size: var(--font-callout); color: var(--wp-text-tertiary); line-height: 1.5;">Tap + to add your first account</div>
+            </div>
+          </div>
+
+          <!-- Empty categories -->
+          <div class="section-header">
+            <span class="section-header-label">Categories</span>
+            <span class="section-header-btn">+</span>
+          </div>
+          <div class="grouped-section" style="margin-bottom: var(--sp-lg);">
+            <div style="padding: var(--sp-lg) var(--sp-md); text-align: center;">
+              <div style="font-size: var(--font-callout); color: var(--wp-text-tertiary); line-height: 1.5;">Tap + to create categories</div>
+            </div>
+          </div>
+
+          <!-- Empty hashtags -->
+          <div class="section-header">
+            <span class="section-header-label">Hashtags</span>
+            <span class="section-header-btn">+</span>
+          </div>
+          <div class="grouped-section" style="margin-bottom: var(--sp-xl);">
+            <div style="padding: var(--sp-lg) var(--sp-md); text-align: center;">
+              <div style="font-size: var(--font-callout); color: var(--wp-text-tertiary); line-height: 1.5;">Hashtags appear as you use them</div>
+            </div>
+          </div>
+        </div>
+        <div class="fab">+</div>
+      </div>
+      <div class="tab-bar">
+        <div class="tab-item active">
+          <svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+          <span>Transactions</span>
+        </div>
+        <div class="tab-item">
+          <svg viewBox="0 0 24 24"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.32 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+          <span>Settings</span>
+        </div>
+      </div>
+    </div>
+    <div class="change-note">
+      <strong>Polish:</strong> Empty sections show helpful one-line guidance in tertiary text. No illustrations or decorations — just calm, clear direction. Structure is visible so the user understands the app's shape before adding data.
+    </div>
+  </div>
+
+  <!-- Skeleton loading -->
+  <div class="screen-wrapper">
+    <div class="screen-label">Skeleton Loading</div>
+    <div class="phone">
+      <div class="status-bar">
+        <span class="time">9:41</span>
+        <span class="icons">
+          <svg viewBox="0 0 16 12"><rect x="0" y="3" width="3" height="9" rx="0.5"/><rect x="4.5" y="1.5" width="3" height="10.5" rx="0.5"/><rect x="9" y="0" width="3" height="12" rx="0.5"/></svg>
+          <svg viewBox="0 0 16 12"><path d="M1 4.5C3.5 1.5 7 0 8 0s4.5 1.5 7 4.5M3.5 7C5.2 5 6.8 4 8 4s2.8 1 4.5 3M6 9.5C6.7 8.5 7.4 8 8 8s1.3.5 2 1.5"/></svg>
+          <svg viewBox="0 0 25 12"><rect x="0" y="1" width="22" height="10" rx="2" stroke="currentColor" stroke-width="1" fill="none"/><rect x="23" y="4" width="2" height="4" rx="0.5"/><rect x="2" y="3" width="16" height="6" rx="1"/></svg>
+        </span>
+      </div>
+      <div class="phone-content">
+        <div style="padding: var(--sp-md) var(--sp-md) var(--sp-lg);">
+          <div class="nav-title">Ledger</div>
+        </div>
+
+        <div style="padding: 0 var(--sp-md);">
+          <!-- Date header shimmer -->
+          <div class="shimmer" style="width: 100px; height: 12px; margin-bottom: var(--sp-sm);"></div>
+
+          <!-- Row shimmer 1 -->
+          <div style="background: var(--wp-surface); border-radius: var(--radius-md); padding: var(--sp-md); margin-bottom: 2px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <div class="shimmer" style="width: 140px; height: 16px; margin-bottom: 8px;"></div>
+                <div class="shimmer" style="width: 100px; height: 12px;"></div>
+              </div>
+              <div class="shimmer" style="width: 60px; height: 16px;"></div>
+            </div>
+          </div>
+          <!-- Row shimmer 2 -->
+          <div style="background: var(--wp-surface); border-radius: var(--radius-md); padding: var(--sp-md); margin-bottom: var(--sp-lg);">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <div class="shimmer" style="width: 120px; height: 16px; margin-bottom: 8px;"></div>
+                <div class="shimmer" style="width: 80px; height: 12px;"></div>
+              </div>
+              <div class="shimmer" style="width: 50px; height: 16px;"></div>
+            </div>
+          </div>
+
+          <!-- Date header shimmer -->
+          <div class="shimmer" style="width: 120px; height: 12px; margin-bottom: var(--sp-sm);"></div>
+
+          <!-- Row shimmer 3 -->
+          <div style="background: var(--wp-surface); border-radius: var(--radius-md); padding: var(--sp-md); margin-bottom: 2px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <div class="shimmer" style="width: 160px; height: 16px; margin-bottom: 8px;"></div>
+                <div class="shimmer" style="width: 90px; height: 12px;"></div>
+              </div>
+              <div class="shimmer" style="width: 70px; height: 16px;"></div>
+            </div>
+          </div>
+          <!-- Row shimmer 4 -->
+          <div style="background: var(--wp-surface); border-radius: var(--radius-md); padding: var(--sp-md); margin-bottom: 2px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <div class="shimmer" style="width: 100px; height: 16px; margin-bottom: 8px;"></div>
+                <div class="shimmer" style="width: 110px; height: 12px;"></div>
+              </div>
+              <div class="shimmer" style="width: 55px; height: 16px;"></div>
+            </div>
+          </div>
+          <!-- Row shimmer 5 -->
+          <div style="background: var(--wp-surface); border-radius: var(--radius-md); padding: var(--sp-md);">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <div class="shimmer" style="width: 130px; height: 16px; margin-bottom: 8px;"></div>
+                <div class="shimmer" style="width: 95px; height: 12px;"></div>
+              </div>
+              <div class="shimmer" style="width: 65px; height: 16px;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-bar">
+        <div class="tab-item active">
+          <svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+          <span>Transactions</span>
+        </div>
+        <div class="tab-item">
+          <svg viewBox="0 0 24 24"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.32 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+          <span>Settings</span>
+        </div>
+      </div>
+    </div>
+    <div class="change-note">
+      <strong>Polish:</strong> Shimmer placeholders match the exact layout of real rows — title width, subtitle width, amount width. Subtle animation. Date headers shimmer too. Feels like the data is about to arrive, not that something is broken.
+    </div>
+  </div>
+
+  <!-- Search no results -->
+  <div class="screen-wrapper">
+    <div class="screen-label">Search — No Results</div>
+    <div class="phone">
+      <div class="status-bar">
+        <span class="time">9:41</span>
+        <span class="icons">
+          <svg viewBox="0 0 16 12"><rect x="0" y="3" width="3" height="9" rx="0.5"/><rect x="4.5" y="1.5" width="3" height="10.5" rx="0.5"/><rect x="9" y="0" width="3" height="12" rx="0.5"/></svg>
+          <svg viewBox="0 0 16 12"><path d="M1 4.5C3.5 1.5 7 0 8 0s4.5 1.5 7 4.5M3.5 7C5.2 5 6.8 4 8 4s2.8 1 4.5 3M6 9.5C6.7 8.5 7.4 8 8 8s1.3.5 2 1.5"/></svg>
+          <svg viewBox="0 0 25 12"><rect x="0" y="1" width="22" height="10" rx="2" stroke="currentColor" stroke-width="1" fill="none"/><rect x="23" y="4" width="2" height="4" rx="0.5"/><rect x="2" y="3" width="16" height="6" rx="1"/></svg>
+        </span>
+      </div>
+      <div class="phone-content">
+        <div style="padding: var(--sp-md) var(--sp-md) var(--sp-sm); display: flex; align-items: center; gap: var(--sp-sm);">
+          <div style="flex:1; background: var(--wp-grouped-bg); border-radius: var(--radius-sm); padding: 10px var(--sp-sm); display: flex; align-items: center; gap: 8px;">
+            <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="var(--wp-text-tertiary)" stroke-width="1.5"><circle cx="9" cy="9" r="6"/><path d="M14 14l4 4"/></svg>
+            <span style="font-size: 15px; color: var(--wp-text-primary);">xyzzy123</span>
+          </div>
+          <span style="font-size: var(--font-body); color: var(--wp-primary);">Cancel</span>
+        </div>
+
+        <div style="flex:1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0 var(--sp-xxl);">
+          <svg width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="var(--wp-text-tertiary)" stroke-width="1.5" stroke-linecap="round" style="margin-bottom: var(--sp-md); opacity: 0.5;">
+            <circle cx="20" cy="20" r="14"/>
+            <path d="M30 30l12 12"/>
+          </svg>
+          <div style="font-size: var(--font-headline); font-weight: 600; color: var(--wp-text-primary); margin-bottom: var(--sp-xxs);">No results</div>
+          <div style="font-size: var(--font-callout); color: var(--wp-text-tertiary); text-align: center; line-height: 1.5;">Try a different search term or check your spelling.</div>
+        </div>
+      </div>
+      <div class="tab-bar" style="visibility: hidden;"></div>
+    </div>
+    <div class="change-note">
+      <strong>Polish:</strong> Faint search icon at half opacity. Short, helpful copy. No cartoon illustrations. Vertically centered — the emptiness itself communicates "nothing here." Calm, not apologetic.
+    </div>
+  </div>
+
+</div>
+
+
+<!-- ============================================================ -->
+<!-- SECTION 10: SETTINGS -->
+<!-- ============================================================ -->
+<div class="section-divider"><span>Settings</span></div>
+
+<div class="screen-row">
+  <div class="screen-wrapper">
+    <div class="screen-label">Settings Screen</div>
+    <div class="phone">
+      <div class="status-bar">
+        <span class="time">9:41</span>
+        <span class="icons">
+          <svg viewBox="0 0 16 12"><rect x="0" y="3" width="3" height="9" rx="0.5"/><rect x="4.5" y="1.5" width="3" height="10.5" rx="0.5"/><rect x="9" y="0" width="3" height="12" rx="0.5"/></svg>
+          <svg viewBox="0 0 16 12"><path d="M1 4.5C3.5 1.5 7 0 8 0s4.5 1.5 7 4.5M3.5 7C5.2 5 6.8 4 8 4s2.8 1 4.5 3M6 9.5C6.7 8.5 7.4 8 8 8s1.3.5 2 1.5"/></svg>
+          <svg viewBox="0 0 25 12"><rect x="0" y="1" width="22" height="10" rx="2" stroke="currentColor" stroke-width="1" fill="none"/><rect x="23" y="4" width="2" height="4" rx="0.5"/><rect x="2" y="3" width="16" height="6" rx="1"/></svg>
+        </span>
+      </div>
+      <div class="phone-content">
+        <div class="scroll-area" style="padding-top: var(--sp-xs); background: var(--wp-grouped-bg);">
+          <div style="padding: var(--sp-md) var(--sp-md) var(--sp-lg);">
+            <div class="nav-title">Settings</div>
+          </div>
+
+          <!-- Profile card -->
+          <div class="grouped-section" style="margin-bottom: var(--sp-lg);">
+            <div class="list-row" style="padding: var(--sp-md);">
+              <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(194,65,12,0.1); display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 600; color: var(--wp-primary);">JD</div>
+              <div style="flex:1; padding-left: 4px;">
+                <div style="font-size: var(--font-headline); font-weight: 600; color: var(--wp-text-primary);">John Doe</div>
+                <div style="font-size: var(--font-caption); color: var(--wp-text-secondary);">john.doe@icloud.com</div>
+              </div>
+              <svg width="7" height="12" viewBox="0 0 7 12" fill="none" stroke="var(--wp-text-tertiary)" stroke-width="1.5" stroke-linecap="round"><path d="M1 1l5 5-5 5"/></svg>
+            </div>
+          </div>
+
+          <!-- General -->
+          <div style="padding: var(--sp-xs) var(--sp-md);">
+            <span style="font-size: var(--font-caption); font-weight: 600; color: var(--wp-text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">General</span>
+          </div>
+          <div class="grouped-section" style="margin-bottom: var(--sp-lg);">
+            <div class="list-row">
+              <div style="flex:1; font-size: var(--font-body); color: var(--wp-text-primary);">Home Currency</div>
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="font-size: var(--font-body); color: var(--wp-text-secondary);">USD</span>
+                <svg width="7" height="12" viewBox="0 0 7 12" fill="none" stroke="var(--wp-text-tertiary)" stroke-width="1.5" stroke-linecap="round"><path d="M1 1l5 5-5 5"/></svg>
+              </div>
+            </div>
+            <div class="list-row">
+              <div style="flex:1; font-size: var(--font-body); color: var(--wp-text-primary);">Default Account</div>
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="font-size: var(--font-body); color: var(--wp-text-secondary);">Chase</span>
+                <svg width="7" height="12" viewBox="0 0 7 12" fill="none" stroke="var(--wp-text-tertiary)" stroke-width="1.5" stroke-linecap="round"><path d="M1 1l5 5-5 5"/></svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- Display -->
+          <div style="padding: var(--sp-xs) var(--sp-md);">
+            <span style="font-size: var(--font-caption); font-weight: 600; color: var(--wp-text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Display</span>
+          </div>
+          <div class="grouped-section" style="margin-bottom: var(--sp-lg);">
+            <div class="list-row">
+              <div style="flex:1; font-size: var(--font-body); color: var(--wp-text-primary);">Appearance</div>
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="font-size: var(--font-body); color: var(--wp-text-secondary);">System</span>
+                <svg width="7" height="12" viewBox="0 0 7 12" fill="none" stroke="var(--wp-text-tertiary)" stroke-width="1.5" stroke-linecap="round"><path d="M1 1l5 5-5 5"/></svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- Data -->
+          <div style="padding: var(--sp-xs) var(--sp-md);">
+            <span style="font-size: var(--font-caption); font-weight: 600; color: var(--wp-text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Data</span>
+          </div>
+          <div class="grouped-section" style="margin-bottom: var(--sp-lg);">
+            <div class="list-row">
+              <div style="flex:1; font-size: var(--font-body); color: var(--wp-text-primary);">Import CSV</div>
+              <svg width="7" height="12" viewBox="0 0 7 12" fill="none" stroke="var(--wp-text-tertiary)" stroke-width="1.5" stroke-linecap="round"><path d="M1 1l5 5-5 5"/></svg>
+            </div>
+            <div class="list-row">
+              <div style="flex:1; font-size: var(--font-body); color: var(--wp-text-primary);">Export Data</div>
+              <svg width="7" height="12" viewBox="0 0 7 12" fill="none" stroke="var(--wp-text-tertiary)" stroke-width="1.5" stroke-linecap="round"><path d="M1 1l5 5-5 5"/></svg>
+            </div>
+          </div>
+
+          <!-- Sign out -->
+          <div class="grouped-section" style="margin-bottom: var(--sp-lg);">
+            <div class="list-row" style="justify-content: center;">
+              <span style="font-size: var(--font-body); color: var(--wp-error);">Sign Out</span>
+            </div>
+          </div>
+
+          <!-- Version -->
+          <div style="text-align: center; padding: var(--sp-sm) 0 var(--sp-xl);">
+            <span style="font-size: var(--font-caption); color: var(--wp-text-tertiary);">Warm Productivity v1.0.0 (1)</span>
+          </div>
+        </div>
+      </div>
+      <div class="tab-bar">
+        <div class="tab-item">
+          <svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+          <span>Transactions</span>
+        </div>
+        <div class="tab-item active">
+          <svg viewBox="0 0 24 24"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.32 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+          <span>Settings</span>
+        </div>
+      </div>
+    </div>
+    <div class="change-note">
+      <strong>Polish:</strong> iOS-native grouped list pattern. Profile card with initials avatar. Sections labeled with small caps headers. Sign Out centered in red. Version footer in tertiary at the very bottom. Settings tab active in tab bar.
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================================================ -->
+<!-- SECTION 11: CSV IMPORT SUMMARY -->
+<!-- ============================================================ -->
+<div class="section-divider"><span>CSV Import Summary</span></div>
+
+<div class="screen-row">
+  <div class="screen-wrapper">
+    <div class="screen-label">Import Complete</div>
+    <div class="phone">
+      <div class="status-bar">
+        <span class="time">9:41</span>
+        <span class="icons">
+          <svg viewBox="0 0 16 12"><rect x="0" y="3" width="3" height="9" rx="0.5"/><rect x="4.5" y="1.5" width="3" height="10.5" rx="0.5"/><rect x="9" y="0" width="3" height="12" rx="0.5"/></svg>
+          <svg viewBox="0 0 16 12"><path d="M1 4.5C3.5 1.5 7 0 8 0s4.5 1.5 7 4.5M3.5 7C5.2 5 6.8 4 8 4s2.8 1 4.5 3M6 9.5C6.7 8.5 7.4 8 8 8s1.3.5 2 1.5"/></svg>
+          <svg viewBox="0 0 25 12"><rect x="0" y="1" width="22" height="10" rx="2" stroke="currentColor" stroke-width="1" fill="none"/><rect x="23" y="4" width="2" height="4" rx="0.5"/><rect x="2" y="3" width="16" height="6" rx="1"/></svg>
+        </span>
+      </div>
+      <div class="phone-content" style="background: var(--wp-grouped-bg);">
+        <div style="padding: var(--sp-md) var(--sp-md) 0; display:flex; align-items:center; gap: var(--sp-xs);">
+          <svg width="10" height="16" viewBox="0 0 10 16" fill="none" stroke="var(--wp-primary)" stroke-width="2" stroke-linecap="round"><path d="M8 2L2 8l6 6"/></svg>
+          <span style="font-size: var(--font-body); color: var(--wp-primary);">Settings</span>
+        </div>
+
+        <div style="flex:1; display: flex; flex-direction: column; padding: var(--sp-lg) var(--sp-md);">
+          <!-- Success icon -->
+          <div style="text-align: center; margin-bottom: var(--sp-lg);">
+            <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(22,163,74,0.1); display: inline-flex; align-items: center; justify-content: center;">
+              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" stroke="var(--wp-success)" stroke-width="2.5" stroke-linecap="round"><path d="M6 16l8 8L26 8"/></svg>
+            </div>
+            <div style="font-size: var(--font-title); font-weight: 600; color: var(--wp-text-primary); margin-top: var(--sp-md);">Import Complete</div>
+          </div>
+
+          <!-- Stats card -->
+          <div class="grouped-section" style="margin-bottom: var(--sp-md);">
+            <div class="list-row">
+              <span style="font-size: var(--font-body); color: var(--wp-text-secondary); flex:1;">Rows processed</span>
+              <span class="amount" style="color: var(--wp-text-primary); font-size: var(--font-body);">247</span>
+            </div>
+            <div class="list-row">
+              <span style="font-size: var(--font-body); color: var(--wp-text-secondary); flex:1;">Added to Ledger</span>
+              <span class="amount" style="color: var(--wp-success); font-size: var(--font-body);">219</span>
+            </div>
+            <div class="list-row">
+              <span style="font-size: var(--font-body); color: var(--wp-text-secondary); flex:1;">Sent to Inbox</span>
+              <span class="amount" style="color: var(--wp-warning); font-size: var(--font-body);">23</span>
+            </div>
+            <div class="list-row">
+              <span style="font-size: var(--font-body); color: var(--wp-text-secondary); flex:1;">Skipped (duplicates)</span>
+              <span class="amount" style="color: var(--wp-text-tertiary); font-size: var(--font-body);">5</span>
+            </div>
+          </div>
+
+          <!-- Error details -->
+          <div style="padding: var(--sp-xs) var(--sp-md);">
+            <span style="font-size: var(--font-caption); font-weight: 600; color: var(--wp-text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Inbox Items (need review)</span>
+          </div>
+          <div class="grouped-section" style="margin-bottom: var(--sp-lg);">
+            <div class="list-row" style="padding: var(--sp-sm) var(--sp-md);">
+              <div class="dot amber"></div>
+              <div style="flex:1;">
+                <div style="font-size: var(--font-callout); color: var(--wp-text-primary);">23 rows missing category</div>
+                <div style="font-size: var(--font-caption); color: var(--wp-text-tertiary); margin-top: 2px;">Review in Inbox to assign categories</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="flex:1;"></div>
+          <button class="btn-primary">Done</button>
+        </div>
+      </div>
+      <div class="tab-bar" style="visibility: hidden;"></div>
+    </div>
+    <div class="change-note">
+      <strong>Polish:</strong> Success icon is a simple green checkmark in a soft green circle — no confetti, no fireworks. Stats card with clear label/value pairs using semantic colors (green = good, amber = needs review, tertiary = skipped). Actionable guidance for inbox items.
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================================================ -->
+<!-- SECTION 12: ERROR BANNER -->
+<!-- ============================================================ -->
+<div class="section-divider"><span>Error Banner</span></div>
+
+<div class="screen-row">
+
+  <!-- Error banner — Light -->
+  <div class="screen-wrapper">
+    <div class="screen-label">Sync Paused (Light)</div>
+    <div class="phone">
+      <div class="status-bar">
+        <span class="time">9:41</span>
+        <span class="icons">
+          <svg viewBox="0 0 16 12"><rect x="0" y="3" width="3" height="9" rx="0.5"/><rect x="4.5" y="1.5" width="3" height="10.5" rx="0.5"/><rect x="9" y="0" width="3" height="12" rx="0.5"/></svg>
+          <svg viewBox="0 0 16 12"><path d="M1 4.5C3.5 1.5 7 0 8 0s4.5 1.5 7 4.5M3.5 7C5.2 5 6.8 4 8 4s2.8 1 4.5 3M6 9.5C6.7 8.5 7.4 8 8 8s1.3.5 2 1.5"/></svg>
+          <svg viewBox="0 0 25 12"><rect x="0" y="1" width="22" height="10" rx="2" stroke="currentColor" stroke-width="1" fill="none"/><rect x="23" y="4" width="2" height="4" rx="0.5"/><rect x="2" y="3" width="16" height="6" rx="1"/></svg>
+        </span>
+      </div>
+      <div class="phone-content">
+        <div style="padding: var(--sp-md) var(--sp-md) var(--sp-sm);">
+          <div class="nav-title">Transactions</div>
+        </div>
+
+        <!-- Error banner -->
+        <div class="error-banner">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="flex-shrink: 0; margin-top: 1px;">
+            <circle cx="8" cy="8" r="6.5"/>
+            <path d="M8 5v3.5M8 10.5v.5"/>
+          </svg>
+          <div style="flex:1;">Sync paused — no internet. Data saved locally.</div>
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="flex-shrink: 0; cursor: pointer; opacity: 0.6;">
+            <path d="M2 2l8 8M10 2l-8 8"/>
+          </svg>
+        </div>
+
+        <!-- Content continues below -->
+        <div style="padding: var(--sp-sm) var(--sp-md);">
+          <div class="grouped-section">
+            <div class="list-row">
+              <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="var(--wp-primary)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8l3-5h10l3 5"/><rect x="2" y="8" width="18" height="11" rx="2"/><path d="M2 8h5l2 3h4l2-3h5"/></svg>
+              <span style="font-size: var(--font-body); color: var(--wp-text-primary); flex:1;">Inbox</span>
+              <span class="badge">3</span>
+              <svg width="7" height="12" viewBox="0 0 7 12" fill="none" stroke="var(--wp-text-tertiary)" stroke-width="1.5" stroke-linecap="round"><path d="M1 1l5 5-5 5"/></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-bar">
+        <div class="tab-item active">
+          <svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+          <span>Transactions</span>
+        </div>
+        <div class="tab-item">
+          <svg viewBox="0 0 24 24"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.32 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+          <span>Settings</span>
+        </div>
+      </div>
+    </div>
+    <div class="change-note">
+      <strong>Polish:</strong> Non-blocking inline banner between title and content. Info icon + message + dismiss X. Reassures user that data is safe. Red tint but not alarming — informative. Does not push content off screen.
+    </div>
+  </div>
+
+  <!-- Error banner — Dark -->
+  <div class="screen-wrapper">
+    <div class="screen-label">Sync Paused (Dark)</div>
+    <div class="phone dark">
+      <div class="status-bar">
+        <span class="time">9:41</span>
+        <span class="icons">
+          <svg viewBox="0 0 16 12"><rect x="0" y="3" width="3" height="9" rx="0.5"/><rect x="4.5" y="1.5" width="3" height="10.5" rx="0.5"/><rect x="9" y="0" width="3" height="12" rx="0.5"/></svg>
+          <svg viewBox="0 0 16 12"><path d="M1 4.5C3.5 1.5 7 0 8 0s4.5 1.5 7 4.5M3.5 7C5.2 5 6.8 4 8 4s2.8 1 4.5 3M6 9.5C6.7 8.5 7.4 8 8 8s1.3.5 2 1.5"/></svg>
+          <svg viewBox="0 0 25 12"><rect x="0" y="1" width="22" height="10" rx="2" stroke="currentColor" stroke-width="1" fill="none"/><rect x="23" y="4" width="2" height="4" rx="0.5"/><rect x="2" y="3" width="16" height="6" rx="1"/></svg>
+        </span>
+      </div>
+      <div class="phone-content">
+        <div style="padding: var(--sp-md) var(--sp-md) var(--sp-sm);">
+          <div class="nav-title">Transactions</div>
+        </div>
+
+        <div class="error-banner">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="flex-shrink: 0; margin-top: 1px;">
+            <circle cx="8" cy="8" r="6.5"/>
+            <path d="M8 5v3.5M8 10.5v.5"/>
+          </svg>
+          <div style="flex:1;">Sync paused — no internet. Data saved locally.</div>
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="flex-shrink: 0; cursor: pointer; opacity: 0.6;">
+            <path d="M2 2l8 8M10 2l-8 8"/>
+          </svg>
+        </div>
+
+        <div style="padding: var(--sp-sm) var(--sp-md);">
+          <div class="grouped-section">
+            <div class="list-row">
+              <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="var(--wp-primary)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8l3-5h10l3 5"/><rect x="2" y="8" width="18" height="11" rx="2"/><path d="M2 8h5l2 3h4l2-3h5"/></svg>
+              <span style="font-size: var(--font-body); color: var(--wp-text-primary); flex:1;">Inbox</span>
+              <span class="badge">3</span>
+              <svg width="7" height="12" viewBox="0 0 7 12" fill="none" stroke="var(--wp-text-tertiary)" stroke-width="1.5" stroke-linecap="round"><path d="M1 1l5 5-5 5"/></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-bar">
+        <div class="tab-item active">
+          <svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+          <span>Transactions</span>
+        </div>
+        <div class="tab-item">
+          <svg viewBox="0 0 24 24"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.32 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+          <span>Settings</span>
+        </div>
+      </div>
+    </div>
+    <div class="change-note">
+      <strong>Dark:</strong> Error banner uses rgba red tint with matching border. Text color shifts to soft pink (#fca5a5) for readability on dark background. Same layout, same dismiss pattern.
+    </div>
+  </div>
+
+</div>
+
+
+<!-- ===== FOOTER ===== -->
+<div class="page-footer">
+  Warm Productivity — UI Polish Pass 1 — March 2026
+</div>
+
+</body>
+</html>

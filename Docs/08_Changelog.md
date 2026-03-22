@@ -57,3 +57,11 @@ This is the project decision log. Append-only — never edit or delete past entr
 **What changed:** Phase labels added to Cross-App Integration Map — every section now marked as Phase 1 (data layer) or Phase 12 (Cross-App UI).
 **Why:** Integration Map was describing deferred UI features without indicating they were deferred, which would confuse an AI developer building Phase 1.
 **Affected documents:** warm-productivity-cross-app-integration-map.md
+
+---
+
+## 2026-03-22
+
+**What changed:** Added UI Polish Pass 1 as a dedicated milestone between Expense Tracker Phase 2 (Search & Filtering) and Phase 3 (Reconciliation). Updated build principle to include "polish at natural milestones" (3a). Phase 6 description updated to include a final full-app polish pass.
+**Why:** Phases 1 and 2 are complete. Rather than accumulating visual debt across all 6 phases and fixing it at the end, a dedicated polish pass now — while the screen count is manageable — prevents compounding UI inconsistencies and ensures a solid visual foundation before reconciliation adds complexity.
+**Affected documents:** 04_Development_Roadmap.md, 05_Expense_Tracker_App_Spec.md

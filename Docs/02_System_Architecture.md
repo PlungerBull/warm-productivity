@@ -102,6 +102,7 @@ warm-productivity/
 │       └── Resources/
 ├── Packages/
 │   ├── SharedModels/            # SwiftData entities, shared across all apps
+│   ├── RecurrenceEngine/        # Shared recurrence logic: pattern evaluation, next-date calculation, schedule anchoring
 │   ├── SyncEngine/              # Sync logic, conflict resolution, queue management
 │   ├── SupabaseClient/          # Supabase SDK configuration, auth, API helpers
 │   ├── SharedUI/                # Design system: colors, typography, spacing, shared components
@@ -111,10 +112,14 @@ warm-productivity/
 │   ├── functions/               # Edge Functions (complex writes, exchange rates)
 │   └── seed.sql                 # Initial data (default categories, onboarding content)
 ├── Docs/
-│   ├── vision-and-philosophy.md
-│   ├── system-architecture.md   # This document
-│   ├── cross-app-integration-map.md
-│   └── changelog.md
+│   ├── 01_Vision_and_Philosophy.md
+│   ├── 02_System_Architecture.md    # This document
+│   ├── 03_Cross_App_Integration_Map.md
+│   ├── 04_Development_Roadmap.md
+│   ├── 05_Expense_Tracker_App_Spec.md
+│   ├── 06_Notes_App_Spec.md
+│   ├── 07_Todo_App_Spec.md
+│   └── 08_Changelog.md
 ├── Skills/                      # Claude skills for AI-assisted development
 └── CLAUDE.md                    # Project-level AI instruction file
 ```
@@ -173,8 +178,6 @@ users
   - id (UUID, primary key)
   - email (text)
   - display_name (text)
-  - is_archived (boolean, NOT NULL, default false) — when true, the account is hidden from all transaction pickers and new-entry flows but preserved in full for historical records and reports. Cannot be deleted if it has any transactions.
-  - sort_order (integer, NOT NULL, default 0) — controls display order in the Transactions tab sidebar. User-adjustable via drag-to-reorder in the Transactions tab.
   - created_at (timestamptz, default now())
   - updated_at (timestamptz, default now())
 
@@ -196,8 +199,6 @@ user_settings
   - todo_tab_show_browse (boolean, NOT NULL, default true) — To-Do tab visibility: Browse. Todoist-style: user can hide any tab they don't use. At least one tab must remain visible (enforced client-side).
   - expense_tab_show_budgeting (boolean, NOT NULL, default true) — Expense Tracker tab visibility: Budgeting (only meaningful once Phase 2 is installed)
   - expense_tab_show_reconciliations (boolean, NOT NULL, default true) — Expense Tracker tab visibility: Reconciliations (only meaningful once Phase 3 is installed)
-  - is_archived (boolean, NOT NULL, default false) — when true, the account is hidden from all transaction pickers and new-entry flows but preserved in full for historical records and reports. Cannot be deleted if it has any transactions.
-  - sort_order (integer, NOT NULL, default 0) — controls display order in the Transactions tab sidebar. User-adjustable via drag-to-reorder in the Transactions tab.
   - created_at (timestamptz, default now())
   - updated_at (timestamptz, default now())
 
@@ -217,8 +218,6 @@ exchange_rates  ← GLOBAL REFERENCE TABLE. No user_id. No RLS. No sync protocol
   - rate (numeric, NOT NULL) — how many units of target_currency per 1 USD (e.g., 3.75 means 1 USD = 3.75 PEN)
   - rate_date (date, NOT NULL) — the date this rate applies to
   - fetched_at (timestamptz, default now()) — when this rate was recorded
-  - is_archived (boolean, NOT NULL, default false) — when true, the account is hidden from all transaction pickers and new-entry flows but preserved in full for historical records and reports. Cannot be deleted if it has any transactions.
-  - sort_order (integer, NOT NULL, default 0) — controls display order in the Transactions tab sidebar. User-adjustable via drag-to-reorder in the Transactions tab.
   - created_at (timestamptz, default now())
   - UNIQUE constraint: (base_currency, target_currency, rate_date) — one rate per currency pair per day
 
@@ -230,8 +229,6 @@ entity_links
   - target_id (UUID)
   - link_context (enum: 'expense_note', 'task_note', 'task_expense', 'note_created_expense', 'note_created_task')
   - user_id (UUID, foreign key → users)
-  - is_archived (boolean, NOT NULL, default false) — when true, the account is hidden from all transaction pickers and new-entry flows but preserved in full for historical records and reports. Cannot be deleted if it has any transactions.
-  - sort_order (integer, NOT NULL, default 0) — controls display order in the Transactions tab sidebar. User-adjustable via drag-to-reorder in the Transactions tab.
   - created_at (timestamptz, default now())
   - updated_at (timestamptz, default now())
   - version (integer, NOT NULL, default 1) — required for delta sync detection
@@ -425,14 +422,7 @@ Same mechanism as people splits — just between two real accounts.
 
 **People in the sidebar:** The sidebar shows a "People" section listing each person account with their running balance (from `current_balance_cents`). People with accounts in multiple currencies show each balance separately, grouped by name. Tapping a person shows all transactions on their account(s) — the full history of what they owe you and what you owe them.
 
-**Reconciliation in the sidebar:** The sidebar shows a "Reconciliation" section as a dedicated entry point for managing reconciliation batches. This section contains:
-
-- **Batch list view:** All reconciliation batches for the user, filterable by account. Each batch shows its name, account, date range, status (draft or completed), and the difference between expected ending balance and actual transaction totals.
-- **Batch detail view:** Shows all transactions assigned to the batch, the beginning and ending balances, and the running difference. From here the user can complete a draft batch (locking fields on all included transactions) or un-reconcile a completed batch (reverting it to draft and unlocking all transactions).
-- **Create batch:** New batches are created from this section, specifying the account, name, date range, and beginning/ending balances.
-- **Un-reconcile:** Available on completed batches. Reverts the batch status from `completed` back to `draft`, unlocking `amount_cents`, `account_id`, `title`, and `date` on all transactions in the batch.
-
-Assigning transactions to a batch does NOT happen from the reconciliation section — it happens from the transaction list via a batch action in the transaction context menu. The user selects transactions and assigns them to an existing draft batch. Removing a transaction from a draft batch (setting `reconciliation_id` back to null) also happens from the transaction menu.
+**Reconciliation lives in its own tab, not the sidebar.** The Expense Tracker has a dedicated Reconciliations tab (added in Phase 3) for managing reconciliation batches — creating, viewing, completing, and un-reconciling. There is no Reconciliation section in the Transactions sidebar. Assigning transactions to a batch happens from the transaction list via a batch action in the transaction context menu. See the Expense Tracker App Spec for the full Reconciliations tab design.
 
 **Reconciliation field-locking rules:** When a batch is completed, four fields lock on every transaction in the batch: `amount_cents`, `account_id`, `title`, `date`. All other fields (category, notes/description, exchange rate, receipt photo, cleared status) remain editable regardless of reconciliation state. Un-reconciling the batch unlocks all four fields.
 
@@ -449,11 +439,11 @@ Monthly per-category budgets for both income and expense categories. Budgets are
 - **No total budget:** Only per-category budgets exist. The total is the derived sum of all category budgets.
 - **Across all accounts:** Budget comparison sums transactions from all bank accounts, not per-account.
 
-**"Spent" calculation:** No stored totals. The dashboard queries `expense_transactions` for the current month: `SUM(amount_home_cents) WHERE category_id = X AND date within current month`. Compared against the `expense_budgets.amount_cents` for that category.
+**"Spent" calculation:** No stored totals. The dashboard queries `expense_transactions` for each visible month: `SUM(amount_home_cents) WHERE category_id = X AND date within month`. Compared against the `expense_budgets.amount_cents` for that category.
 
 **When main_currency changes:** Budget amounts stay as-is (they're already abstract targets). The "spent" side recalculates automatically because `amount_home_cents` on transactions is recalculated (see Exchange Rates section).
 
-**Dashboard table:** Categories as rows, split into income and expense sections based on `category_type`. Each row shows: category name, budget amount, actual amount (sum of `amount_home_cents`), and the difference. All in `main_currency`. System categories @Debt and @Other (`category_type = 'expense'`) appear in the expense section.
+**Dashboard table — 3-month view:** Categories as rows, 3 months as columns — showing a rolling 3-month window with the current month as the rightmost column. Each cell shows: actual spend (sum of `amount_home_cents`) and budget amount. Categories are split into income and expense sections based on `category_type`. All amounts in `main_currency`. System categories @Debt and @Other (`category_type = 'expense'`) appear in the expense section. The user scrolls backward with [← →] arrows to see older months. Budget amounts in past month columns are read-only; the current month column supports inline editing.
 
 ### Cross-User Shared Expenses
 
@@ -537,13 +527,13 @@ The originator's edits also go through this function when a `transaction_shares`
 **Transfers and paired transactions:** When the `/` syntax is used, the system creates linked `expense_transactions` records sharing the same `transfer_id`. This applies to both inter-account transfers (`/Chase_Credit +60`) and people splits (`/Eliana +20`). The `transfer_id` column links the paired transactions. Category assignment follows the rules in the category table above. Multiple `/` targets on one expense each get their own paired transaction, all sharing the same `transfer_id` as the primary transaction.
 
 **Inbox record visibility — derived from data, no flag needed:**
-- **Inbox view** (no `linked_task_id`, missing any mandatory field): Standalone records with incomplete data. These need attention — the user fills in missing data. Once all mandatory fields (including date) are present and date is today or past, the record auto-promotes to ledger.
+- **Inbox view** (no `linked_task_id`): Standalone records. Items with incomplete data need attention — the user fills in missing fields. When all mandatory fields (including date) are present and date is today or past, the item shows a "ready" indicator and a small Promote button. The user taps Promote to move the expense to the ledger. This lets users add optional fields (hashtags, description, receipt photo) before promoting.
 - **Expense Planning section** (has `linked_task_id`): All task-linked inbox records. The due date for display and sorting comes from the linked task's `due_date`, not from the inbox record's `date` (which is null for recurring templates). Includes both recurring templates and one-off planned expenses.
 - **Overdue section** (subset of Expense Planning where the linked task's `due_date` is today or past and the task is not completed): Planned expenses whose due date has passed without being confirmed. The user can complete them or reschedule.
 
 **Inbox promotion — two paths:**
 
-**Path 1: No linked task (standalone expense).** Promotion happens automatically when the user saves an inbox item and all mandatory fields are present (title, amount, bank account, category, date, exchange rate if needed) AND the date is today or past. The system evaluates completeness on every save. An Edge Function validates, inserts into `expense_transactions` (ledger), deletes the inbox record, and updates entity_links to point to the new ledger record. If any mandatory field is missing, the record stays in the Inbox view.
+**Path 1: No linked task (standalone expense).** Promotion is user-initiated. When all mandatory fields are present (title, amount, bank account, category, date, exchange rate if needed) AND the date is today or past, the inbox item shows a "ready" indicator and a small Promote button. The user taps Promote to trigger the promotion. This lets users add optional fields (hashtags, description, receipt photo) before promoting. An Edge Function validates, inserts into `expense_transactions` (ledger), deletes the inbox record, and updates entity_links to point to the new ledger record. If any mandatory field is missing, the Promote button is hidden and the record stays in the Inbox view.
 
 **Path 2: Linked task (planned expense).** Promotion happens ONLY when the linked task is completed — not automatically based on date. The Edge Function copies the inbox record's financial data (title, amount, bank account, category, exchange rate) into a new `expense_transactions` record. The `date` on the ledger entry is set to the **task completion date** (the current date at the moment of completion — not the task's due date). Any existing `entity_links` pointing to the inbox record are updated to point to the new ledger record (target_id and target_type change from inbox to ledger). For one-off planned expenses (`is_recurring = false`), the inbox record is consumed (deleted after ledger insertion). For recurring planned expenses (`is_recurring = true`), the inbox record persists as the template (date stays null), and the linked task's `due_date` advances to the next occurrence per the recurrence rule. Schedule anchoring is configurable per recurrence rule: "anchor to original schedule" (next occurrence follows the original pattern regardless of completion date) or "schedule from last completion" (next occurrence is calculated relative to the completion date).
 
@@ -805,9 +795,7 @@ streak_completions
 
 **Overdue section:** A subset of Expense Planning where the linked task's `due_date` is today or past and the task is not completed. These are planned expenses whose due date has passed without being confirmed. The user can complete them (registers to ledger with the completion date) or reschedule them (update the task's due date).
 
-**Creating planned expenses from the Expense Tracker:** The Expense Planning section allows creating new planned expenses directly — both recurring and one-off. This creates an `expense_transaction_inbox` record with all financial fields (title, amount, bank account, category, exchange rate) and `date = null` for recurring or `date = null` for one-off (date is written at completion time). For recurring expenses, it also creates a linked `todo_task` with `has_financial_data = true` and a `todo_recurrence_rule` — the task drives the scheduling, the inbox record holds the financial data and is marked `is_recurring = true`. For one-off expenses, a linked task is also created (for completion tracking and due date), but without a recurrence rule. The user sets title, amount, currency, bank account, category, exchange rate, due date (on the task), and recurrence pattern (if recurring) — all from within the Expense Tracker.
-
-**Future-date routing:** When a user adds an expense with a future date (any date after today) from the Expense Tracker, the system creates an `expense_transaction_inbox` record (with `date = null` — the future date goes to the linked `todo_task` as its `due_date`). The expense appears in the Expense Planning section. Expenses with today's date or a past date are created normally (inbox or ledger depending on field completeness).
+**Creating planned expenses:** Users create planned expenses through the normal FAB by setting a future date. There is no separate creation form in the Expense Planning section — it is a read-only filtered view plus register/confirm actions. When a user adds an expense with a future date (any date after today) from the FAB, the system creates an `expense_transaction_inbox` record (with `date = null`) and a linked `todo_task` with the future date as its `due_date`. For recurring expenses, a `todo_recurrence_rule` is also created — the task drives the scheduling, the inbox record holds the financial data and is marked `is_recurring = true`. The expense appears in the Expense Planning section. Expenses with today's date or a past date are created normally (inbox or ledger depending on field completeness).
 
 **One occurrence at a time:** For recurring planned expenses, the inbox template is persistent and the linked task shows the next due date. The recurrence engine (via the linked task) calculates when the next occurrence is due. When the user registers/completes it, a ledger entry is generated with the completion date, and the linked task's `due_date` advances to the next occurrence. This keeps the Expense Planning list clean — one row per recurring expense.
 
@@ -857,7 +845,7 @@ Notes can contain slash commands (`/expense`, `/todo`) that create entities in o
 
 **Supported fields:**
 
-- `/expense -30 Lunch yesterday @Food $BCP_PEN` — captures amount (with sign), title, date, category, and bank account. Date supports natural language parsing ("yesterday", "Feb 15", "last Friday"). Since all mandatory ledger fields are present (amount, title, date, bank account, category), this can auto-promote directly to the ledger if the date is today or past. If the date is in the future, future-date routing applies (creates inbox record + linked task).
+- `/expense -30 Lunch yesterday @Food $BCP_PEN` — captures amount (with sign), title, date, category, and bank account. Date supports natural language parsing ("yesterday", "Feb 15", "last Friday"). Since all mandatory ledger fields are present (amount, title, date, bank account, category), this goes directly to the ledger if the date is today or past. If the date is in the future, future-date routing applies (creates inbox record + linked task).
 - `/todo Buy groceries tomorrow @Personal #Errands` — captures title, date, category, and hashtag. Date supports natural language parsing.
 
 **Execution model — confirmation before creation:** When the user types a slash command and hits Enter, the entity is NOT created immediately. Instead, the raw command text transforms into an **inline preview card** showing the parsed fields (amount, title, date, category, bank account for expenses; title, date, category, hashtag for to-dos). The preview card has a "Confirm" button and an "X" (cancel) button. The entity is only created when the user taps Confirm. If the user cancels or deletes the preview line, nothing is created — no phantom entities. This prevents the problem of accidental duplicate entities when the user types a command wrong, deletes it, and retypes it. The preview also gives the user a chance to verify that natural language parsing interpreted the fields correctly (e.g., "yesterday" parsed as the right date).
@@ -1145,41 +1133,6 @@ Apple only provides the user's name and email address **on the very first sign-i
 4. On successful auth, write the saved name to the `users` table via a profile upsert call
 5. Clear the saved name from `UserDefaults`
 
-### Database Indexes
-
-Indexes are defined in migration files alongside the table definitions. These are the required indexes based on the system's actual query patterns.
-
-**Universal indexes (every per-user table):**
-- `(user_id)` — every query filters by user; without this, Postgres scans the entire table
-- `(user_id, deleted_at)` — the most common read query shape: non-deleted records for a user
-- `(user_id, version)` — delta sync query: `WHERE user_id = ? AND version > last_seen_version`
-
-**Table-specific indexes:**
-
-| Table | Index | Reason |
-|---|---|---|
-| `expense_transactions` | `(user_id, date DESC)` | Transaction list sorted by date |
-| `expense_transactions` | `(account_id)` | Sidebar balance aggregation per account |
-| `expense_transactions` | `(category_id)` | Sidebar balance aggregation per category |
-| `expense_transactions` | `(reconciliation_id)` | Fetching all transactions in a reconciliation batch |
-| `expense_transaction_inbox` | `(user_id, created_at DESC)` | Inbox list sorted by creation date |
-| `todo_tasks` | `(user_id, due_date)` | Today/Upcoming tab queries filter by date |
-| `todo_tasks` | `(user_id, category_id)` | Filtering tasks by category |
-| `todo_tasks` | `(parent_task_id)` | Fetching subtasks for a given parent |
-| `todo_tasks` | `(user_id, is_completed, due_date)` | Composite for Today/Upcoming tab (non-completed, date-filtered) |
-| `note_entries` | `(user_id, notebook_id)` | Fetching notes in a notebook |
-| `note_entries` | `(user_id, is_pinned)` | Fetching pinned notes |
-| `entity_links` | `(source_id, source_type)` | Looking up all links from a given source entity |
-| `entity_links` | `(target_id, target_type)` | Looking up all links pointing to a given entity |
-| `exchange_rates` | `(base_currency, target_currency, rate_date)` | Already covered by UNIQUE constraint |
-| `todo_category_members` | `(user_id)` | Finding all categories a user is a member of |
-
-**Notes:**
-- The UNIQUE constraint on `exchange_rates (base_currency, target_currency, rate_date)` automatically creates a B-tree index — no separate index needed.
-- The UNIQUE constraint on `todo_category_members (category_id, user_id)` similarly creates an index automatically.
-- Indexes on `deleted_at` alone are not needed — the composite `(user_id, deleted_at)` covers the filter pattern.
-- All indexes are created with `CREATE INDEX IF NOT EXISTS` in migration files for idempotency.
-
 ## Authentication Flow
 
 1. User taps "Sign in with Apple" in any of the three apps
@@ -1341,9 +1294,9 @@ user_subscriptions
 **Edge Functions** for complex operations:
 
 - **Expense from task completion:** creates the expense_transaction, creates the entity_link, updates the task — all in one atomic transaction
-- **Inbox promotion (no linked task):** validates all mandatory fields are present (title, amount, bank account, category, date, exchange rate if needed) and date is today/past. Inserts into `expense_transactions` (ledger), deletes inbox record, updates entity_links.
+- **Inbox promotion (no linked task):** triggered when the user taps the Promote button on a ready inbox item. Validates all mandatory fields are present (title, amount, bank account, category, date, exchange rate if needed) and date is today/past. Inserts into `expense_transactions` (ledger), deletes inbox record, updates entity_links.
 - **Task completion promotion:** triggered when a linked task is completed. Copies financial data from the linked inbox record. Updates any existing `entity_links` pointing to the inbox record to target the new ledger record. For one-off (`is_recurring = false`): inserts into `expense_transactions` with completion date as `date`, deletes inbox record, updates entity_links. For recurring (`is_recurring = true`): inserts into `expense_transactions` with completion date as `date`, keeps inbox record (template), creates new entity_link for the ledger entry, advances linked task's `due_date` to next occurrence per recurrence rule and schedule anchoring setting.
-- **Planned expense creation:** creates `expense_transaction_inbox` record (with financial fields, `date = null`) and linked `todo_task` with `due_date` (+ `todo_recurrence_rule` if recurring) when user creates a planned expense from Expense Planning section or adds a future-dated expense.
+- **Planned expense creation:** creates `expense_transaction_inbox` record (with financial fields, `date = null`) and linked `todo_task` with `due_date` (+ `todo_recurrence_rule` if recurring) when user adds a future-dated expense via the FAB.
 - **Reconciliation management:** creates/completes/un-reconciles batches. On batch completion: sets status to `completed`, locks `amount_cents`, `account_id`, `title`, and `date` on all included transactions. On un-reconcile: reverts status to `draft`, unlocks those four fields. Transaction assignment to batches (setting/clearing `reconciliation_id`) is handled by direct updates from the transaction menu, not this function.
 - **Split generation:** when an expense is tagged with `/PersonName +amount` (e.g., `/Eliana +20`), auto-generates @Debt transactions on each person's virtual account. Creates person and virtual account if they don't exist. Runs atomically alongside the source expense creation.
 - **Streak auto-unachieve:** scheduled via `pg_cron`. Runs at period boundaries (midnight daily, Sunday midnight weekly, last day of month monthly). For each streak-enabled task, checks if the ending period's `streak_completions` meet the goal. If not, the streak resets. No records are created for missed periods — the absence of a fulfilling `streak_completions` entry IS the failure signal. Streak count is always calculated from the completions log, not stored as a field.

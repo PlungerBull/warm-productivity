@@ -65,7 +65,7 @@ Track what you spend, who owes whom, and where your money goes.
 
 **Core Tracking:**
 
-- Inbox/ledger structure: log any expense quickly (incomplete entries go to the inbox), once all mandatory fields are present and saved it moves to the final ledger. Expenses can also be saved directly to the ledger, bypassing the inbox if all mandatory fields are present. The ledger enforces completeness — nothing is saved there without all required fields. Items in the ledger can still be edited. Expenses in the inbox can have notes attached.
+- Inbox/ledger structure: log any expense quickly (incomplete entries go to the inbox). When all mandatory fields are present and the date is today or past, the item shows a "ready" indicator and a small Promote button — the user taps it to move the expense to the ledger. This lets users add optional fields (hashtags, description, receipt photo) before promoting. Expenses can also be saved directly to the ledger, bypassing the inbox if all mandatory fields are present at creation time. The ledger enforces completeness — nothing is saved there without all required fields. Items in the ledger can still be edited. Expenses in the inbox can have notes attached.
 - Flat categories (no hierarchy — every category is directly assignable to transactions)
 - Hashtags on expenses (multiple per expense, freeform, available on both inbox and ledger items)
 - Dates on every transaction

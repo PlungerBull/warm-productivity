@@ -48,12 +48,15 @@ public extension Color {
 
     /// Dividers and borders.
     static let wpBorder = Color(light: Color(hex: "#e7e5e4"), dark: Color(hex: "#44403c"))
+
+    /// Text/icons on primary-colored backgrounds.
+    static let wpOnPrimary = Color.white
 }
 
 // MARK: - Adaptive Color Helper
 
 extension Color {
-    init(light: Color, dark: Color) {
+    public init(light: Color, dark: Color) {
         self.init(uiColor: UIColor { traitCollection in
             traitCollection.userInterfaceStyle == .dark
                 ? UIColor(dark)
@@ -61,7 +64,7 @@ extension Color {
         })
     }
 
-    init(hex: String) {
+    public init(hex: String) {
         let hex = hex.trimmingCharacters(in: CharacterSet(charactersIn: "#"))
         let scanner = Scanner(string: hex)
         var rgbValue: UInt64 = 0

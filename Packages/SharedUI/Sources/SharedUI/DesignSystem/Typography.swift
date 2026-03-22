@@ -32,4 +32,16 @@ public extension Font {
 
     /// Large monospaced numbers — summary totals, balance cards.
     static let wpAmountLarge = Font.system(.title2, design: .default, weight: .semibold).monospacedDigit()
+
+    /// Large icon — decorative SF Symbols on auth/onboarding screens.
+    static let wpIconLarge = Font.system(size: 72, weight: .light)
+
+    /// Medium icon — decorative SF Symbols on secondary screens.
+    static let wpIconMedium = Font.system(size: 56, weight: .light)
+
+    /// Small icon — inline SF Symbols in chips and badges.
+    static let wpIconSmall = Font.system(size: 10, weight: .regular)
+
+    /// Decorative icon — empty state / import screen illustrations.
+    static let wpIconDecorative = Font.system(size: 48, weight: .light)
 }

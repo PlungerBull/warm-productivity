@@ -22,6 +22,9 @@ public final class UserSettings {
     public var expenseTabShowReconciliations: Bool
     public var createdAt: Date
     public var updatedAt: Date
+    public var version: Int = 1
+    public var deletedAt: Date?
+    public var syncedAt: Date?
 
     public init(
         userId: UUID = UUID(),
@@ -42,7 +45,10 @@ public final class UserSettings {
         expenseTabShowBudgeting: Bool = true,
         expenseTabShowReconciliations: Bool = true,
         createdAt: Date = Date(),
-        updatedAt: Date = Date()
+        updatedAt: Date = Date(),
+        version: Int = 1,
+        deletedAt: Date? = nil,
+        syncedAt: Date? = nil
     ) {
         self.userId = userId
         self.theme = theme
@@ -63,5 +69,8 @@ public final class UserSettings {
         self.expenseTabShowReconciliations = expenseTabShowReconciliations
         self.createdAt = createdAt
         self.updatedAt = updatedAt
+        self.version = version
+        self.deletedAt = deletedAt
+        self.syncedAt = syncedAt
     }
 }

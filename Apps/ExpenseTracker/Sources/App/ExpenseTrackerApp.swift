@@ -2,6 +2,7 @@ import SwiftUI
 import SwiftData
 import SharedModels
 import SharedUI
+import SharedUtilities
 import SupabaseClient
 
 @main
@@ -67,13 +68,15 @@ struct ExpenseTrackerApp: App {
         }
     }
 
-    /// Returns the SwiftData store URL inside the shared App Group container.
+    /// Returns the SwiftData store URL inside the shared App Group container,
+    /// falling back to the app's documents directory when the container is unavailable
+    /// (e.g. simulator without a registered App Group).
     static func sharedStoreURL() -> URL {
-        guard let containerURL = FileManager.default.containerURL(
-            forSecurityApplicationGroupIdentifier: "group.com.warmproductivity.shared"
-        ) else {
-            fatalError("App Group container not available")
+        if let containerURL = FileManager.default.containerURL(
+            forSecurityApplicationGroupIdentifier: AppConstants.appGroupIdentifier
+        ) {
+            return containerURL.appendingPathComponent("WarmProductivity.store")
         }
-        return containerURL.appendingPathComponent("WarmProductivity.store")
+        return URL.documentsDirectory.appendingPathComponent("WarmProductivity.store")
     }
 }

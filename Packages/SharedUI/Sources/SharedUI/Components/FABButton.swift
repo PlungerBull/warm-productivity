@@ -32,7 +32,7 @@ public struct FABButton: View {
         } label: {
             Image(systemName: "plus")
                 .font(.title2.weight(.semibold))
-                .foregroundStyle(.white)
+                .foregroundStyle(Color.wpOnPrimary)
                 .frame(width: 56, height: 56)
                 .background(Color.wpPrimary)
                 .clipShape(Circle())

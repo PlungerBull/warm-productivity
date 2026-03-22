@@ -1,5 +1,6 @@
 import Supabase
 import Foundation
+import SharedUtilities
 
 /// Singleton entry point for all Supabase SDK access.
 /// Reads credentials from Info.plist (injected via xcconfig files).
@@ -23,7 +24,7 @@ public final class SupabaseManager: Sendable {
             options: SupabaseClientOptions(
                 auth: .init(
                     storage: KeychainLocalStorage(
-                        accessGroup: "group.com.warmproductivity.shared"
+                        accessGroup: AppConstants.appGroupIdentifier
                     )
                 )
             )

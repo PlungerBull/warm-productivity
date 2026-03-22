@@ -61,14 +61,14 @@ warm-productivity/
 │   ├── functions/               ← Edge Functions (complex writes, exchange rates)
 │   └── seed.sql                 ← Initial data (default categories, onboarding content)
 ├── Docs/
-│   ├── vision-and-philosophy.md
-│   ├── system-architecture.md
-│   ├── cross-app-integration-map.md
-│   ├── development-roadmap.md
-│   ├── expense-tracker-app-spec.md
-│   ├── notes-app-spec.md
-│   ├── todo-app-spec.md
-│   └── changelog.md
+│   ├── 01_Vision_and_Philosophy.md
+│   ├── 02_System_Architecture.md
+│   ├── 03_Cross_App_Integration_Map.md
+│   ├── 04_Development_Roadmap.md
+│   ├── 05_Expense_Tracker_App_Spec.md
+│   ├── 06_Notes_App_Spec.md
+│   ├── 07_Todo_App_Spec.md
+│   └── 08_Changelog.md
 ├── Skills/                      ← Claude skills for AI-assisted development
 └── CLAUDE.md                    ← Project-level AI instruction file
 ```
@@ -250,4 +250,22 @@ Load these skills for specific task types. If a skill is listed but doesn't exis
 
 ## Emerging Conventions
 
-*This section is written by the AI during development. It starts empty.*
+*This section is written by the AI during development.*
+
+### CodingKeys — Handled by SyncEngine, Not @Model Classes
+
+CLAUDE.md's naming table says "CodingKeys enum per model." However, SwiftData `@Model` classes do **not** use `Codable` for local persistence — SwiftData has its own schema system. Adding `CodingKeys` to `@Model` classes has no effect on SwiftData and cannot enable `Codable` conformance without also writing manual `init(from:)` and `encode(to:)` (which conflicts with the `@Model` macro).
+
+**Decision:** The camelCase ↔ snake_case mapping is the SyncEngine's responsibility. When the `sync-engine` skill is built, it will either:
+- Use `JSONDecoder.KeyDecodingStrategy.convertFromSnakeCase` globally, or
+- Create lightweight DTO structs in the SyncEngine package for API serialization
+
+This keeps SharedModels as pure SwiftData models with no Codable concern.
+
+### Navigation — TabView with `.tabItem` (iOS 17 compat)
+
+The deployment target is iOS 17.0. `SwiftUI.Tab` (the view type with `value:` parameter) requires iOS 18+. Use the `.tabItem { Label(...) }` modifier pattern with `.tag()` for tab selection binding.
+
+### Color Extensions in `.foregroundStyle()`
+
+`Color` extensions (e.g., `Color.wpTextSecondary`) do not auto-resolve as `ShapeStyle` members. Always write the full `Color.wpTextSecondary` form, never `.wpTextSecondary`, inside `.foregroundStyle()`.

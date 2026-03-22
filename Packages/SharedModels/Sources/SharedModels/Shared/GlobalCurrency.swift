@@ -7,16 +7,19 @@ public final class GlobalCurrency {
     public var name: String
     public var symbol: String
     public var flag: String?
+    public var decimalPlaces: Int
 
     public init(
         code: String,
         name: String,
         symbol: String,
-        flag: String? = nil
+        flag: String? = nil,
+        decimalPlaces: Int = 2
     ) {
         self.code = code
         self.name = name
         self.symbol = symbol
         self.flag = flag
+        self.decimalPlaces = decimalPlaces
     }
 }

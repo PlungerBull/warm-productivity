@@ -10,7 +10,7 @@ public final class ExpenseTransactionInbox {
     public var date: Date?
     public var accountId: UUID?
     public var categoryId: UUID?
-    public var exchangeRate: Decimal
+    public var exchangeRate: Decimal?
     public var isRecurring: Bool
     public var linkedTaskId: UUID?
     public var sourceText: String?
@@ -29,7 +29,7 @@ public final class ExpenseTransactionInbox {
         date: Date? = nil,
         accountId: UUID? = nil,
         categoryId: UUID? = nil,
-        exchangeRate: Decimal = 1.0,
+        exchangeRate: Decimal? = nil,
         isRecurring: Bool = false,
         linkedTaskId: UUID? = nil,
         sourceText: String? = nil,

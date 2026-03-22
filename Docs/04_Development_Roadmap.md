@@ -24,11 +24,13 @@ This principle governs how every app is built. It applies to Steps 7, 9, and 11 
 
 **2. Build the thinnest possible UI for the core flow.** Each app has one core flow that defines what it *is*. Build only that flow first, with the simplest UI that exercises it. No fancy design, no secondary features, no polish. Examples:
 
-- **Expense Tracker core flow:** Create expense → inbox/ledger routing (automatic promotion based on field completeness for standalone expenses) → edit → delete. Categories, hashtags, descriptions, dates, multiple bank accounts (with per-account total display), multi-currency (PEN + USD), exchange rates manually maintained. CSV import (for loading data from other tools). No Expense Planning (Phase 6), no receipt photos, no CSV export, no dashboard, no reconciliation, no search/filtering.
+- **Expense Tracker core flow:** Create expense → inbox/ledger routing (user-initiated promotion via Promote button when all mandatory fields present; ready indicator on eligible items) → edit → delete. Categories, hashtags, descriptions, dates, multiple bank accounts (with per-account total display), multi-currency (PEN + USD), exchange rates manually maintained. CSV import (for loading data from other tools). No Expense Planning (Phase 6), no receipt photos, no CSV export, no dashboard, no reconciliation, no search/filtering.
 - **Notes core flow:** Create note → edit with markdown → assign to notebook → timeline view (date: title, newest-first) → pinning → search across notebooks → delete. No slash commands, no export. This is a simple app — the core flow covers most of its functionality.
 - **To-Do core flow:** Create task → set due date and priority → categories → hashtags → complete → delete. No subtasks, no recurring, no streaks, no smart filters beyond a basic list, no expense connection.
 
 **3. Harden before expanding.** The core flow must be locally tested, deployed to production, tested in real deployment, and confirmed stable before adding any secondary features. Building on shaky foundations makes everything harder — for you and for the AI writing the code.
+
+**3a. Polish at natural milestones.** After a group of phases delivers a usable, testable feature set, take a dedicated UI polish pass before adding new feature complexity. Polish covers spacing, transitions, empty/loading/error states, dark mode, accessibility, and micro-interactions. This prevents visual debt from compounding across phases — fixing spacing on 5 screens is manageable, fixing it on 25 is not.
 
 **4. Layer features one at a time.** After the core is solid, add the next feature slice. Test it. Harden it. Then add the next. Each layer builds on a proven foundation.
 
@@ -163,12 +165,15 @@ This step is unique because you're building two things at once: the expense trac
 
 **Standalone phases (each phase hardens before the next begins):**
 
-- **Phase 1 — Core Tracking:** Expenses (inbox/ledger, automatic promotion for standalone expenses when all mandatory fields present and date is today/past), categories, hashtags, dates, descriptions (writes to `note_entries` via Universal Description Model — data layer, no Notes UI needed), multiple bank accounts (with per-account total display), multi-currency (PEN + USD), exchange rates via single-base reference table (all rates relative to USD, manually maintained, auto-filled on transactions but user-overridable), `amount_home_cents` as cached display value that recalculates on `main_currency` change, CSV import (for loading data from other tools). No receipt photos (Phase 6), no CSV export (Phase 6), no dashboard, no reconciliation, no search/filtering.
-- **Phase 2 — Search & Filtering:** Category breakdown views with hashtag combination grouping, filtering by individual hashtag across categories, search across expenses.
-- **Phase 3 — Reconciliation:** Mark/tag expenses as reconciled against bank statements. Reconciled items become locked.
-- **Phase 4 — People & Transfers (unified `/` syntax):** People are bank accounts (`is_person = true`). The `/` syntax creates paired transactions on any target account — people or real accounts. Person accounts auto-created on first use in a new currency. @Debt category for people splits, @Other for inter-account transfers. Settlement flow, People section in sidebar with running balances. All linked via `transfer_id`. Cross-user sharing via invitation: link person accounts to real Warm Productivity users (`linked_user_id`), `transaction_shares` table for shared visibility, sign-flipped display for receivers, independent categories and notes per user, two-party confirmation flow that locks amount/title/currency/date once both agree, edit gatekeeper database function.
-- **Phase 5 — Expense Planning + Recurrence Engine:** Builds the recurrence engine as shared infrastructure (date calculation, schedule anchoring, next-occurrence logic) — reused later by the To-Do app for recurring tasks. Expense Planning section (filtered view of inbox: records with `linked_task_id`, sorted by linked task's `due_date`) showing recurring and one-off planned expenses. Overdue section (subset where linked task's due date is today/past and task not completed). Create planned expenses directly (with linked tasks for scheduling, `date = null` on inbox, due date on task). Register/confirm planned expenses to promote to ledger with completion date. Recurring expense template management. Schedule anchoring configurable per recurrence rule (anchor to original schedule or from last completion). No skip/pause — user either keeps or deletes a recurring expense.
-- **Phase 6 — Polish & Utilities:** Receipt photos (camera/image picker → upload to Supabase Storage → store URL as `receipt_photo_url` on inbox and ledger transactions, editable post-reconciliation). CSV export (export transactions from the ledger as a `.csv` file for external tools or backups).
+1. Core Tracking — inbox/ledger, categories, hashtags, multi-currency, accounts, descriptions, CSV import
+2. Search & Filtering — category breakdown, hashtag filtering, search
+— **UI Polish Pass 1** — visual refinement of all Phase 1–2 screens (spacing, transitions, empty/loading/error states, dark mode, accessibility)
+3. Reconciliation — batch reconciliation, field locking
+4. People & Transfers — `/` syntax, person accounts, debt tracking, cross-user sharing
+5. Expense Planning + Recurrence Engine — planned expenses, recurring templates, shared recurrence engine (reused by To-Do Phase 3)
+6. Polish & Utilities — receipt photos, CSV export, final full-app polish pass
+
+**See the Expense Tracker App Spec for detailed phase scope, screens, flows, and edge cases.**
 
 **Deferred to cross-app UI integration (Step 12):** Dashboard, budget tracking, future-date routing.
 **Deferred to AI layer (Step 13):** Voice and natural language expense entry.
@@ -204,8 +209,10 @@ Notes launches with content already in it — all the notes created as expense d
 
 **Standalone phases (each phase hardens before the next begins):**
 
-- **Phase 1 — Core Notes:** Create note, edit with markdown, assign to notebook, hashtags, timeline view (date: title, newest-first), pinning, search across notebooks, delete. Auto-generated notes from expense descriptions (created during Expense Tracker Phase 1) are already present in the Inbox. This is a simple app — the core flow covers most of its functionality.
-- **Phase 2 — Export:** Per-notebook export as consolidated `.md` file.
+1. Core Notes — create, edit (markdown), notebooks, hashtags, timeline view, pinning, search, delete
+2. Export — per-notebook export as consolidated `.md` file
+
+**See the Notes App Spec for detailed phase scope, screens, flows, and edge cases.**
 
 **Deferred to cross-app UI integration (Step 12):** Slash commands (`/expense`, `/todo`), Objects sidebar section, cross-app linked references UI.
 **Deferred to AI layer (Step 13):** AI-powered natural language parsing (extracting expenses and tasks from notes).
@@ -241,13 +248,17 @@ By this point, adding a new app should be a well-practiced process. The CLAUDE.m
 
 **Standalone phases (each phase hardens before the next begins):**
 
-- **Phase 1 — Core Tasks:** Create task, set due date and priority, categories, hashtags, descriptions (writes to `note_entries` via Universal Description Model — data layer), complete, delete. Quick-add command syntax: `[title] [@category] [#hashtag] [!priority] [date]`. No subtasks, no recurring, no streaks, no expense connection.
-- **Phase 2 — Subtasks:** One level of nesting only. Independent completion mode (parent completable anytime) or gated mode (all subtasks must be done first).
-- **Phase 3 — Recurring Tasks:** Recurrence rules (daily, weekly, specific days, monthly, yearly, custom) and schedule anchoring. Reuses the shared recurrence engine built during Expense Tracker Phase 5.
-  > **⚠ Dependency:** To-Do Phase 3 cannot begin until Expense Tracker Phase 5 (Recurrence Engine) is complete. The shared recurrence engine is built in Expense Tracker Phase 5 and reused here.
-- **Phase 4 — Streaks:** Enable streak tracking on any task via `streak_frequency`. Configuration: frequency (daily/weekly/monthly), goal type (achieve_all/reach_amount), goal value (for reach_amount), recording method (auto/manual/complete_all). Streaks section as filtered view of streak-enabled tasks. `streak_completions` table for progress logging. Auto-unachieve via scheduled Edge Function at period boundaries.
-- **Phase 5 — Expense Connection (data layer):** Edge Function built immediately. Task → expense generation on completion (`has_financial_data`, `linked_inbox_id`). Financial fields visible read-only in Task Detail Modal. Full expense connection UI deferred to Step 12.
-- **Phase 6 — Collaboration:** Share tasks with others, assign responsibility.
+1. Core Tasks — create, edit, due dates, priority, categories, hashtags, complete, delete
+2. Subtasks — one level of nesting, independent and gated completion modes
+3. Recurring Tasks — reuses recurrence engine from Expense Tracker Phase 5
+4. Streaks — streak tracking, goal types, recording methods, auto-unachieve
+5. Expense Connection (data layer) — task-to-expense generation on completion
+6. Collaboration — shared categories, members, ownership
+7. Export — CSV export of tasks
+
+> **⚠ Dependency:** To-Do Phase 3 cannot begin until Expense Tracker Phase 5 (Recurrence Engine) is complete.
+
+**See the To-Do App Spec for detailed phase scope, screens, flows, and edge cases.**
 
 **Deferred to cross-app UI integration (Step 12):** Expense connection full UI (financial fields on tasks, linked inbox display, Expense Planning view in To-Do).
 **Deferred to AI layer (Step 13):** AI-powered task creation from voice or natural language.
@@ -269,7 +280,7 @@ By this point, adding a new app should be a well-practiced process. The CLAUDE.m
 
 **What to build:**
 
-- **Expense Tracker:** Dashboard (expenses by category per month, 3-month view), budget tracking (monthly per-category budgets for income and expense categories, all-or-nothing, static template, @Debt defaults to 0, set in main_currency, budget vs. actual dashboard table), future-date routing (future-dated expenses auto-create planned expenses with linked tasks)
+- **Expense Tracker:** Dashboard (3-month table view — categories as rows, months as columns, rolling 3-month window with current month rightmost, spend vs. budget per cell, scrollable backward), budget tracking (monthly per-category budgets for income and expense categories, all-or-nothing, static template, @Debt defaults to 0, set in main_currency, inline budget editing on current month only), future-date routing (future-dated expenses auto-create planned expenses with linked tasks)
 - **Notes:** Slash commands (`/expense`, `/todo`) with simplified bottom sheet registration flow and confirmation flow, Objects sidebar section, cross-app linked references UI ("Linked to expense: Lunch at Noma")
 - **To-Do:** Expense connection UI — financial fields on tasks (`has_financial_data` + `linked_inbox_id`), task→expense generation on completion, "Generated expense" indicator on completed tasks
 - **Cross-cutting:** Cross-app search and filtering (low priority — users typically search within a single app), data export and backup across the ecosystem, performance optimization and UX polish
