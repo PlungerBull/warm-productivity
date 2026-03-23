@@ -30,6 +30,9 @@ public extension Font {
     /// Monospaced numbers — amounts, balances. Tabular alignment for columns.
     static let wpAmount = Font.system(.body, design: .default, weight: .medium).monospacedDigit()
 
+    /// Compact monospaced numbers — transaction row amounts.
+    static let wpAmountCompact = Font.system(.callout, design: .default, weight: .medium).monospacedDigit()
+
     /// Large monospaced numbers — summary totals, balance cards.
     static let wpAmountLarge = Font.system(.title2, design: .default, weight: .semibold).monospacedDigit()
 

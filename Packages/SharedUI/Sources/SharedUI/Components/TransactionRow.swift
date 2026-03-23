@@ -39,7 +39,7 @@ public struct TransactionRow: View {
             // Row content
             HStack {
                 Text(title)
-                    .font(isUntitled ? Font.wpBody.italic() : .wpBody)
+                    .font(isUntitled ? Font.wpCallout.italic() : .wpCallout)
                     .foregroundStyle(isUntitled ? Color.wpTextTertiary : Color.wpTextPrimary)
                     .lineLimit(1)
 
@@ -51,12 +51,12 @@ public struct TransactionRow: View {
                         .font(.wpCaption)
                         .foregroundStyle(Color.wpTextTertiary)
                         .lineLimit(1)
-                        .layoutPriority(-1)
+                        .fixedSize()
                 }
 
                 // Amount — right-aligned, never truncates
                 Text(amount)
-                    .font(.wpAmount)
+                    .font(.wpAmountCompact)
                     .foregroundStyle(amountColor)
                     .lineLimit(1)
                     .fixedSize()
@@ -75,12 +75,7 @@ public struct TransactionRow: View {
     }
 
     private var amountColor: Color {
-        switch style {
-        case .ledger:
-            isExpense ? Color.wpExpense : Color.wpIncome
-        case .inbox:
-            Color.wpTextPrimary
-        }
+        isExpense ? Color.wpExpense : Color.wpIncome
     }
 
     private var borderColor: Color? {

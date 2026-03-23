@@ -223,7 +223,7 @@ struct SearchView: View {
             // Amount — right-aligned
             Text(viewModel.currencyFormatter.formatSigned(transaction.amountCents))
                 .font(.wpAmount)
-                .foregroundStyle(transaction.amountCents < 0 ? Color.wpExpense : Color.wpIncome)
+                .foregroundStyle(transaction.amountCents >= 0 ? Color.wpIncome : Color.wpExpense)
                 .lineLimit(1)
                 .fixedSize()
         }

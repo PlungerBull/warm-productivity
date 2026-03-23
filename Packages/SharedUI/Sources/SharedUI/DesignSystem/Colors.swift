@@ -37,11 +37,11 @@ public extension Color {
 // MARK: - Semantic Colors
 
 public extension Color {
-    /// Income amounts (positive transactions). Alias for success.
-    static let wpIncome = Color.wpSuccess
+    /// Income / positive amounts — muted green, not too bright.
+    static let wpIncome = Color(light: Color(hex: "#2d8a4e"), dark: Color(hex: "#4ade80"))
 
-    /// Expense amounts (negative transactions). Alias for error.
-    static let wpExpense = Color.wpError
+    /// Expense / negative amounts — standard text color (black/white).
+    static let wpExpense = Color.wpTextPrimary
 
     /// Primary text color.
     static let wpTextPrimary = Color(light: Color(hex: "#1c1917"), dark: Color(hex: "#fafaf9"))

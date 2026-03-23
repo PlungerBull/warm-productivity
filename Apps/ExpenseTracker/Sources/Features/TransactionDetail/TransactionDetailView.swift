@@ -607,7 +607,7 @@ struct TransactionDetailView: View {
     }
 
     private var amountColor: Color {
-        viewModel.isExpense ? Color.wpExpense : Color.wpIncome
+        viewModel.isExpense ? Color.wpExpense : Color.wpIncome // wpExpense = black, wpIncome = muted green
     }
 
     private var formattedDate: String {

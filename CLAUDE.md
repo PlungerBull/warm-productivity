@@ -282,3 +282,22 @@ Deployment target is iOS 26.0. TabView uses automatic Liquid Glass tab bar. The 
 - Use `.scrollContentBackground(.hidden)` on List views so glass nav/tab bars show through
 - Sheets at partial height get glass automatically — remove custom drag handles and solid backgrounds
 - Primary CTA buttons (Promote, Get Started) keep solid `Color.wpPrimary` for contrast
+
+### Amount Display Convention
+
+**Color rule (universal — applies everywhere amounts are shown):**
+- **Positive amounts** → `Color.wpIncome` (muted green, `#2d8a4e` light / `#4ade80` dark)
+- **Negative amounts** → `Color.wpExpense` (standard text color, black/white — same as `wpTextPrimary`)
+- No red for expenses. The sign (`-`) already communicates direction; red is reserved for `wpError` (validation, destructive states).
+- This rule applies to transaction rows, detail views, search results, category breakdowns, sidebar balances — no exceptions.
+
+**Currency format:** Always use the 3-letter ISO currency code (e.g. `USD`, `PEN`), never the locale symbol (`$`, `S/`). Many currencies share `$`; the code is unambiguous. Format: `-USD67.32`, `+PEN1,500.00`.
+
+### Transaction Row Layout Convention
+
+**Ledger rows:** Category color stripe (left) · Title · Account name · Signed amount
+**Inbox rows:** Green stripe if ready to promote, nothing otherwise · Title · Account name (if available) · Signed amount
+
+**Truncation rule:** The title is the only element that truncates (`...`). Account name and amount never truncate — they use `fixedSize()` to guarantee full display. This ensures the financial data is always readable.
+
+**Row grouping:** Both ledger and inbox rows are wrapped in a `Color.wpSurface` card with `WPCornerRadius.medium` rounded corners. Dividers appear between rows (not after the last one).
