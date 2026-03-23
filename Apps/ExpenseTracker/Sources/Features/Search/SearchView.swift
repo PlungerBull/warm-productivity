@@ -71,7 +71,8 @@ struct SearchView: View {
                 resultsList
             }
         }
-        .background(Color.wpBackground.ignoresSafeArea())
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.wpBackground.ignoresSafeArea(.all))
         .onChange(of: viewModel.query) {
             viewModel.search()
         }

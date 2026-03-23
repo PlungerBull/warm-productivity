@@ -102,7 +102,8 @@ struct TransactionsSidebarView: View {
                 Spacer(minLength: 120)
             }
         }
-        .background(Color.wpGroupedBackground.ignoresSafeArea())
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.wpGroupedBackground.ignoresSafeArea(.all))
         .sheet(isPresented: $viewModel.showCreateAccount) {
             CreateAccountSheet(viewModel: viewModel)
                 .presentationDetents([.medium])

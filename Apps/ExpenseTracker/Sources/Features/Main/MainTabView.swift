@@ -32,6 +32,8 @@ struct MainTabView: View {
             }
             .tag(1)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.wpGroupedBackground.ignoresSafeArea(.all))
         .overlay(alignment: .bottomTrailing) {
             if selectedTab != 1 {
                 FABButton {

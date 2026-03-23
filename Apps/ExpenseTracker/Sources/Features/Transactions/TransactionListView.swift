@@ -49,7 +49,8 @@ struct TransactionListView: View {
                 ledgerContent
             }
         }
-        .background(Color.wpBackground.ignoresSafeArea())
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.wpBackground.ignoresSafeArea(.all))
         .navigationBarHidden(true)
         .task {
             viewModel.load(destination: destination)

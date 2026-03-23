@@ -30,7 +30,8 @@ struct TransactionDetailView: View {
             }
             bottomToolbar
         }
-        .background(Color.wpBackground.ignoresSafeArea())
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.wpBackground.ignoresSafeArea(.all))
         .alert("Delete Transaction", isPresented: $viewModel.showDeleteConfirmation) {
             Button("Cancel", role: .cancel) {}
             Button("Delete", role: .destructive) {

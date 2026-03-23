@@ -88,7 +88,8 @@ struct AuthView: View {
                 .padding(.top, 20)
                 .padding(.bottom, WPSpacing.xl)
         }
-        .background(Color.wpBackground.ignoresSafeArea())
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.wpBackground.ignoresSafeArea(.all))
         .accessibilityElement(children: .contain)
     }
 }
