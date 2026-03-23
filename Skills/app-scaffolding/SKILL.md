@@ -79,14 +79,14 @@ If this is the first app being scaffolded, create all six shared packages first.
 Every package follows this structure:
 
 ```swift
-// swift-tools-version: 6.0
+// swift-tools-version: 6.2
 import PackageDescription
 
 let package = Package(
     name: "PackageName",
     platforms: [
-        .iOS(.v17),
-        .macOS(.v14)
+        .iOS(.v26),
+        .macOS(.v15)
     ],
     products: [
         .library(
@@ -344,7 +344,7 @@ Each app is a standalone Xcode project under `Apps/`.
 | Language | Swift |
 | Storage | SwiftData |
 | Testing System | Swift Testing |
-| Minimum deployment target | iOS 17.0 |
+| Minimum deployment target | iOS 26.0 |
 | Bundle identifier | `com.warmproductivity.{appname}` |
 
 Bundle identifiers:
@@ -682,7 +682,7 @@ When scaffolding a new app, complete every item:
 
 - [ ] Xcode project created under `Apps/{AppName}/`
 - [ ] Bundle identifier set: `com.warmproductivity.{appname}`
-- [ ] Deployment target: iOS 17.0
+- [ ] Deployment target: iOS 26.0
 - [ ] App entry point created with `ModelContainer` setup
 - [ ] `sharedStoreURL()` points to App Group container
 - [ ] All 27 SwiftData models registered in schema

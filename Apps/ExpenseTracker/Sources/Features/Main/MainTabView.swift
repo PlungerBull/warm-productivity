@@ -14,7 +14,7 @@ struct MainTabView: View {
         TabView(selection: $selectedTab) {
             TransactionsTabView(userId: userId)
                 .tabItem {
-                    Label("Transactions", systemImage: "list.bullet.rectangle")
+                    Label("Transactions", systemImage: "line.3.horizontal")
                 }
                 .tag(0)
 

@@ -16,21 +16,14 @@ struct TransactionsSidebarView: View {
                     .padding(.top, WPSpacing.xs)
                     .padding(.bottom, WPSpacing.lg)
 
-                // MARK: - Inbox Card
+                // MARK: - Inbox & Ledger Card
                 VStack(spacing: 0) {
                     inboxRow
+                    cardDivider
+                    ledgerRow
                 }
                 .background(Color.wpSurface)
                 .clipShape(RoundedRectangle(cornerRadius: WPCornerRadius.medium))
-                .padding(.horizontal, WPSpacing.md)
-                .padding(.bottom, WPSpacing.sm)
-
-                // MARK: - Ledger Card
-                VStack(spacing: 0) {
-                    ledgerRow
-                }
-                .clipShape(RoundedRectangle(cornerRadius: WPCornerRadius.medium))
-                .glassEffect(.regular, in: RoundedRectangle(cornerRadius: WPCornerRadius.medium))
                 .padding(.horizontal, WPSpacing.md)
 
                 // MARK: - Bank Accounts
@@ -122,7 +115,7 @@ struct TransactionsSidebarView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(.background)
+        .background(Color.wpGroupedBackground.ignoresSafeArea())
         .sheet(isPresented: $viewModel.showCreateAccount) {
             CreateAccountSheet(viewModel: viewModel)
                 .presentationDetents([.medium])
@@ -285,8 +278,8 @@ struct TransactionsSidebarView: View {
             VStack(spacing: 0) {
                 content()
             }
+            .background(Color.wpSurface)
             .clipShape(RoundedRectangle(cornerRadius: WPCornerRadius.medium))
-            .glassEffect(.regular, in: RoundedRectangle(cornerRadius: WPCornerRadius.medium))
             .padding(.horizontal, WPSpacing.md)
         }
     }
