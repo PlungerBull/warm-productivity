@@ -142,7 +142,8 @@ struct QuickEntryView: View {
                             .font(.system(size: 15))
                             .foregroundStyle(Color.wpTextTertiary)
                             .frame(width: 32, height: 30)
-                            .glassEffect(.regular.interactive(), in: RoundedRectangle(cornerRadius: 6))
+                            .background(Color.wpSurface)
+                            .clipShape(RoundedRectangle(cornerRadius: 6))
                     }
                     .buttonStyle(.plain)
                 }

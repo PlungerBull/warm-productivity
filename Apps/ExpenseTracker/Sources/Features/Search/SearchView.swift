@@ -46,8 +46,8 @@ struct SearchView: View {
                 }
                 .padding(.horizontal, WPSpacing.sm)
                 .padding(.vertical, WPSpacing.xs)
+                .background(Color.wpSurface)
                 .clipShape(Capsule())
-                .glassEffect(.regular.interactive(), in: .capsule)
 
                 Button("Cancel") {
                     dismiss()

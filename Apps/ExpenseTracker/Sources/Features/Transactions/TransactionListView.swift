@@ -57,7 +57,7 @@ struct TransactionListView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(.background)
+        .background(Color.wpBackground.ignoresSafeArea())
         .navigationBarHidden(true)
         .task {
             viewModel.load(destination: destination)
