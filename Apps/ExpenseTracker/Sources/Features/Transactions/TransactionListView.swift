@@ -21,7 +21,7 @@ struct TransactionListView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Compact header
+            // Header
             VStack(alignment: .leading, spacing: 2) {
                 Button { dismiss() } label: {
                     HStack(spacing: 3) {
@@ -34,18 +34,18 @@ struct TransactionListView: View {
                 }
 
                 Text(destination.title)
-                    .font(.wpTitle)
+                    .font(.wpLargeTitle)
                     .foregroundStyle(Color.wpTextPrimary)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, WPSpacing.md)
+            .padding(.horizontal, WPSpacing.lg)
             .padding(.top, WPSpacing.xxs)
             .padding(.bottom, WPSpacing.sm)
 
             // Search bar (ledger only)
             if isLedger {
                 searchBarPlaceholder
-                    .padding(.horizontal, WPSpacing.md)
+                    .padding(.horizontal, WPSpacing.lg)
                     .padding(.bottom, WPSpacing.sm)
             }
 
@@ -116,20 +116,32 @@ struct TransactionListView: View {
                 LazyVStack(spacing: 0) {
                     ForEach(viewModel.inboxItems, id: \.id) { item in
                         inboxRow(item)
-                        Divider().padding(.leading, WPSpacing.md)
+
+                        if item.id != viewModel.inboxItems.last?.id {
+                            Divider()
+                                .padding(.leading, WPSpacing.md)
+                        }
                     }
                 }
+                .background(Color.wpSurface)
+                .clipShape(RoundedRectangle(cornerRadius: WPCornerRadius.medium))
+                .padding(.horizontal, WPSpacing.lg)
             }
         }
     }
 
     private func inboxRow(_ item: ExpenseTransactionInbox) -> some View {
         let isUntitled = item.title == TransactionDescriptionService.untitledPlaceholder
+        let accountName: String = {
+            guard let accountId = item.accountId else { return "" }
+            return viewModel.accountName(for: accountId)
+        }()
         return TransactionRow(
             title: isUntitled ? "Untitled" : item.title,
-            amount: viewModel.currencyFormatter.formatOptional(item.amountCents),
+            amount: viewModel.currencyFormatter.formatOptionalSigned(item.amountCents),
+            isExpense: (item.amountCents ?? 0) < 0,
             isUntitled: isUntitled,
-            style: .inbox(isReady: viewModel.isReadyToPromote(item))
+            style: .inbox(isReady: viewModel.isReadyToPromote(item), accountName: accountName)
         )
         .contentShape(Rectangle())
         .onTapGesture {
@@ -159,9 +171,16 @@ struct TransactionListView: View {
                 LazyVStack(spacing: 0) {
                     ForEach(viewModel.ledgerItems, id: \.id) { transaction in
                         ledgerRow(transaction)
-                        Divider().padding(.leading, WPSpacing.md)
+
+                        if transaction.id != viewModel.ledgerItems.last?.id {
+                            Divider()
+                                .padding(.leading, WPSpacing.md)
+                        }
                     }
                 }
+                .background(Color.wpSurface)
+                .clipShape(RoundedRectangle(cornerRadius: WPCornerRadius.medium))
+                .padding(.horizontal, WPSpacing.lg)
             }
         }
     }

@@ -6,7 +6,7 @@ import SwiftUI
 ///
 /// Two styles:
 /// - `.ledger`: Category color left border, title, account name, signed amount.
-/// - `.inbox`: Green left border if ready to promote, no border if not. Title + amount.
+/// - `.inbox`: Green left border if ready to promote, no border if not. Title, optional account name, amount.
 public struct TransactionRow: View {
     let title: String
     let amount: String
@@ -17,8 +17,8 @@ public struct TransactionRow: View {
     public enum Style {
         /// Ledger row: category color border, account name shown.
         case ledger(categoryColor: Color, accountName: String)
-        /// Inbox row: green border if ready, no border if not.
-        case inbox(isReady: Bool)
+        /// Inbox row: green border if ready, no border if not. Optional account name.
+        case inbox(isReady: Bool, accountName: String = "")
     }
 
     public init(title: String, amount: String, isExpense: Bool = true, isUntitled: Bool = false, style: Style) {
@@ -45,8 +45,8 @@ public struct TransactionRow: View {
 
                 Spacer(minLength: WPSpacing.xs)
 
-                // Account name — only for ledger, compact, shrinks first
-                if case .ledger(_, let accountName) = style, !accountName.isEmpty {
+                // Account name — shown for both ledger and inbox (when available)
+                if !accountName.isEmpty {
                     Text(accountName)
                         .font(.wpCaption)
                         .foregroundStyle(Color.wpTextTertiary)
@@ -67,6 +67,13 @@ public struct TransactionRow: View {
         }
     }
 
+    private var accountName: String {
+        switch style {
+        case .ledger(_, let name): name
+        case .inbox(_, let name): name
+        }
+    }
+
     private var amountColor: Color {
         switch style {
         case .ledger:
@@ -80,7 +87,7 @@ public struct TransactionRow: View {
         switch style {
         case .ledger(let categoryColor, _):
             categoryColor
-        case .inbox(let isReady):
+        case .inbox(let isReady, _):
             isReady ? Color.wpSuccess : nil
         }
     }
