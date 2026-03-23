@@ -104,7 +104,7 @@ struct QuickEntryView: View {
                 .foregroundStyle(Color.wpTextTertiary)
             } else {
                 HStack(spacing: WPSpacing.xxs) {
-                    Image(systemName: "tray")
+                    Image(systemName: "tray.and.arrow.down")
                         .font(.wpCaption2)
                     Text("Inbox — needs \(missingFieldsList)")
                         .font(.wpCaption2)

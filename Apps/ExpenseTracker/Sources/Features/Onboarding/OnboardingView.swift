@@ -43,10 +43,9 @@ struct OnboardingView: View {
                     VStack(alignment: .leading, spacing: WPSpacing.lg) {
                         // Currency picker
                         VStack(alignment: .leading, spacing: 6) {
-                            Text("HOME CURRENCY")
+                            Text("Home Currency")
                                 .font(.wpCaption.weight(.medium))
                                 .foregroundStyle(Color.wpTextSecondary)
-                                .tracking(0.5)
 
                             NavigationLink {
                                 CurrencyPickerList(
@@ -65,11 +64,11 @@ struct OnboardingView: View {
                                             .foregroundStyle(Color.wpTextTertiary)
                                     }
                                     Spacer()
-                                    Image(systemName: "chevron.right")
-                                        .font(.wpCaption)
+                                    Image(systemName: "chevron.down")
+                                        .font(.system(size: 12, weight: .medium))
                                         .foregroundStyle(Color.wpTextTertiary)
                                 }
-                                .padding(.horizontal, WPSpacing.sm)
+                                .padding(.horizontal, WPSpacing.md)
                                 .padding(.vertical, WPSpacing.sm)
                                 .background(Color.wpGroupedBackground)
                                 .clipShape(RoundedRectangle(cornerRadius: WPCornerRadius.small))
@@ -82,14 +81,13 @@ struct OnboardingView: View {
 
                         // Bank account name
                         VStack(alignment: .leading, spacing: 6) {
-                            Text("FIRST BANK ACCOUNT")
+                            Text("First Bank Account")
                                 .font(.wpCaption.weight(.medium))
                                 .foregroundStyle(Color.wpTextSecondary)
-                                .tracking(0.5)
 
                             TextField("e.g., Chase Checking", text: $viewModel.bankAccountName)
                                 .font(.wpBody)
-                                .padding(.horizontal, WPSpacing.sm)
+                                .padding(.horizontal, WPSpacing.md)
                                 .padding(.vertical, WPSpacing.sm)
                                 .background(Color.wpGroupedBackground)
                                 .clipShape(RoundedRectangle(cornerRadius: WPCornerRadius.small))

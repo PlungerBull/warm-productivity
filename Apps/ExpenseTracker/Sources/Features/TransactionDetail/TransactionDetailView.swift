@@ -106,10 +106,10 @@ struct TransactionDetailView: View {
                 HStack(spacing: WPSpacing.xxs) {
                     Image(systemName: "building.columns")
                         .font(.system(size: 13, weight: .medium))
-                        .foregroundStyle(Color.wpSuccess)
+                        .foregroundStyle(Color.wpPrimary)
                     Text(selectedAccountName)
                         .font(.system(size: 13, weight: .medium))
-                        .foregroundStyle(Color.wpSuccess)
+                        .foregroundStyle(Color.wpPrimary)
                     Image(systemName: "chevron.right")
                         .font(.system(size: 10, weight: .medium))
                         .foregroundStyle(Color.wpTextTertiary)

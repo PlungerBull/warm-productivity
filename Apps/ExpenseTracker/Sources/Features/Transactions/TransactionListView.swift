@@ -42,6 +42,13 @@ struct TransactionListView: View {
             .padding(.top, WPSpacing.xxs)
             .padding(.bottom, WPSpacing.sm)
 
+            // Search bar (ledger only)
+            if isLedger {
+                searchBarPlaceholder
+                    .padding(.horizontal, WPSpacing.md)
+                    .padding(.bottom, WPSpacing.sm)
+            }
+
             // Content
             if isInbox {
                 inboxContent
@@ -99,7 +106,7 @@ struct TransactionListView: View {
     private var inboxContent: some View {
         if viewModel.inboxItems.isEmpty {
             EmptyStateView(
-                icon: "tray",
+                icon: "tray.and.arrow.down",
                 title: "Inbox Empty",
                 message: "No draft transactions. Tap + to add one."
             )
@@ -181,11 +188,34 @@ struct TransactionListView: View {
         }
     }
 
+    // MARK: - Search Bar Placeholder
+
+    private var searchBarPlaceholder: some View {
+        Button {
+            // Trigger search via parent — currently search is a sheet from TransactionsTabView
+        } label: {
+            HStack(spacing: WPSpacing.xs) {
+                Image(systemName: "magnifyingglass")
+                    .font(.system(size: 16))
+                    .foregroundStyle(Color.wpTextTertiary)
+                Text("Search transactions")
+                    .font(.system(size: 15))
+                    .foregroundStyle(Color.wpTextTertiary)
+                Spacer()
+            }
+            .padding(.horizontal, WPSpacing.sm)
+            .padding(.vertical, 10)
+            .background(Color.wpGroupedBackground)
+            .clipShape(RoundedRectangle(cornerRadius: WPCornerRadius.small))
+        }
+        .buttonStyle(.plain)
+    }
+
     // MARK: - Empty State Helpers
 
     private var emptyIcon: String {
         switch destination {
-        case .inbox: "tray"
+        case .inbox: "tray.and.arrow.down"
         case .ledger: "list.bullet"
         case .bankAccount: "building.columns"
         case .category: "folder"
