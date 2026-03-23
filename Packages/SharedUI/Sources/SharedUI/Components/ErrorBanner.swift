@@ -21,21 +21,45 @@ public struct ErrorBanner: View {
     private let onDismiss: (() -> Void)?
     @State private var isVisible = false
 
+    @Environment(\.colorScheme) private var colorScheme
+
     public init(message: String, onDismiss: (() -> Void)? = nil) {
         self.message = message
         self.onDismiss = onDismiss
     }
 
+    /// Light: dark red #991b1b. Dark: soft pink #fca5a5.
+    private var errorTextColor: Color {
+        colorScheme == .dark
+            ? Color(hex: "fca5a5")
+            : Color(hex: "991b1b")
+    }
+
+    /// Light: #fef2f2. Dark: error at 10% opacity.
+    private var errorBackground: Color {
+        colorScheme == .dark
+            ? Color.wpError.opacity(0.1)
+            : Color(hex: "fef2f2")
+    }
+
+    /// Light: #fecaca. Dark: error at 20% opacity.
+    private var errorBorderColor: Color {
+        colorScheme == .dark
+            ? Color.wpError.opacity(0.2)
+            : Color(hex: "fecaca")
+    }
+
     public var body: some View {
         HStack(spacing: WPSpacing.xs) {
-            Image(systemName: "exclamationmark.triangle.fill")
-                .font(.wpCallout)
+            Image(systemName: "exclamationmark.circle")
+                .font(.system(size: 16))
                 .foregroundStyle(Color.wpError)
 
             Text(message)
-                .font(.wpCaption)
-                .foregroundStyle(Color.wpTextPrimary)
+                .font(.system(size: 13))
+                .foregroundStyle(errorTextColor)
                 .lineLimit(2)
+                .lineSpacing(2)
 
             Spacer(minLength: WPSpacing.xs)
 
@@ -49,21 +73,21 @@ public struct ErrorBanner: View {
                     }
                 } label: {
                     Image(systemName: "xmark")
-                        .font(.wpCaption2.weight(.medium))
-                        .foregroundStyle(Color.wpTextSecondary)
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(Color.wpTextTertiary)
                         .frame(width: 24, height: 24)
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Dismiss error")
             }
         }
-        .padding(.horizontal, WPSpacing.sm)
-        .padding(.vertical, WPSpacing.xs)
-        .background(Color.wpError.opacity(0.1))
+        .padding(.horizontal, WPSpacing.md)
+        .padding(.vertical, WPSpacing.sm)
+        .background(errorBackground)
         .clipShape(RoundedRectangle(cornerRadius: WPCornerRadius.small))
         .overlay(
             RoundedRectangle(cornerRadius: WPCornerRadius.small)
-                .stroke(Color.wpError.opacity(0.2), lineWidth: 1)
+                .stroke(errorBorderColor, lineWidth: 1)
         )
         .padding(.horizontal, WPSpacing.md)
         .offset(y: isVisible ? 0 : -20)

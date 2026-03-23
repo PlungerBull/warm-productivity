@@ -15,24 +15,24 @@ struct SettingsView: View {
             List {
                 // Profile section
                 Section {
-                    HStack(spacing: WPSpacing.md) {
-                        initialsAvatar
-                        VStack(alignment: .leading, spacing: WPSpacing.xxs) {
-                            Text(viewModel.user?.displayName ?? "User")
-                                .font(.wpHeadline)
-                            if let email = viewModel.user?.email {
-                                Text(email)
-                                    .font(.wpCaption)
-                                    .foregroundStyle(Color.wpTextSecondary)
+                    NavigationLink {
+                        // Future: profile detail
+                        EmptyView()
+                    } label: {
+                        HStack(spacing: WPSpacing.sm) {
+                            initialsAvatar
+                            VStack(alignment: .leading, spacing: WPSpacing.xxs) {
+                                Text(viewModel.user?.displayName ?? "User")
+                                    .font(.wpBody)
+                                    .foregroundStyle(Color.wpTextPrimary)
+                                if let email = viewModel.user?.email {
+                                    Text(email)
+                                        .font(.wpCaption)
+                                        .foregroundStyle(Color.wpTextSecondary)
+                                }
                             }
                         }
-                    }
-                    .padding(.vertical, WPSpacing.xs)
-
-                    Button(role: .destructive) {
-                        showSignOutConfirmation = true
-                    } label: {
-                        Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.right")
+                        .padding(.vertical, WPSpacing.xxs)
                     }
                 }
 
@@ -45,33 +45,21 @@ struct SettingsView: View {
                             onSelect: { code in viewModel.updateCurrency(code) }
                         )
                     } label: {
-                        settingsRow("Main Currency", value: viewModel.settings?.mainCurrency ?? "USD")
+                        settingsRow("Home Currency", value: "\(viewModel.settings?.mainCurrency ?? "USD")")
                     }
 
+                    settingsRow("Default Account", value: "Chase")
+                }
+
+                // Display section
+                Section("Display") {
                     NavigationLink {
                         AppearancePickerView(
                             currentTheme: viewModel.settings?.theme ?? "system",
                             onSelect: { theme in viewModel.updateTheme(theme) }
                         )
                     } label: {
-                        settingsRow("Theme", value: viewModel.settings?.theme.capitalized ?? "System")
-                    }
-
-                    settingsRow("Start of Week", value: startOfWeekLabel)
-                    settingsRow("Transaction Sort", value: viewModel.settings?.transactionSortPreference.capitalized ?? "Date")
-                }
-
-                // Display section
-                Section("Display") {
-                    NavigationLink {
-                        SidebarLayoutView(
-                            showBankAccounts: $viewModel.showBankAccounts,
-                            showCategories: $viewModel.showCategories,
-                            showPeople: $viewModel.showPeople,
-                            onSave: { viewModel.saveSidebarLayout() }
-                        )
-                    } label: {
-                        Label("Sidebar Layout", systemImage: "sidebar.squares.left")
+                        settingsRow("Appearance", value: viewModel.settings?.theme.capitalized ?? "System")
                     }
                 }
 
@@ -82,13 +70,20 @@ struct SettingsView: View {
                     } label: {
                         Label("Import CSV", systemImage: "square.and.arrow.down")
                     }
-                    Label("Export CSV", systemImage: "square.and.arrow.up")
+                    Label("Export Data", systemImage: "square.and.arrow.up")
                         .foregroundStyle(Color.wpTextTertiary)
                 }
 
-                // About section
-                Section("About") {
-                    settingsRow("Version", value: viewModel.appVersion)
+                // Sign Out
+                Section {
+                    Button {
+                        showSignOutConfirmation = true
+                    } label: {
+                        Text("Sign Out")
+                            .font(.wpBody)
+                            .foregroundStyle(Color.wpError)
+                            .frame(maxWidth: .infinity, alignment: .center)
+                    }
                 }
             }
             .scrollContentBackground(.hidden)
@@ -115,10 +110,10 @@ struct SettingsView: View {
         let initials = (firstInitial + lastInitial).uppercased()
 
         return Text(initials)
-            .font(.wpTitle)
-            .foregroundStyle(Color.wpOnPrimary)
-            .frame(width: WPSize.avatarMedium, height: WPSize.avatarMedium)
-            .background(Color.wpPrimary)
+            .font(.wpHeadline)
+            .foregroundStyle(Color.wpPrimary)
+            .frame(width: 44, height: 44)
+            .background(Color.wpPrimary.opacity(0.1))
             .clipShape(Circle())
     }
 

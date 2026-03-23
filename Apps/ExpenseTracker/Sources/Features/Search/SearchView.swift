@@ -201,13 +201,16 @@ struct SearchView: View {
                     .font(.wpBody)
                     .lineLimit(1)
 
-                // Date + @category
+                // Date · @category
                 HStack(spacing: WPSpacing.xxs) {
                     Text(Self.dateFormatter.string(from: transaction.date))
                         .font(.wpCaption)
                         .foregroundStyle(Color.wpTextSecondary)
 
                     if let categoryName = viewModel.categoryNames[transaction.categoryId] {
+                        Text("\u{00B7}")
+                            .font(.wpCaption)
+                            .foregroundStyle(Color.wpTextSecondary)
                         Text("@\(categoryName)")
                             .font(.wpCaption)
                             .foregroundStyle(Color.wpPrimary)
@@ -218,7 +221,7 @@ struct SearchView: View {
             Spacer(minLength: WPSpacing.xs)
 
             // Amount — right-aligned
-            Text(viewModel.currencyFormatter.format(transaction.amountCents))
+            Text(viewModel.currencyFormatter.formatSigned(transaction.amountCents))
                 .font(.wpAmount)
                 .foregroundStyle(transaction.amountCents < 0 ? Color.wpExpense : Color.wpIncome)
                 .lineLimit(1)
@@ -284,7 +287,7 @@ struct SearchView: View {
             // Convert String range to AttributedString range
             if let attrStart = AttributedString.Index(range.lowerBound, within: attributed),
                let attrEnd = AttributedString.Index(range.upperBound, within: attributed) {
-                attributed[attrStart..<attrEnd].backgroundColor = Color.wpPrimary.opacity(0.12)
+                attributed[attrStart..<attrEnd].backgroundColor = Color.wpPrimary.opacity(0.15)
             }
             searchStart = range.upperBound
         }

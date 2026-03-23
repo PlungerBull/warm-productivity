@@ -16,10 +16,17 @@ struct TransactionsSidebarView: View {
                     .padding(.top, WPSpacing.xs)
                     .padding(.bottom, WPSpacing.lg)
 
-                // MARK: - Inbox / Ledger Card
+                // MARK: - Inbox Card
                 VStack(spacing: 0) {
                     inboxRow
-                    cardDivider
+                }
+                .background(Color.wpSurface)
+                .clipShape(RoundedRectangle(cornerRadius: WPCornerRadius.medium))
+                .padding(.horizontal, WPSpacing.md)
+                .padding(.bottom, WPSpacing.sm)
+
+                // MARK: - Ledger Card
+                VStack(spacing: 0) {
                     ledgerRow
                 }
                 .clipShape(RoundedRectangle(cornerRadius: WPCornerRadius.medium))
@@ -32,20 +39,24 @@ struct TransactionsSidebarView: View {
                         viewModel.newItemName = ""
                         viewModel.showCreateAccount = true
                     }) {
-                        ForEach(Array(viewModel.bankAccounts.enumerated()), id: \.element.id) { index, account in
-                            if index > 0 { cardDivider }
-                            symbolRow(
-                                symbol: "$",
-                                color: Color(hex: account.color),
-                                label: account.name,
-                                value: viewModel.currencyFormatter.format(viewModel.accountBalances[account.id] ?? 0),
-                                valueColor: (viewModel.accountBalances[account.id] ?? 0) >= 0 ? Color.wpIncome : Color.wpExpense
-                            ) {
-                                onSelect(.bankAccount(id: account.id))
-                            }
-                            .contextMenu {
-                                Button { viewModel.renamingItemId = account.id; viewModel.renameText = account.name } label: { Label("Rename", systemImage: "pencil") }
-                                Button(role: .destructive) { viewModel.archiveAccount(id: account.id) } label: { Label("Archive", systemImage: "archivebox") }
+                        if viewModel.bankAccounts.isEmpty {
+                            emptyHint("Tap + to add your first account")
+                        } else {
+                            ForEach(Array(viewModel.bankAccounts.enumerated()), id: \.element.id) { index, account in
+                                if index > 0 { cardDivider }
+                                symbolRow(
+                                    symbol: "$",
+                                    color: Color(hex: account.color),
+                                    label: account.name,
+                                    value: viewModel.currencyFormatter.format(viewModel.accountBalances[account.id] ?? 0),
+                                    valueColor: (viewModel.accountBalances[account.id] ?? 0) >= 0 ? Color.wpIncome : Color.wpExpense
+                                ) {
+                                    onSelect(.bankAccount(id: account.id))
+                                }
+                                .contextMenu {
+                                    Button { viewModel.renamingItemId = account.id; viewModel.renameText = account.name } label: { Label("Rename", systemImage: "pencil") }
+                                    Button(role: .destructive) { viewModel.archiveAccount(id: account.id) } label: { Label("Archive", systemImage: "archivebox") }
+                                }
                             }
                         }
                     }
@@ -57,21 +68,25 @@ struct TransactionsSidebarView: View {
                         viewModel.newItemName = ""
                         viewModel.showCreateCategory = true
                     }) {
-                        ForEach(Array(viewModel.categories.enumerated()), id: \.element.id) { index, category in
-                            if index > 0 { cardDivider }
-                            symbolRow(
-                                symbol: "@",
-                                color: Color(hex: category.color),
-                                label: category.name,
-                                value: viewModel.currencyFormatter.format(viewModel.categorySpend[category.id] ?? 0),
-                                valueColor: Color.wpTextSecondary
-                            ) {
-                                onSelect(.category(id: category.id))
-                            }
-                            .contextMenu {
-                                if !viewModel.isSystemCategory(category) {
-                                    Button { viewModel.renamingItemId = category.id; viewModel.renameText = category.name } label: { Label("Rename", systemImage: "pencil") }
-                                    Button(role: .destructive) { viewModel.deleteCategory(id: category.id) } label: { Label("Delete", systemImage: "trash") }
+                        if viewModel.categories.isEmpty {
+                            emptyHint("Tap + to create categories")
+                        } else {
+                            ForEach(Array(viewModel.categories.enumerated()), id: \.element.id) { index, category in
+                                if index > 0 { cardDivider }
+                                symbolRow(
+                                    symbol: "@",
+                                    color: Color(hex: category.color),
+                                    label: category.name,
+                                    value: viewModel.currencyFormatter.format(viewModel.categorySpend[category.id] ?? 0),
+                                    valueColor: Color.wpTextSecondary
+                                ) {
+                                    onSelect(.category(id: category.id))
+                                }
+                                .contextMenu {
+                                    if !viewModel.isSystemCategory(category) {
+                                        Button { viewModel.renamingItemId = category.id; viewModel.renameText = category.name } label: { Label("Rename", systemImage: "pencil") }
+                                        Button(role: .destructive) { viewModel.deleteCategory(id: category.id) } label: { Label("Delete", systemImage: "trash") }
+                                    }
                                 }
                             }
                         }
@@ -83,18 +98,22 @@ struct TransactionsSidebarView: View {
                     viewModel.newItemName = ""
                     viewModel.showCreateHashtag = true
                 }) {
-                    ForEach(Array(viewModel.hashtags.enumerated()), id: \.element.id) { index, hashtag in
-                        if index > 0 { cardDivider }
-                        symbolRow(
-                            symbol: "#",
-                            color: Color.wpHashtag,
-                            label: hashtag.name
-                        ) {
-                            onSelect(.hashtag(id: hashtag.id))
-                        }
-                        .contextMenu {
-                            Button { viewModel.renamingItemId = hashtag.id; viewModel.renameText = hashtag.name } label: { Label("Rename", systemImage: "pencil") }
-                            Button(role: .destructive) { viewModel.deleteHashtag(id: hashtag.id) } label: { Label("Delete", systemImage: "trash") }
+                    if viewModel.hashtags.isEmpty {
+                        emptyHint("Hashtags appear as you use them")
+                    } else {
+                        ForEach(Array(viewModel.hashtags.enumerated()), id: \.element.id) { index, hashtag in
+                            if index > 0 { cardDivider }
+                            symbolRow(
+                                symbol: "#",
+                                color: Color.wpHashtag,
+                                label: hashtag.name
+                            ) {
+                                onSelect(.hashtag(id: hashtag.id))
+                            }
+                            .contextMenu {
+                                Button { viewModel.renamingItemId = hashtag.id; viewModel.renameText = hashtag.name } label: { Label("Rename", systemImage: "pencil") }
+                                Button(role: .destructive) { viewModel.deleteHashtag(id: hashtag.id) } label: { Label("Delete", systemImage: "trash") }
+                            }
                         }
                     }
                 }
@@ -154,7 +173,7 @@ struct TransactionsSidebarView: View {
     private var inboxRow: some View {
         Button { onSelect(.inbox) } label: {
             HStack(spacing: WPSpacing.sm) {
-                Image(systemName: "tray")
+                Image(systemName: "tray.and.arrow.down")
                     .font(.system(size: 22))
                     .foregroundStyle(Color.wpPrimary)
                     .frame(width: 24)
@@ -186,7 +205,7 @@ struct TransactionsSidebarView: View {
     private var ledgerRow: some View {
         Button { onSelect(.ledger) } label: {
             HStack(spacing: WPSpacing.sm) {
-                Image(systemName: "book")
+                Image(systemName: "creditcard")
                     .font(.system(size: 22))
                     .foregroundStyle(Color.wpPrimary)
                     .frame(width: 24)
@@ -270,6 +289,16 @@ struct TransactionsSidebarView: View {
             .glassEffect(.regular, in: RoundedRectangle(cornerRadius: WPCornerRadius.medium))
             .padding(.horizontal, WPSpacing.md)
         }
+    }
+
+    // MARK: - Empty Hint
+
+    private func emptyHint(_ text: String) -> some View {
+        Text(text)
+            .font(.wpBody)
+            .foregroundStyle(Color.wpTextTertiary)
+            .padding(.horizontal, WPSpacing.md)
+            .padding(.vertical, WPSpacing.sm)
     }
 
     // MARK: - Card Divider

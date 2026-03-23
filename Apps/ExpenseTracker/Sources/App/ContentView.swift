@@ -42,6 +42,8 @@ struct ContentView: View {
                 LoadingView()
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .ignoresSafeArea(.all)
         .task {
             let userRepo = UserRepository(modelContext: modelContext)
             let accountRepo = BankAccountRepository(modelContext: modelContext)

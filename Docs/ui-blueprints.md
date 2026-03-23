@@ -2,6 +2,9 @@
 
 Code-agnostic visual descriptions of every screen. Each blueprint describes exact layout, typography, spacing, colors, and logic so a developer can build it from scratch without seeing the HTML mockups.
 
+> Source mockups: `Docs/ui-polish-mockups.html`
+> Reference screenshots: 12 screenshots captured March 22, 2026
+
 ---
 
 ## Global Design Tokens
@@ -389,4 +392,70 @@ Centered vertical stack:
 - Slides in from top with animation
 - Auto-dismisses after 5 seconds, or tap X to dismiss immediately
 - Non-blocking — user can still interact with the app
+
+---
+
+## 12. CSV Import Summary
+
+### Presentation
+Pushed navigation screen from Settings. Back button "< Settings" in Primary color.
+
+### Layout (centered content, vertical stack)
+
+1. **Back button** — chevron left (SF Symbol: `chevron.left`) + "Settings" in Primary, top-left
+2. **Generous top spacing** — ~80pt from nav bar
+3. **Success icon** — ~56pt circle with green checkmark (SF Symbol: `checkmark.circle.fill`), Success green color (#16a34a), centered
+4. **16pt gap**
+5. **Title** — "Import Complete" in Title (22pt), Semibold, centered, Text Primary
+6. **24pt gap**
+7. **Stats card** — grouped section (Surface bg, 12pt radius) with 4 rows, each showing label left and value right:
+   - "Rows processed" — Body left, value in Text Primary, weight 600. e.g. "247"
+   - "Added to Ledger" — Body left, value in Success green. e.g. "219"
+   - "Sent to Inbox" — Body left, value in Warning amber. e.g. "23"
+   - "Skipped (duplicates)" — Body left, value in Text Secondary. e.g. "5"
+   - Rows separated by 0.5pt Border dividers
+8. **24pt gap**
+9. **Section header** — "INBOX ITEMS (NEED REVIEW)" in Caption (12pt) Semibold uppercase, Text Secondary
+10. **Warning row** — grouped card containing:
+    - Amber dot (8pt circle, Warning color)
+    - "23 rows missing category" in Body, Text Primary
+    - "Review in Inbox to assign categories" in Caption (12pt), Text Secondary (below title)
+11. **Flexible spacer** — pushes button to bottom
+12. **Primary button** — "Done" full-width, Primary background, On Primary text, 12pt corner radius, 16pt padding, Headline (17pt) Semibold
+
+### Logic
+- "Done" pops back to Settings
+- Tapping the warning row navigates to Inbox filtered to newly imported items
+
+---
+
+## SF Symbol Reference (Quick Lookup)
+
+| Visual Description | SF Symbol |
+|---|---|
+| Three horizontal lines (list/hamburger) | `line.3.horizontal` |
+| Gear/cog | `gearshape` |
+| Plus sign | `plus` |
+| Right chevron | `chevron.right` |
+| Left chevron | `chevron.left` |
+| Down chevron | `chevron.down` |
+| Magnifying glass | `magnifyingglass` |
+| Inbox tray with down arrow | `tray.and.arrow.down` |
+| Credit card / ledger | `creditcard` |
+| Calendar | `calendar` |
+| Price tag | `tag` |
+| Classical building (bank) | `building.columns` |
+| Trash can | `trash` |
+| Three dots (more menu) | `ellipsis` |
+| Upward arrow (send) | `arrow.up` |
+| Chain link | `link` |
+| Hash / number sign | `number` |
+| Paperclip (attachment) | `paperclip` |
+| Checkmark in filled circle | `checkmark.circle.fill` |
+| Exclamation in circle (warning) | `exclamationmark.circle` |
+| X / close / dismiss | `xmark` |
+| Download / import arrow into tray | `square.and.arrow.down` |
+| Upload / export arrow from tray | `square.and.arrow.up` |
+| Triangle with exclamation (alert) | `exclamationmark.triangle` |
+| X in circle (clear field) | `xmark.circle.fill` |
 - Example: "Sync paused — no internet connection. Your data is saved locally."
