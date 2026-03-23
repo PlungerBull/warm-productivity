@@ -78,7 +78,7 @@ struct QuickEntryView: View {
                 .padding(.horizontal, WPSpacing.sm)
                 .padding(.vertical, WPSpacing.xs)
         }
-        .background(Color.wpBackground)
+        .background(Color.wpBackground.ignoresSafeArea())
         .onAppear {
             isCommandFocused = true
         }

@@ -49,7 +49,7 @@ struct TransactionListView: View {
                 ledgerContent
             }
         }
-        .background(Color.wpBackground)
+        .background(Color.wpBackground.ignoresSafeArea())
         .navigationBarHidden(true)
         .task {
             viewModel.load(destination: destination)

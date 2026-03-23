@@ -139,7 +139,7 @@ struct OnboardingView: View {
                     .accessibilityHint(viewModel.isValid ? "Complete setup" : "Fill in all fields first")
                 }
             }
-            .background(Color.wpBackground)
+            .background(Color.wpBackground.ignoresSafeArea())
             .navigationBarHidden(true)
             .task {
                 await viewModel.loadCurrencies()
