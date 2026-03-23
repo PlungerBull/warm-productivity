@@ -23,8 +23,8 @@ final class SearchViewModel {
     private(set) var currencyFormatter = CurrencyFormatter()
 
     // Lookup dictionaries
-    private var categoryNames: [UUID: String] = [:]
-    private var accountNames: [UUID: String] = [:]
+    private(set) var categoryNames: [UUID: String] = [:]
+    private(set) var accountNames: [UUID: String] = [:]
     private var hashtagNames: [UUID: String] = [:]
     private var transactionHashtags: [UUID: Set<UUID>] = [:]  // transactionId → hashtagIds
     private var transactionNotes: [UUID: String] = [:]          // transactionId → note content

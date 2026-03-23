@@ -9,6 +9,10 @@ struct TransactionDetailView: View {
 
     @State private var categorySearch: String = ""
     @State private var hashtagSearch: String = ""
+    @State private var showDatePicker: Bool = false
+    @State private var showAccountPicker: Bool = false
+    @State private var showCategoryPicker: Bool = false
+    @State private var showHashtagPicker: Bool = false
 
     init(viewModel: TransactionDetailViewModel, mode: TransactionDetailMode, onDismiss: @escaping () -> Void) {
         _viewModel = State(initialValue: viewModel)
@@ -17,287 +21,544 @@ struct TransactionDetailView: View {
     }
 
     var body: some View {
-        NavigationStack {
-            Form {
-                titleSection
-                amountSection
-                dateSection
-                accountSection
-                categorySection
-                hashtagSection
-
-                if viewModel.showExchangeRate {
-                    exchangeRateSection
-                }
-
-                notesSection
-
-                if !viewModel.isInbox {
-                    reconciliationSection
-                }
-
-                deleteSection
+        VStack(spacing: 0) {
+            dragHandle
+            sheetContent
+            Spacer(minLength: 0)
+            if viewModel.canPromote {
+                promoteButton
             }
-            .navigationTitle(viewModel.isInbox ? "Inbox Item" : "Transaction")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { onDismiss() }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    confirmationButton
-                }
+            bottomToolbar
+        }
+        .background(Color.wpBackground)
+        .alert("Delete Transaction", isPresented: $viewModel.showDeleteConfirmation) {
+            Button("Cancel", role: .cancel) {}
+            Button("Delete", role: .destructive) {
+                viewModel.deleteTransaction()
+                onDismiss()
             }
-            .alert("Delete Transaction", isPresented: $viewModel.showDeleteConfirmation) {
-                Button("Cancel", role: .cancel) {}
-                Button("Delete", role: .destructive) {
-                    viewModel.deleteTransaction()
-                    onDismiss()
-                }
-            } message: {
-                Text("This transaction will be permanently removed.")
-            }
-            .task {
-                viewModel.load(mode: mode)
-            }
+        } message: {
+            Text("This transaction will be permanently removed.")
+        }
+        .sheet(isPresented: $showAccountPicker) {
+            accountPickerSheet
+        }
+        .sheet(isPresented: $showCategoryPicker) {
+            categoryPickerSheet
+        }
+        .sheet(isPresented: $showHashtagPicker) {
+            hashtagPickerSheet
+        }
+        .task {
+            viewModel.load(mode: mode)
         }
     }
 
-    // MARK: - Sections
+    // MARK: - Drag Handle
 
-    private var titleSection: some View {
-        Section {
-            TextField("Title", text: $viewModel.title)
-                .font(.wpBody)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 4)
-                        .stroke(
-                            viewModel.validationErrors.contains(.title) ? Color.wpError : Color.clear,
-                            lineWidth: 1
-                        )
-                )
-        }
+    private var dragHandle: some View {
+        RoundedRectangle(cornerRadius: WPContentSheetStyle.handleCornerRadius)
+            .fill(Color.wpBorder)
+            .frame(
+                width: WPContentSheetStyle.handleWidth,
+                height: WPContentSheetStyle.handleHeight
+            )
+            .padding(.top, WPSpacing.sm)
+            .padding(.bottom, WPSpacing.sm)
     }
 
-    private var amountSection: some View {
-        Section {
-            HStack(spacing: WPSpacing.sm) {
+    // MARK: - Sheet Content
+
+    private var sheetContent: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            headerRow
+
+            dateLine
+                .padding(.top, WPSpacing.sm)
+
+            titleField
+                .padding(.top, WPSpacing.xs)
+
+            amountField
+                .padding(.top, WPSpacing.xxs)
+
+            if viewModel.showExchangeRate {
+                exchangeRateLine
+                    .padding(.top, WPSpacing.xs)
+            }
+
+            descriptionField
+                .padding(.top, WPSpacing.md)
+
+            tagsArea
+                .padding(.top, WPSpacing.lg)
+        }
+        .padding(.horizontal, WPSpacing.md)
+    }
+
+    // MARK: - Header Row
+
+    private var headerRow: some View {
+        HStack {
+            Button {
+                showAccountPicker = true
+            } label: {
+                HStack(spacing: WPSpacing.xxs) {
+                    Image(systemName: "building.columns")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(Color.wpSuccess)
+                    Text(selectedAccountName)
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(Color.wpSuccess)
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundStyle(Color.wpTextTertiary)
+                }
+            }
+            .buttonStyle(.plain)
+
+            Spacer()
+
+            HStack(spacing: WPSpacing.lg) {
                 Button {
-                    viewModel.isExpense.toggle()
+                    viewModel.showDeleteConfirmation = true
                 } label: {
-                    Text(viewModel.isExpense ? "−" : "+")
-                        .font(.wpTitle)
-                        .foregroundStyle(viewModel.isExpense ? Color.wpExpense : Color.wpIncome)
-                        .frame(width: 36, height: 36)
-                        .background(
-                            (viewModel.isExpense ? Color.wpExpense : Color.wpIncome).opacity(0.1)
-                        )
-                        .clipShape(RoundedRectangle(cornerRadius: WPCornerRadius.small))
+                    Image(systemName: "trash")
+                        .font(.system(size: 16))
+                        .foregroundStyle(Color.wpTextTertiary)
                 }
                 .buttonStyle(.plain)
 
-                TextField("0.00", text: $viewModel.amountString)
-                    .font(.wpAmountLarge)
-                    .keyboardType(.decimalPad)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 4)
-                            .stroke(
-                                viewModel.validationErrors.contains(.amount) ? Color.wpError : Color.clear,
-                                lineWidth: 1
-                            )
-                    )
-
-                if let currency = viewModel.accountCurrency {
-                    Text(currency)
-                        .font(.wpCaption)
-                        .foregroundStyle(Color.wpTextSecondary)
-                }
-            }
-        }
-    }
-
-    private var dateSection: some View {
-        Section {
-            DatePicker("Date", selection: $viewModel.date, displayedComponents: .date)
-                .font(.wpBody)
-
-            HStack(spacing: WPSpacing.xs) {
-                dateChip("Yesterday") {
-                    if let yesterday = Calendar.current.date(byAdding: .day, value: -1, to: Calendar.current.startOfDay(for: Date())) {
-                        viewModel.date = yesterday
+                Menu {
+                    if viewModel.isInbox {
+                        Button {
+                            viewModel.save()
+                            onDismiss()
+                        } label: {
+                            Label("Save Draft", systemImage: "square.and.arrow.down")
+                        }
+                        if viewModel.canPromote {
+                            Button {
+                                viewModel.promote()
+                                onDismiss()
+                            } label: {
+                                Label("Promote to Ledger", systemImage: "checkmark.circle")
+                            }
+                        }
+                    } else {
+                        Button {
+                            viewModel.save()
+                            onDismiss()
+                        } label: {
+                            Label("Save", systemImage: "checkmark")
+                        }
                     }
-                }
-                dateChip("Today") {
-                    viewModel.date = Calendar.current.startOfDay(for: Date())
-                }
-                dateChip("Tomorrow") {
-                    if let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: Calendar.current.startOfDay(for: Date())) {
-                        viewModel.date = tomorrow
-                    }
-                }
-            }
-        }
-    }
-
-    private var accountSection: some View {
-        Section {
-            Picker("Account", selection: $viewModel.selectedAccountId) {
-                Text("Select account").tag(UUID?.none)
-                ForEach(viewModel.accounts, id: \.id) { account in
-                    Text("\(account.name) (\(account.currencyCode))")
-                        .tag(UUID?.some(account.id))
-                }
-            }
-            .onChange(of: viewModel.selectedAccountId) {
-                viewModel.autoPopulateExchangeRate()
-            }
-        }
-    }
-
-    private var categorySection: some View {
-        Section("Category") {
-            TokenAutocompleteField(
-                text: $categorySearch,
-                placeholder: "Search categories...",
-                suggestions: filteredCategories,
-                onSelect: { suggestion in
-                    viewModel.selectedCategoryId = suggestion.id
-                    categorySearch = suggestion.text
-                },
-                onCreate: { name in
-                    viewModel.createCategory(name: name)
-                    categorySearch = name
-                }
-            )
-            if let categoryId = viewModel.selectedCategoryId,
-               let category = viewModel.categories.first(where: { $0.id == categoryId }) {
-                HStack {
-                    Circle()
-                        .fill(Color(hex: category.color))
-                        .frame(width: 10, height: 10)
-                    Text(category.name)
-                        .font(.wpBody)
-                    Spacer()
-                    Button {
-                        viewModel.selectedCategoryId = nil
-                        categorySearch = ""
-                    } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .foregroundStyle(Color.wpTextTertiary)
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-        }
-    }
-
-    private var hashtagSection: some View {
-        Section("Hashtags") {
-            TokenAutocompleteField(
-                text: $hashtagSearch,
-                placeholder: "Search hashtags...",
-                suggestions: filteredHashtags,
-                onSelect: { suggestion in
-                    viewModel.selectedHashtagIds.insert(suggestion.id)
-                    hashtagSearch = ""
-                },
-                onCreate: { name in
-                    viewModel.createHashtag(name: name)
-                    hashtagSearch = ""
-                }
-            )
-
-            if !viewModel.selectedHashtagIds.isEmpty {
-                FlowLayout(spacing: WPSpacing.xs) {
-                    ForEach(
-                        viewModel.hashtags.filter { viewModel.selectedHashtagIds.contains($0.id) },
-                        id: \.id
-                    ) { hashtag in
-                        hashtagChip(hashtag)
-                    }
-                }
-            }
-        }
-    }
-
-    private var exchangeRateSection: some View {
-        Section("Exchange Rate") {
-            HStack {
-                Text("\(viewModel.accountCurrency ?? "") → \(viewModel.currencyFormatter.currencyCode)")
-                    .font(.wpCaption)
-                    .foregroundStyle(Color.wpTextSecondary)
-                Spacer()
-                TextField("1.0", text: $viewModel.exchangeRate)
-                    .font(.wpBody)
-                    .keyboardType(.decimalPad)
-                    .multilineTextAlignment(.trailing)
-                    .frame(width: 100)
-            }
-        }
-    }
-
-    private var notesSection: some View {
-        Section("Notes") {
-            TextEditor(text: $viewModel.descriptionText)
-                .font(.wpBody)
-                .frame(minHeight: 80)
-        }
-    }
-
-    private var reconciliationSection: some View {
-        Section {
-            HStack {
-                Text("Reconciliation")
-                    .font(.wpBody)
-                Spacer()
-                Text("Not reconciled")
-                    .font(.wpCaption)
-                    .foregroundStyle(Color.wpTextTertiary)
-            }
-        }
-    }
-
-    private var deleteSection: some View {
-        Section {
-            Button(role: .destructive) {
-                viewModel.showDeleteConfirmation = true
-            } label: {
-                Label("Delete Transaction", systemImage: "trash")
-            }
-        }
-    }
-
-    // MARK: - Toolbar
-
-    @ViewBuilder
-    private var confirmationButton: some View {
-        if viewModel.isInbox {
-            Menu {
-                Button {
-                    viewModel.save()
-                    onDismiss()
-                } label: {
-                    Label("Save Draft", systemImage: "square.and.arrow.down")
-                }
-                if viewModel.canPromote {
-                    Button {
-                        viewModel.promote()
+                    Button(role: .cancel) {
                         onDismiss()
                     } label: {
-                        Label("Promote to Ledger", systemImage: "checkmark.circle")
+                        Label("Discard Changes", systemImage: "xmark")
                     }
+                } label: {
+                    Image(systemName: "ellipsis")
+                        .font(.system(size: 16))
+                        .foregroundStyle(Color.wpTextTertiary)
                 }
-            } label: {
-                Image(systemName: "checkmark")
             }
-        } else {
+        }
+    }
+
+    // MARK: - Date Line
+
+    private var dateLine: some View {
+        Button {
+            showDatePicker.toggle()
+        } label: {
+            HStack(spacing: WPSpacing.xxs) {
+                Image(systemName: "calendar")
+                    .font(.system(size: 13))
+                    .foregroundStyle(Color.wpPrimary)
+                Text(formattedDate)
+                    .font(.system(size: 13))
+                    .foregroundStyle(Color.wpPrimary)
+            }
+        }
+        .buttonStyle(.plain)
+        .popover(isPresented: $showDatePicker) {
+            DatePicker(
+                "Date",
+                selection: $viewModel.date,
+                displayedComponents: .date
+            )
+            .datePickerStyle(.graphical)
+            .padding()
+            .presentationCompactAdaptation(.popover)
+        }
+    }
+
+    // MARK: - Title
+
+    private var titleField: some View {
+        TextField("Untitled transaction", text: $viewModel.title)
+            .font(.system(size: WPContentSheetStyle.titleFontSize, weight: .semibold))
+            .foregroundStyle(Color.wpTextPrimary)
+            .textFieldStyle(.plain)
+            .overlay(alignment: .leading) {
+                if viewModel.validationErrors.contains(.title) {
+                    Rectangle()
+                        .fill(Color.wpError)
+                        .frame(width: 2)
+                        .offset(x: -WPSpacing.xs)
+                }
+            }
+    }
+
+    // MARK: - Amount
+
+    private var amountField: some View {
+        HStack(spacing: WPSpacing.xxs) {
+            Button {
+                viewModel.isExpense.toggle()
+            } label: {
+                Text(viewModel.isExpense ? "-" : "+")
+                    .font(.system(size: WPContentSheetStyle.amountFontSize, weight: .semibold).monospacedDigit())
+                    .foregroundStyle(amountColor)
+            }
+            .buttonStyle(.plain)
+
+            if let currency = viewModel.accountCurrency {
+                Text(currencySymbol(for: currency))
+                    .font(.system(size: WPContentSheetStyle.amountFontSize, weight: .semibold).monospacedDigit())
+                    .foregroundStyle(amountColor)
+            }
+
+            TextField("0.00", text: $viewModel.amountString)
+                .font(.system(size: WPContentSheetStyle.amountFontSize, weight: .semibold).monospacedDigit())
+                .foregroundStyle(amountColor)
+                .textFieldStyle(.plain)
+                .keyboardType(.decimalPad)
+        }
+        .overlay(alignment: .leading) {
+            if viewModel.validationErrors.contains(.amount) {
+                Rectangle()
+                    .fill(Color.wpError)
+                    .frame(width: 2)
+                    .offset(x: -WPSpacing.xs)
+            }
+        }
+    }
+
+    // MARK: - Exchange Rate
+
+    private var exchangeRateLine: some View {
+        HStack(spacing: WPSpacing.xxs) {
+            Text("\(viewModel.accountCurrency ?? "") \u{2192} \(viewModel.currencyFormatter.currencyCode)")
+                .font(.wpCaption)
+                .foregroundStyle(Color.wpTextTertiary)
+            TextField("1.0", text: $viewModel.exchangeRate)
+                .font(.wpCaption)
+                .foregroundStyle(Color.wpTextSecondary)
+                .textFieldStyle(.plain)
+                .keyboardType(.decimalPad)
+                .frame(width: 60)
+        }
+    }
+
+    // MARK: - Description
+
+    private var descriptionField: some View {
+        TextField("Add a description...", text: $viewModel.descriptionText, axis: .vertical)
+            .font(.wpCallout)
+            .foregroundStyle(
+                viewModel.descriptionText.isEmpty ? Color.wpTextTertiary : Color.wpTextPrimary
+            )
+            .textFieldStyle(.plain)
+            .lineLimit(1...4)
+    }
+
+    // MARK: - Tags Area
+
+    private var tagsArea: some View {
+        FlowLayout(spacing: WPSpacing.xs) {
+            if let category = selectedCategory {
+                Button {
+                    showCategoryPicker = true
+                } label: {
+                    Text("@\(category.name)")
+                        .wpTagChip(color: Color(hex: category.color))
+                }
+                .buttonStyle(.plain)
+            }
+
+            ForEach(selectedHashtags, id: \.id) { hashtag in
+                Button {
+                    showHashtagPicker = true
+                } label: {
+                    Text("#\(hashtag.name)")
+                        .wpTagChip(color: Color.wpHashtag)
+                }
+                .buttonStyle(.plain)
+            }
+
+            if selectedCategory == nil {
+                Button {
+                    showCategoryPicker = true
+                } label: {
+                    Text("+ category")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(Color.wpTextTertiary)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 3)
+                        .background(Color.wpBorder.opacity(0.3))
+                        .clipShape(RoundedRectangle(cornerRadius: 4))
+                }
+                .buttonStyle(.plain)
+            }
+        }
+    }
+
+    // MARK: - Promote Button (Inbox Only)
+
+    private var promoteButton: some View {
+        Button {
+            viewModel.promote()
+            onDismiss()
+        } label: {
+            HStack(spacing: WPSpacing.xs) {
+                Image(systemName: "arrow.up")
+                    .font(.system(size: 14, weight: .semibold))
+                Text("Promote to Ledger")
+                    .font(.wpHeadline)
+            }
+            .foregroundStyle(Color.wpOnPrimary)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, WPSpacing.md)
+            .background(Color.wpPrimary)
+            .clipShape(RoundedRectangle(cornerRadius: WPCornerRadius.medium))
+        }
+        .buttonStyle(.plain)
+        .padding(.horizontal, WPSpacing.md)
+        .padding(.bottom, WPSpacing.xs)
+    }
+
+    // MARK: - Bottom Toolbar
+
+    private var bottomToolbar: some View {
+        HStack(spacing: WPSpacing.lg) {
+            Button {
+                showCategoryPicker = true
+            } label: {
+                Image(systemName: "tag")
+                    .font(.system(size: 16))
+                    .foregroundStyle(Color.wpTextTertiary)
+            }
+            .buttonStyle(.plain)
+
+            Button {
+                showHashtagPicker = true
+            } label: {
+                Image(systemName: "number")
+                    .font(.system(size: 16))
+                    .foregroundStyle(Color.wpTextTertiary)
+            }
+            .buttonStyle(.plain)
+
+            Button {} label: {
+                Image(systemName: "paperclip")
+                    .font(.system(size: 16))
+                    .foregroundStyle(Color.wpTextTertiary)
+            }
+            .buttonStyle(.plain)
+
+            Spacer()
+
             Button {
                 viewModel.save()
                 onDismiss()
             } label: {
                 Image(systemName: "checkmark")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(Color.wpPrimary)
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(.horizontal, WPSpacing.lg)
+        .padding(.vertical, WPSpacing.sm)
+        .overlay(alignment: .top) {
+            Rectangle()
+                .fill(Color.wpBorder)
+                .frame(height: 0.5)
+        }
+    }
+
+    // MARK: - Account Picker Sheet
+
+    private var accountPickerSheet: some View {
+        NavigationStack {
+            List(viewModel.accounts, id: \.id) { account in
+                Button {
+                    viewModel.selectedAccountId = account.id
+                    viewModel.autoPopulateExchangeRate()
+                    showAccountPicker = false
+                } label: {
+                    HStack {
+                        Text(account.name)
+                            .font(.wpBody)
+                            .foregroundStyle(Color.wpTextPrimary)
+                        Text(account.currencyCode)
+                            .font(.wpCaption)
+                            .foregroundStyle(Color.wpTextSecondary)
+                        Spacer()
+                        if viewModel.selectedAccountId == account.id {
+                            Image(systemName: "checkmark")
+                                .foregroundStyle(Color.wpPrimary)
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Account")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Done") { showAccountPicker = false }
+                }
             }
         }
+        .presentationDetents([.medium])
+    }
+
+    // MARK: - Category Picker Sheet
+
+    private var categoryPickerSheet: some View {
+        NavigationStack {
+            VStack(spacing: 0) {
+                TokenAutocompleteField(
+                    text: $categorySearch,
+                    placeholder: "Search categories...",
+                    suggestions: filteredCategories,
+                    onSelect: { suggestion in
+                        viewModel.selectedCategoryId = suggestion.id
+                        categorySearch = ""
+                        showCategoryPicker = false
+                    },
+                    onCreate: { name in
+                        viewModel.createCategory(name: name)
+                        categorySearch = ""
+                        showCategoryPicker = false
+                    }
+                )
+                .padding(.horizontal, WPSpacing.md)
+                .padding(.top, WPSpacing.sm)
+
+                List(viewModel.categories, id: \.id) { category in
+                    Button {
+                        viewModel.selectedCategoryId = category.id
+                        showCategoryPicker = false
+                    } label: {
+                        HStack(spacing: WPSpacing.xs) {
+                            Circle()
+                                .fill(Color(hex: category.color))
+                                .frame(width: 10, height: 10)
+                            Text(category.name)
+                                .font(.wpBody)
+                                .foregroundStyle(Color.wpTextPrimary)
+                            Spacer()
+                            if viewModel.selectedCategoryId == category.id {
+                                Image(systemName: "checkmark")
+                                    .foregroundStyle(Color.wpPrimary)
+                            }
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Category")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Done") { showCategoryPicker = false }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    if viewModel.selectedCategoryId != nil {
+                        Button {
+                            viewModel.selectedCategoryId = nil
+                            categorySearch = ""
+                            showCategoryPicker = false
+                        } label: {
+                            Text("Clear")
+                                .foregroundStyle(Color.wpError)
+                        }
+                    }
+                }
+            }
+        }
+        .presentationDetents([.medium])
+    }
+
+    // MARK: - Hashtag Picker Sheet
+
+    private var hashtagPickerSheet: some View {
+        NavigationStack {
+            VStack(spacing: 0) {
+                TokenAutocompleteField(
+                    text: $hashtagSearch,
+                    placeholder: "Search hashtags...",
+                    suggestions: filteredHashtags,
+                    onSelect: { suggestion in
+                        viewModel.selectedHashtagIds.insert(suggestion.id)
+                        hashtagSearch = ""
+                    },
+                    onCreate: { name in
+                        viewModel.createHashtag(name: name)
+                        hashtagSearch = ""
+                    }
+                )
+                .padding(.horizontal, WPSpacing.md)
+                .padding(.top, WPSpacing.sm)
+
+                List {
+                    if !viewModel.selectedHashtagIds.isEmpty {
+                        Section("Selected") {
+                            ForEach(selectedHashtags, id: \.id) { hashtag in
+                                Button {
+                                    viewModel.selectedHashtagIds.remove(hashtag.id)
+                                } label: {
+                                    HStack {
+                                        Text("#\(hashtag.name)")
+                                            .font(.wpBody)
+                                            .foregroundStyle(Color.wpHashtag)
+                                        Spacer()
+                                        Image(systemName: "xmark.circle.fill")
+                                            .foregroundStyle(Color.wpTextTertiary)
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    Section("All") {
+                        ForEach(
+                            viewModel.hashtags.filter { !viewModel.selectedHashtagIds.contains($0.id) },
+                            id: \.id
+                        ) { hashtag in
+                            Button {
+                                viewModel.selectedHashtagIds.insert(hashtag.id)
+                            } label: {
+                                Text("#\(hashtag.name)")
+                                    .font(.wpBody)
+                                    .foregroundStyle(Color.wpTextPrimary)
+                            }
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Hashtags")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Done") { showHashtagPicker = false }
+                }
+            }
+        }
+        .presentationDetents([.medium])
     }
 
     // MARK: - Filtered Suggestions
@@ -327,37 +588,52 @@ struct TransactionDetailView: View {
             }
     }
 
-    // MARK: - Helper Views
+    // MARK: - Computed Helpers
 
-    private func dateChip(_ label: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Text(label)
-                .font(.wpCaption)
-                .padding(.horizontal, WPSpacing.sm)
-                .padding(.vertical, WPSpacing.xxs)
-                .background(Color.wpSurface)
-                .clipShape(Capsule())
-                .overlay(Capsule().stroke(Color.wpBorder, lineWidth: 1))
+    private var selectedAccountName: String {
+        guard let accountId = viewModel.selectedAccountId,
+              let account = viewModel.accounts.first(where: { $0.id == accountId }) else {
+            return "No account"
         }
-        .buttonStyle(.plain)
+        return account.name
     }
 
-    private func hashtagChip(_ hashtag: ExpenseHashtag) -> some View {
-        HStack(spacing: WPSpacing.xxs) {
-            Text("#\(hashtag.name)")
-                .font(.wpCaption)
-            Button {
-                viewModel.selectedHashtagIds.remove(hashtag.id)
-            } label: {
-                Image(systemName: "xmark")
-                    .font(.wpIconSmall)
-            }
-            .buttonStyle(.plain)
+    private var selectedCategory: ExpenseCategory? {
+        guard let categoryId = viewModel.selectedCategoryId else { return nil }
+        return viewModel.categories.first { $0.id == categoryId }
+    }
+
+    private var selectedHashtags: [ExpenseHashtag] {
+        viewModel.hashtags.filter { viewModel.selectedHashtagIds.contains($0.id) }
+    }
+
+    private var amountColor: Color {
+        viewModel.isExpense ? Color.wpExpense : Color.wpIncome
+    }
+
+    private var formattedDate: String {
+        let calendar = Calendar.current
+        if calendar.isDateInToday(viewModel.date) {
+            return "Today, \(shortDateString)"
+        } else if calendar.isDateInYesterday(viewModel.date) {
+            return "Yesterday, \(shortDateString)"
+        } else if calendar.isDateInTomorrow(viewModel.date) {
+            return "Tomorrow, \(shortDateString)"
         }
-        .padding(.horizontal, WPSpacing.xs)
-        .padding(.vertical, WPSpacing.xxs)
-        .background(Color.wpPrimary.opacity(0.1))
-        .clipShape(Capsule())
+        return shortDateString
+    }
+
+    private var shortDateString: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMM d"
+        return formatter.string(from: viewModel.date)
+    }
+
+    private func currencySymbol(for code: String) -> String {
+        let locale = Locale.availableIdentifiers
+            .map { Locale(identifier: $0) }
+            .first { $0.currency?.identifier == code }
+        return locale?.currencySymbol ?? "$"
     }
 }
 

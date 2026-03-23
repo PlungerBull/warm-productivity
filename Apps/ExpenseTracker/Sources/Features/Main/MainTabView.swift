@@ -46,7 +46,9 @@ struct MainTabView: View {
                 viewModel: makeQuickEntryViewModel(),
                 onDismiss: { showQuickEntry = false }
             )
-            .presentationDetents([.medium, .large])
+            .presentationDetents([.medium])
+            .presentationBackgroundInteraction(.enabled(upThrough: .medium))
+            .presentationDragIndicator(.hidden)
         }
     }
 

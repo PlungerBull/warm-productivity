@@ -10,32 +10,43 @@ struct AuthView: View {
     }
 
     var body: some View {
-        VStack(spacing: WPSpacing.xl) {
+        VStack(spacing: 0) {
             Spacer()
 
-            Image(systemName: "dollarsign.circle.fill")
-                .font(.wpIconLarge)
-                .foregroundStyle(Color.wpPrimary)
+            // Line-art app icon
+            ZStack {
+                RoundedRectangle(cornerRadius: WPCornerRadius.large)
+                    .stroke(Color.wpPrimary, lineWidth: 2.5)
+                    .frame(width: 72, height: 72)
 
-            VStack(spacing: WPSpacing.xs) {
-                Text("Expense Tracker")
-                    .font(.wpLargeTitle)
-                    .foregroundStyle(Color.wpTextPrimary)
-
-                Text("Track spending across currencies and accounts")
-                    .font(.wpCallout)
-                    .foregroundStyle(Color.wpTextSecondary)
-                    .multilineTextAlignment(.center)
+                Image(systemName: "doc.text")
+                    .font(.system(size: 28, weight: .light))
+                    .foregroundStyle(Color.wpPrimary)
             }
+            .padding(.bottom, WPSpacing.lg)
+
+            // Title and subtitle
+            Text("Warm Productivity")
+                .font(.wpTitle)
+                .foregroundStyle(Color.wpTextPrimary)
+                .padding(.bottom, 6)
+
+            Text("Expense Tracker")
+                .font(.wpCallout)
+                .foregroundStyle(Color.wpTextSecondary)
 
             Spacer()
 
+            // Error banner
             if let error = viewModel.errorMessage {
                 ErrorBanner(message: error) {
                     viewModel.clearError()
                 }
+                .padding(.horizontal, WPSpacing.lg)
+                .padding(.bottom, WPSpacing.md)
             }
 
+            // Sign in with Apple button
             SignInWithAppleButton(.signIn) { request in
                 let nonce = AppleSignInNonce.generate()
                 request.requestedScopes = [.fullName, .email]
@@ -52,10 +63,10 @@ struct AuthView: View {
                     viewModel.errorMessage = error.localizedDescription
                 }
             }
-            .signInWithAppleButtonStyle(.whiteOutline)
+            .signInWithAppleButtonStyle(.black)
             .frame(height: 50)
-            .clipShape(RoundedRectangle(cornerRadius: WPCornerRadius.small))
-            .padding(.horizontal, WPSpacing.xl)
+            .clipShape(RoundedRectangle(cornerRadius: WPCornerRadius.medium))
+            .padding(.horizontal, WPSpacing.lg)
 
             #if targetEnvironment(simulator)
             Button {
@@ -65,10 +76,17 @@ struct AuthView: View {
                     .font(.wpCallout)
                     .foregroundStyle(Color.wpPrimary)
             }
-            .padding(.bottom, WPSpacing.lg)
+            .padding(.top, WPSpacing.sm)
             #endif
 
-            Spacer().frame(height: WPSpacing.md)
+            // Privacy text
+            Text("Your data stays private. We use Apple's authentication \u{2014} no passwords stored.")
+                .font(.wpCaption)
+                .foregroundStyle(Color.wpTextTertiary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, WPSpacing.xl)
+                .padding(.top, 20)
+                .padding(.bottom, WPSpacing.xl)
         }
         .background(Color.wpBackground)
         .accessibilityElement(children: .contain)

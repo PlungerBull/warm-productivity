@@ -1,40 +1,87 @@
 import SwiftUI
 
-/// Standard row layout for transaction lists.
-/// Placeholder — full implementation during Phase 1 UI.
+// MARK: - Transaction Row
+
+/// Single-line transaction row used in ledger and inbox flat lists.
+///
+/// Two styles:
+/// - `.ledger`: Category color left border, title, account name, signed amount.
+/// - `.inbox`: Green left border if ready to promote, no border if not. Title + amount.
 public struct TransactionRow: View {
     let title: String
     let amount: String
-    let date: String
-    let category: String?
+    let isExpense: Bool
+    let isUntitled: Bool
+    let style: Style
 
-    public init(title: String, amount: String, date: String, category: String? = nil) {
+    public enum Style {
+        /// Ledger row: category color border, account name shown.
+        case ledger(categoryColor: Color, accountName: String)
+        /// Inbox row: green border if ready, no border if not.
+        case inbox(isReady: Bool)
+    }
+
+    public init(title: String, amount: String, isExpense: Bool = true, isUntitled: Bool = false, style: Style) {
         self.title = title
         self.amount = amount
-        self.date = date
-        self.category = category
+        self.isExpense = isExpense
+        self.isUntitled = isUntitled
+        self.style = style
     }
 
     public var body: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: WPSpacing.xxs) {
+        HStack(spacing: 0) {
+            // Left border — category color (ledger) or green/clear (inbox)
+            Rectangle()
+                .fill(borderColor ?? Color.clear)
+                .frame(width: 3)
+
+            // Row content
+            HStack {
                 Text(title)
-                    .font(.wpBody)
-                if let category {
-                    Text(category)
+                    .font(isUntitled ? Font.wpBody.italic() : .wpBody)
+                    .foregroundStyle(isUntitled ? Color.wpTextTertiary : Color.wpTextPrimary)
+                    .lineLimit(1)
+
+                Spacer(minLength: WPSpacing.xs)
+
+                // Account name — only for ledger, compact, shrinks first
+                if case .ledger(_, let accountName) = style, !accountName.isEmpty {
+                    Text(accountName)
                         .font(.wpCaption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Color.wpTextTertiary)
+                        .lineLimit(1)
+                        .layoutPriority(-1)
                 }
-            }
-            Spacer()
-            VStack(alignment: .trailing, spacing: WPSpacing.xxs) {
+
+                // Amount — right-aligned, never truncates
                 Text(amount)
-                    .font(.wpBody.monospacedDigit())
-                Text(date)
-                    .font(.wpCaption)
-                    .foregroundStyle(.secondary)
+                    .font(.wpAmount)
+                    .foregroundStyle(amountColor)
+                    .lineLimit(1)
+                    .fixedSize()
             }
+            .padding(.leading, 13)
+            .padding(.trailing, WPSpacing.md)
+            .padding(.vertical, WPSpacing.sm)
         }
-        .padding(.vertical, WPSpacing.xs)
+    }
+
+    private var amountColor: Color {
+        switch style {
+        case .ledger:
+            isExpense ? Color.wpExpense : Color.wpIncome
+        case .inbox:
+            Color.wpTextPrimary
+        }
+    }
+
+    private var borderColor: Color? {
+        switch style {
+        case .ledger(let categoryColor, _):
+            categoryColor
+        case .inbox(let isReady):
+            isReady ? Color.wpSuccess : nil
+        }
     }
 }

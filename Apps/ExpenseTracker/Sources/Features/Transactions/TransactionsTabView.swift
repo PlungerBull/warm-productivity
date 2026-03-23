@@ -6,37 +6,33 @@ struct TransactionsTabView: View {
     let userId: UUID
     @Environment(\.modelContext) private var modelContext
 
-    @State private var selection: SidebarDestination?
+    @State private var path: [SidebarDestination] = []
     @State private var sidebarViewModel: TransactionsSidebarViewModel?
     @State private var listViewModel: TransactionListViewModel?
     @State private var showSearch: Bool = false
 
     var body: some View {
-        NavigationSplitView {
+        NavigationStack(path: $path) {
             if let sidebarViewModel {
                 TransactionsSidebarView(
                     viewModel: sidebarViewModel,
-                    selection: $selection
+                    onSelect: { destination in
+                        path.append(destination)
+                    },
+                    onSearch: { showSearch = true }
                 )
-                .toolbar {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button {
-                            showSearch = true
-                        } label: {
-                            Image(systemName: "magnifyingglass")
-                        }
+                .navigationBarHidden(true)
+                .navigationDestination(for: SidebarDestination.self) { destination in
+                    if let listViewModel {
+                        TransactionListView(
+                            destination: destination,
+                            viewModel: listViewModel,
+                            detailViewModelFactory: { makeDetailViewModel() }
+                        )
                     }
                 }
             } else {
                 LoadingView()
-            }
-        } detail: {
-            if let listViewModel {
-                TransactionListView(
-                    destination: selection ?? .ledger,
-                    viewModel: listViewModel,
-                    detailViewModelFactory: { makeDetailViewModel() }
-                )
             }
         }
         .sheet(isPresented: $showSearch) {
@@ -73,6 +69,8 @@ struct TransactionsTabView: View {
                 transactionRepository: transactionRepo,
                 inboxRepository: inboxRepo,
                 transactionHashtagRepository: transactionHashtagRepo,
+                categoryRepository: categoryRepo,
+                bankAccountRepository: bankAccountRepo,
                 userSettingsRepository: settingsRepo,
                 userId: userId
             )

@@ -13,39 +13,40 @@ struct OnboardingView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: WPSpacing.lg) {
+            VStack(alignment: .leading, spacing: 0) {
                 // Header
-                VStack(spacing: WPSpacing.xs) {
-                    Image(systemName: "dollarsign.circle.fill")
-                        .font(.wpIconMedium)
-                        .foregroundStyle(Color.wpPrimary)
-
-                    Text("Welcome to Expense Tracker")
-                        .font(.wpTitle)
+                VStack(alignment: .leading, spacing: WPSpacing.xs) {
+                    Text("Let's get you started.")
+                        .font(.wpLargeTitle)
                         .foregroundStyle(Color.wpTextPrimary)
 
-                    Text("Let's get you set up.")
+                    Text("Two quick things and you're in.")
                         .font(.wpCallout)
                         .foregroundStyle(Color.wpTextSecondary)
                 }
                 .padding(.top, WPSpacing.xl)
+                .padding(.horizontal, WPSpacing.lg)
 
                 if let error = viewModel.errorMessage {
                     ErrorBanner(message: error) {
                         viewModel.clearError()
                     }
+                    .padding(.horizontal, WPSpacing.lg)
+                    .padding(.top, WPSpacing.md)
                 }
 
                 if viewModel.isLoadingCurrencies {
                     LoadingView(message: "Loading currencies...")
+                        .padding(.top, WPSpacing.xxl)
                 } else {
-                    // Form
+                    // Form fields
                     VStack(alignment: .leading, spacing: WPSpacing.lg) {
                         // Currency picker
-                        VStack(alignment: .leading, spacing: WPSpacing.xs) {
-                            Text("Main Currency")
-                                .font(.wpSubheadline)
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("HOME CURRENCY")
+                                .font(.wpCaption.weight(.medium))
                                 .foregroundStyle(Color.wpTextSecondary)
+                                .tracking(0.5)
 
                             NavigationLink {
                                 CurrencyPickerList(
@@ -55,17 +56,22 @@ struct OnboardingView: View {
                             } label: {
                                 HStack {
                                     if let currency = viewModel.currencies.first(where: { $0.code == viewModel.selectedCurrencyCode }) {
-                                        Text("\(currency.flag ?? "") \(currency.code) — \(currency.name)")
+                                        Text("\(currency.name) (\(currency.code))")
                                             .font(.wpBody)
                                             .foregroundStyle(Color.wpTextPrimary)
+                                    } else {
+                                        Text("Select currency")
+                                            .font(.wpBody)
+                                            .foregroundStyle(Color.wpTextTertiary)
                                     }
                                     Spacer()
                                     Image(systemName: "chevron.right")
                                         .font(.wpCaption)
                                         .foregroundStyle(Color.wpTextTertiary)
                                 }
-                                .padding(WPSpacing.sm)
-                                .background(Color.wpSurface)
+                                .padding(.horizontal, WPSpacing.sm)
+                                .padding(.vertical, WPSpacing.sm)
+                                .background(Color.wpGroupedBackground)
                                 .clipShape(RoundedRectangle(cornerRadius: WPCornerRadius.small))
                                 .overlay(
                                     RoundedRectangle(cornerRadius: WPCornerRadius.small)
@@ -75,15 +81,17 @@ struct OnboardingView: View {
                         }
 
                         // Bank account name
-                        VStack(alignment: .leading, spacing: WPSpacing.xs) {
-                            Text("First Bank Account")
-                                .font(.wpSubheadline)
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("FIRST BANK ACCOUNT")
+                                .font(.wpCaption.weight(.medium))
                                 .foregroundStyle(Color.wpTextSecondary)
+                                .tracking(0.5)
 
-                            TextField("e.g. Chase, BCP PEN...", text: $viewModel.bankAccountName)
+                            TextField("e.g., Chase Checking", text: $viewModel.bankAccountName)
                                 .font(.wpBody)
-                                .padding(WPSpacing.sm)
-                                .background(Color.wpSurface)
+                                .padding(.horizontal, WPSpacing.sm)
+                                .padding(.vertical, WPSpacing.sm)
+                                .background(Color.wpGroupedBackground)
                                 .clipShape(RoundedRectangle(cornerRadius: WPCornerRadius.small))
                                 .overlay(
                                     RoundedRectangle(cornerRadius: WPCornerRadius.small)
@@ -94,7 +102,8 @@ struct OnboardingView: View {
                                 .accessibilityLabel("Bank account name")
                         }
                     }
-                    .padding(.horizontal, WPSpacing.md)
+                    .padding(.horizontal, WPSpacing.lg)
+                    .padding(.top, WPSpacing.xxl)
 
                     Spacer()
 
@@ -109,7 +118,7 @@ struct OnboardingView: View {
                     } label: {
                         if viewModel.isCompleting {
                             ProgressView()
-                                .tint(.white)
+                                .tint(Color.wpOnPrimary)
                                 .frame(maxWidth: .infinity)
                                 .frame(height: 50)
                         } else {
@@ -120,10 +129,11 @@ struct OnboardingView: View {
                                 .frame(height: 50)
                         }
                     }
-                    .background(viewModel.isValid ? Color.wpPrimary : Color.wpTextTertiary)
-                    .clipShape(RoundedRectangle(cornerRadius: WPCornerRadius.small))
+                    .background(Color.wpPrimary)
+                    .opacity(viewModel.isValid ? 1.0 : 0.4)
+                    .clipShape(RoundedRectangle(cornerRadius: WPCornerRadius.medium))
                     .disabled(!viewModel.isValid || viewModel.isCompleting)
-                    .padding(.horizontal, WPSpacing.md)
+                    .padding(.horizontal, WPSpacing.lg)
                     .padding(.bottom, WPSpacing.xl)
                     .accessibilityLabel("Get Started")
                     .accessibilityHint(viewModel.isValid ? "Complete setup" : "Fill in all fields first")
@@ -162,7 +172,7 @@ private struct CurrencyPickerList: View {
                 dismiss()
             } label: {
                 HStack {
-                    Text("\(currency.flag ?? "") \(currency.code)")
+                    Text("\(currency.code)")
                         .font(.wpHeadline)
                         .foregroundStyle(Color.wpTextPrimary)
                     Text(currency.name)

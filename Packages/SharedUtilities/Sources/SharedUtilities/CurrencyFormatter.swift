@@ -1,6 +1,6 @@
 import Foundation
 
-/// Formats cent amounts into display strings with currency code.
+/// Formats cent amounts into display strings with currency symbol.
 /// Used across all three apps for consistent amount display.
 public struct CurrencyFormatter: Sendable {
     public let currencyCode: String
@@ -9,22 +9,39 @@ public struct CurrencyFormatter: Sendable {
         self.currencyCode = currencyCode
     }
 
-    /// Formats cents into "CODE 1,234.56" with sign prefix for negatives.
+    /// Formats cents into "$1,234.56" using the locale's currency symbol.
+    /// Always uses the absolute value — caller controls sign display.
     public func format(_ cents: Int64) -> String {
-        let value = Double(cents) / 100.0
+        let value = Double(abs(cents)) / 100.0
         let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
+        formatter.numberStyle = .currency
+        formatter.currencyCode = currencyCode
         formatter.minimumFractionDigits = 2
         formatter.maximumFractionDigits = 2
-        let formatted = formatter.string(from: NSNumber(value: abs(value))) ?? "0.00"
-        let sign = cents < 0 ? "-" : ""
-        return "\(sign)\(currencyCode) \(formatted)"
+        return formatter.string(from: NSNumber(value: value)) ?? "$0.00"
     }
 
-    /// Formats optional cents, returning "—" for nil.
+    /// Formats cents with an explicit sign prefix: "-$67.32" for expenses, "+$2,320.00" for income.
+    public func formatSigned(_ cents: Int64) -> String {
+        let base = format(cents)
+        if cents < 0 {
+            return "-\(base)"
+        } else if cents > 0 {
+            return "+\(base)"
+        }
+        return base
+    }
+
+    /// Formats optional cents, returning "\u{2014}" for nil.
     public func formatOptional(_ cents: Int64?) -> String {
-        guard let cents else { return "—" }
+        guard let cents else { return "\u{2014}" }
         return format(cents)
+    }
+
+    /// Formats optional cents with sign prefix, returning "\u{2014}" for nil.
+    public func formatOptionalSigned(_ cents: Int64?) -> String {
+        guard let cents else { return "\u{2014}" }
+        return formatSigned(cents)
     }
 
     /// Formats a Date into a medium-style date string.

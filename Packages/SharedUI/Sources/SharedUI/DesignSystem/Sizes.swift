@@ -8,5 +8,5 @@ public enum WPSize {
     /// FAB button diameter
     public static let fabButton: CGFloat = 56
     /// Bottom padding to clear tab bar when FAB is overlaid
-    public static let fabBottomOffset: CGFloat = 80
+    public static let fabBottomOffset: CGFloat = 100
 }

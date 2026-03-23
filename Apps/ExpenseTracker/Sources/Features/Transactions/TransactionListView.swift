@@ -7,21 +7,50 @@ struct TransactionListView: View {
     let destination: SidebarDestination
     @Bindable var viewModel: TransactionListViewModel
     let detailViewModelFactory: () -> TransactionDetailViewModel
+    @Environment(\.dismiss) private var dismiss
 
     private var isInbox: Bool {
         if case .inbox = destination { return true }
         return false
     }
 
+    private var isLedger: Bool {
+        if case .ledger = destination { return true }
+        return false
+    }
+
     var body: some View {
-        Group {
+        VStack(spacing: 0) {
+            // Compact header
+            VStack(alignment: .leading, spacing: 2) {
+                Button { dismiss() } label: {
+                    HStack(spacing: 3) {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 13, weight: .semibold))
+                        Text("Transactions")
+                            .font(.system(size: 15))
+                    }
+                    .foregroundStyle(Color.wpPrimary)
+                }
+
+                Text(destination.title)
+                    .font(.wpTitle)
+                    .foregroundStyle(Color.wpTextPrimary)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, WPSpacing.md)
+            .padding(.top, WPSpacing.xxs)
+            .padding(.bottom, WPSpacing.sm)
+
+            // Content
             if isInbox {
                 inboxContent
             } else {
                 ledgerContent
             }
         }
-        .navigationTitle(destination.title)
+        .background(Color.wpBackground)
+        .navigationBarHidden(true)
         .task {
             viewModel.load(destination: destination)
         }
@@ -75,41 +104,30 @@ struct TransactionListView: View {
                 message: "No draft transactions. Tap + to add one."
             )
         } else {
-            List {
-                // Overdue section
-                if !viewModel.overdueInboxItems.isEmpty {
-                    Section {
-                        DisclosureGroup("Overdue (\(viewModel.overdueInboxItems.count))") {
-                            ForEach(viewModel.overdueInboxItems, id: \.id) { item in
-                                inboxRow(item)
-                                    .listRowBackground(Color.wpWarning.opacity(0.05))
-                            }
-                        }
-                    }
-                }
-
-                // Current items
-                Section {
-                    ForEach(viewModel.currentInboxItems, id: \.id) { item in
+            ScrollView {
+                LazyVStack(spacing: 0) {
+                    ForEach(viewModel.inboxItems, id: \.id) { item in
                         inboxRow(item)
+                        Divider().padding(.leading, WPSpacing.md)
                     }
                 }
             }
-            .listStyle(.plain)
         }
     }
 
     private func inboxRow(_ item: ExpenseTransactionInbox) -> some View {
-        TransactionRow(
-            title: item.title == TransactionDescriptionService.untitledPlaceholder ? "Untitled" : item.title,
+        let isUntitled = item.title == TransactionDescriptionService.untitledPlaceholder
+        return TransactionRow(
+            title: isUntitled ? "Untitled" : item.title,
             amount: viewModel.currencyFormatter.formatOptional(item.amountCents),
-            date: item.date.map { CurrencyFormatter.formatDate($0) } ?? "No date"
+            isUntitled: isUntitled,
+            style: .inbox(isReady: viewModel.isReadyToPromote(item))
         )
         .contentShape(Rectangle())
         .onTapGesture {
             viewModel.selectInboxItem(item)
         }
-        .swipeActions(edge: .trailing) {
+        .contextMenu {
             Button(role: .destructive) {
                 viewModel.confirmDeleteInbox(id: item.id)
             } label: {
@@ -129,30 +147,32 @@ struct TransactionListView: View {
                 message: emptyMessage
             )
         } else {
-            List {
-                ForEach(viewModel.ledgerDateGroups) { group in
-                    Section(group.label) {
-                        ForEach(group.items, id: \.id) { transaction in
-                            ledgerRow(transaction)
-                        }
+            ScrollView {
+                LazyVStack(spacing: 0) {
+                    ForEach(viewModel.ledgerItems, id: \.id) { transaction in
+                        ledgerRow(transaction)
+                        Divider().padding(.leading, WPSpacing.md)
                     }
                 }
             }
-            .listStyle(.plain)
         }
     }
 
     private func ledgerRow(_ transaction: ExpenseTransaction) -> some View {
         TransactionRow(
             title: transaction.title,
-            amount: viewModel.currencyFormatter.format(transaction.amountCents),
-            date: CurrencyFormatter.formatDate(transaction.date)
+            amount: viewModel.currencyFormatter.formatSigned(transaction.amountCents),
+            isExpense: transaction.amountCents < 0,
+            style: .ledger(
+                categoryColor: viewModel.categoryColor(for: transaction.categoryId),
+                accountName: viewModel.accountName(for: transaction.accountId)
+            )
         )
         .contentShape(Rectangle())
         .onTapGesture {
             viewModel.selectLedgerItem(transaction)
         }
-        .swipeActions(edge: .trailing) {
+        .contextMenu {
             Button(role: .destructive) {
                 viewModel.confirmDeleteLedger(id: transaction.id)
             } label: {

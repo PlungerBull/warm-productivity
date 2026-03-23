@@ -26,6 +26,9 @@ public extension Color {
 
     /// Warning — amber. Budget 80-99%, near-limit states, draft badges.
     static let wpWarning = Color(light: Color(hex: "#d97706"), dark: Color(hex: "#f59e0b"))
+
+    /// Hashtag blue — used for # symbols in sidebar, tag chips, and search highlights.
+    static let wpHashtag = Color(light: Color(hex: "#4f6bed"), dark: Color(hex: "#6b8af2"))
 }
 
 // MARK: - Semantic Colors
