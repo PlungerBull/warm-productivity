@@ -261,9 +261,9 @@ struct SearchView: View {
             Spacer(minLength: WPSpacing.xs)
 
             // Amount
-            Text(viewModel.currencyFormatter.formatOptional(item.amountCents))
+            Text(viewModel.currencyFormatter.formatOptionalSigned(item.amountCents))
                 .font(.wpAmount)
-                .foregroundStyle(Color.wpTextPrimary)
+                .foregroundStyle((item.amountCents ?? 0) >= 0 ? Color.wpIncome : Color.wpExpense)
                 .lineLimit(1)
                 .fixedSize()
         }

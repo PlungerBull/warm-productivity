@@ -301,3 +301,17 @@ Deployment target is iOS 26.0. TabView uses automatic Liquid Glass tab bar. The 
 **Truncation rule:** The title is the only element that truncates (`...`). Account name and amount never truncate — they use `fixedSize()` to guarantee full display. This ensures the financial data is always readable.
 
 **Row grouping:** Both ledger and inbox rows are wrapped in a `Color.wpSurface` card with `WPCornerRadius.medium` rounded corners. Dividers appear between rows (not after the last one).
+
+### Transaction Detail / Quick Entry — Unified Sheet
+
+**One component for both new (FAB +) and edit (tap existing).** The same bottom sheet UI handles creation and editing:
+
+1. **Command input line** — free-text field with inline token highlighting (`@Category` in green, `$Account` in green). The command string is the canonical representation. When editing an existing transaction, the command string is reconstructed from stored fields.
+2. **Description field** — always uses the Universal Description Model (`note_entries` + `entity_links`). Never a plain text column on the transaction.
+3. **Chip bar** — shows parsed/assigned fields as pills:
+   - **Filled pills** (solid border, colored text) = field has a value (e.g., "Today", "Dining", "Chase")
+   - **Dashed/missing pills** (placeholder text) = field is empty, needs input (e.g., "Category", "Account")
+4. **Promote/submit button** — active (filled `wpPrimary`) when all required fields are complete, disabled (grayed) when not.
+5. **Overflow menu** (`...`) for extra actions.
+
+**Data flow:** Command string → `CommandParser` parses → chips reflect parsed tokens. Same code path for new and edit.
