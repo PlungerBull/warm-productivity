@@ -22,8 +22,8 @@ struct TransactionsSidebarView: View {
                     cardDivider
                     ledgerRow
                 }
-                .background(Color.wpSurface)
                 .clipShape(RoundedRectangle(cornerRadius: WPCornerRadius.medium))
+                .glassEffect(.regular, in: RoundedRectangle(cornerRadius: WPCornerRadius.medium))
                 .padding(.horizontal, WPSpacing.md)
 
                 // MARK: - Bank Accounts
@@ -103,7 +103,7 @@ struct TransactionsSidebarView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.wpGroupedBackground.ignoresSafeArea(.all))
+        .background(.background)
         .sheet(isPresented: $viewModel.showCreateAccount) {
             CreateAccountSheet(viewModel: viewModel)
                 .presentationDetents([.medium])
@@ -266,8 +266,8 @@ struct TransactionsSidebarView: View {
             VStack(spacing: 0) {
                 content()
             }
-            .background(Color.wpSurface)
             .clipShape(RoundedRectangle(cornerRadius: WPCornerRadius.medium))
+            .glassEffect(.regular, in: RoundedRectangle(cornerRadius: WPCornerRadius.medium))
             .padding(.horizontal, WPSpacing.md)
         }
     }

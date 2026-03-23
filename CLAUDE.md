@@ -262,10 +262,23 @@ CLAUDE.md's naming table says "CodingKeys enum per model." However, SwiftData `@
 
 This keeps SharedModels as pure SwiftData models with no Codable concern.
 
-### Navigation — TabView with `.tabItem` (iOS 17 compat)
+### Navigation — TabView (iOS 26)
 
-The deployment target is iOS 17.0. `SwiftUI.Tab` (the view type with `value:` parameter) requires iOS 18+. Use the `.tabItem { Label(...) }` modifier pattern with `.tag()` for tab selection binding.
+Deployment target is iOS 26.0. TabView uses automatic Liquid Glass tab bar. The iOS 18+ `SwiftUI.Tab` API is now available but not yet adopted — still using `.tabItem { Label(...) }` pattern.
 
 ### Color Extensions in `.foregroundStyle()`
 
 `Color` extensions (e.g., `Color.wpTextSecondary`) do not auto-resolve as `ShapeStyle` members. Always write the full `Color.wpTextSecondary` form, never `.wpTextSecondary`, inside `.foregroundStyle()`.
+
+### Liquid Glass Design Convention (iOS 26)
+
+**Glass is for the navigation layer only.** Apply `.glassEffect()` to interactive navigation elements: sidebar cards, FAB, toolbar pills, search bar, autocomplete dropdowns. Never on content (list rows, transaction rows, tags, empty states, error banners).
+
+**Rules:**
+- `.glassEffect()` is always the LAST modifier in the chain
+- Never nest glass in glass — use `GlassEffectContainer` if grouping multiple glass elements
+- Root view containers use `.background(.background)` (system semantic) or `.background(.clear)` for sheets, NOT `Color.wpBackground` / `Color.wpGroupedBackground`
+- Content areas that need a visible bounded surface keep `Color.wpSurface`
+- Use `.scrollContentBackground(.hidden)` on List views so glass nav/tab bars show through
+- Sheets at partial height get glass automatically — remove custom drag handles and solid backgrounds
+- Primary CTA buttons (Promote, Get Started) keep solid `Color.wpPrimary` for contrast

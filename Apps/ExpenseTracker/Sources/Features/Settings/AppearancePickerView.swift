@@ -32,6 +32,7 @@ struct AppearancePickerView: View {
                 }
             }
         }
+        .scrollContentBackground(.hidden)
         .navigationTitle("Appearance")
         .navigationBarTitleDisplayMode(.inline)
     }

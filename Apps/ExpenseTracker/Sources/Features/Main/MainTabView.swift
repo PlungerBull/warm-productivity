@@ -32,8 +32,6 @@ struct MainTabView: View {
             }
             .tag(1)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.wpGroupedBackground.ignoresSafeArea(.all))
         .overlay(alignment: .bottomTrailing) {
             if selectedTab != 1 {
                 FABButton {
@@ -50,7 +48,7 @@ struct MainTabView: View {
             )
             .presentationDetents([.medium])
             .presentationBackgroundInteraction(.enabled(upThrough: .medium))
-            .presentationDragIndicator(.hidden)
+            .presentationDragIndicator(.visible)
         }
     }
 

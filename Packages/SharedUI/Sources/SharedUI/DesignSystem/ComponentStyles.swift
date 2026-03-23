@@ -52,7 +52,7 @@ public struct WPListRowModifier: ViewModifier {
         content
             .padding(.vertical, verticalPadding)
             .padding(.horizontal, horizontalPadding)
-            .background(Color.wpBackground)
+            .background(Color.wpGlassBackground)
             .overlay(alignment: .bottom) {
                 if showSeparator {
                     Rectangle()
@@ -98,27 +98,25 @@ public struct WPToolbarPillModifier: ViewModifier {
         self.color = color
     }
 
+    @ViewBuilder
     public func body(content: Content) -> some View {
-        content
+        let base = content
             .font(.system(size: 13, weight: .medium))
             .padding(.horizontal, 10)
             .padding(.vertical, 5)
-            .background(background)
             .foregroundStyle(foregroundColor)
-            .clipShape(RoundedRectangle(cornerRadius: 6))
-            .overlay {
-                if state == .missing {
+
+        if state == .missing {
+            base
+                .background(Color.wpWarning.opacity(0.08))
+                .clipShape(RoundedRectangle(cornerRadius: 6))
+                .overlay {
                     RoundedRectangle(cornerRadius: 6)
                         .strokeBorder(Color.wpWarning.opacity(0.35), style: StrokeStyle(lineWidth: 1, dash: [4, 3]))
                 }
-            }
-    }
-
-    private var background: Color {
-        switch state {
-        case .selected: Color.wpGroupedBackground
-        case .unselected: Color.wpGroupedBackground
-        case .missing: Color.wpWarning.opacity(0.08)
+        } else {
+            base
+                .glassEffect(.regular.interactive(), in: .capsule)
         }
     }
 

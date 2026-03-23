@@ -91,6 +91,7 @@ struct SettingsView: View {
                     settingsRow("Version", value: viewModel.appVersion)
                 }
             }
+            .scrollContentBackground(.hidden)
             .navigationTitle("Settings")
             .task {
                 viewModel.loadSettings()

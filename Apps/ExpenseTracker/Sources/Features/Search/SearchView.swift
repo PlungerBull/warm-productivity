@@ -46,8 +46,8 @@ struct SearchView: View {
                 }
                 .padding(.horizontal, WPSpacing.sm)
                 .padding(.vertical, WPSpacing.xs)
-                .background(Color.wpGroupedBackground)
                 .clipShape(Capsule())
+                .glassEffect(.regular.interactive(), in: .capsule)
 
                 Button("Cancel") {
                     dismiss()
@@ -71,8 +71,7 @@ struct SearchView: View {
                 resultsList
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.wpBackground.ignoresSafeArea(.all))
+        .background(.clear)
         .onChange(of: viewModel.query) {
             viewModel.search()
         }

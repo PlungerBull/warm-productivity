@@ -32,17 +32,10 @@ public struct FABButton: View {
         } label: {
             Image(systemName: "plus")
                 .font(.title2.weight(.semibold))
-                .foregroundStyle(Color.wpOnPrimary)
+                .foregroundStyle(Color.wpPrimary)
                 .frame(width: 56, height: 56)
-                .background(Color.wpPrimary)
-                .clipShape(Circle())
-                .shadow(
-                    color: Color.wpPrimary.opacity(0.3),
-                    radius: isPressed ? 4 : 8,
-                    x: 0,
-                    y: isPressed ? 2 : 4
-                )
                 .scaleEffect(isPressed ? 0.95 : 1.0)
+                .glassEffect(.regular.interactive(), in: .circle)
         }
         .buttonStyle(.plain)
         .simultaneousGesture(

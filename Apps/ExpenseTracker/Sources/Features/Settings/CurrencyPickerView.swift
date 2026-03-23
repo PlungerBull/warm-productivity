@@ -39,6 +39,7 @@ struct CurrencyPickerView: View {
                 }
             }
         }
+        .scrollContentBackground(.hidden)
         .searchable(text: $searchText, prompt: "Search currencies")
         .navigationTitle("Main Currency")
         .navigationBarTitleDisplayMode(.inline)

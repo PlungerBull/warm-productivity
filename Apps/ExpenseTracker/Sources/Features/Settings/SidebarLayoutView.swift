@@ -18,6 +18,7 @@ struct SidebarLayoutView: View {
                     .font(.wpBody)
             }
         }
+        .scrollContentBackground(.hidden)
         .navigationTitle("Sidebar Layout")
         .navigationBarTitleDisplayMode(.inline)
         .onChange(of: showBankAccounts) { onSave() }

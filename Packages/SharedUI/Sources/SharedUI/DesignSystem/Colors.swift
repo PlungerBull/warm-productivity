@@ -29,6 +29,9 @@ public extension Color {
 
     /// Hashtag blue — used for # symbols in sidebar, tag chips, and search highlights.
     static let wpHashtag = Color(light: Color(hex: "#4f6bed"), dark: Color(hex: "#6b8af2"))
+
+    /// Transparent background — use on containers where Liquid Glass should show through.
+    static let wpGlassBackground = Color.clear
 }
 
 // MARK: - Semantic Colors

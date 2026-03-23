@@ -93,6 +93,7 @@ struct CategoryBreakdownView: View {
                 }
             }
         }
+        .scrollContentBackground(.hidden)
         .navigationTitle("Category Breakdown")
         .navigationBarTitleDisplayMode(.inline)
         .task {

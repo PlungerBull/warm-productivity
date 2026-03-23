@@ -19,13 +19,6 @@ struct QuickEntryView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Drag handle
-            RoundedRectangle(cornerRadius: WPContentSheetStyle.handleCornerRadius)
-                .fill(Color.wpBorder)
-                .frame(width: WPContentSheetStyle.handleWidth, height: WPContentSheetStyle.handleHeight)
-                .padding(.top, WPSpacing.xs)
-                .padding(.bottom, WPSpacing.sm)
-
             // 1. Destination indicator
             destinationIndicator
                 .padding(.horizontal, WPSpacing.md)
@@ -78,8 +71,7 @@ struct QuickEntryView: View {
                 .padding(.horizontal, WPSpacing.sm)
                 .padding(.vertical, WPSpacing.xs)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.wpBackground.ignoresSafeArea(.all))
+        .background(.clear)
         .onAppear {
             isCommandFocused = true
         }
@@ -150,8 +142,7 @@ struct QuickEntryView: View {
                             .font(.system(size: 15))
                             .foregroundStyle(Color.wpTextTertiary)
                             .frame(width: 32, height: 30)
-                            .background(Color.wpGroupedBackground)
-                            .clipShape(RoundedRectangle(cornerRadius: 6))
+                            .glassEffect(.regular.interactive(), in: RoundedRectangle(cornerRadius: 6))
                     }
                     .buttonStyle(.plain)
                 }

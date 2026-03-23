@@ -22,7 +22,6 @@ struct TransactionDetailView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            dragHandle
             sheetContent
             Spacer(minLength: 0)
             if viewModel.canPromote {
@@ -30,8 +29,7 @@ struct TransactionDetailView: View {
             }
             bottomToolbar
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.wpBackground.ignoresSafeArea(.all))
+        .background(.clear)
         .alert("Delete Transaction", isPresented: $viewModel.showDeleteConfirmation) {
             Button("Cancel", role: .cancel) {}
             Button("Delete", role: .destructive) {

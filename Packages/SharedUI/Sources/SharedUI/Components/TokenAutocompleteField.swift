@@ -84,13 +84,8 @@ public struct TokenAutocompleteField: View {
                     .buttonStyle(.plain)
                 }
             }
-            .background(Color.wpSurface)
             .clipShape(RoundedRectangle(cornerRadius: WPCornerRadius.small))
-            .overlay(
-                RoundedRectangle(cornerRadius: WPCornerRadius.small)
-                    .stroke(Color.wpBorder, lineWidth: 1)
-            )
-            .shadow(color: Color.wpTextPrimary.opacity(0.1), radius: 4, y: 2)
+            .glassEffect(.regular, in: RoundedRectangle(cornerRadius: WPCornerRadius.small))
         } else if let onCreate {
             Button {
                 let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -112,12 +107,8 @@ public struct TokenAutocompleteField: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
             .buttonStyle(.plain)
-            .background(Color.wpSurface)
             .clipShape(RoundedRectangle(cornerRadius: WPCornerRadius.small))
-            .overlay(
-                RoundedRectangle(cornerRadius: WPCornerRadius.small)
-                    .stroke(Color.wpBorder, lineWidth: 1)
-            )
+            .glassEffect(.regular, in: RoundedRectangle(cornerRadius: WPCornerRadius.small))
         }
     }
 
