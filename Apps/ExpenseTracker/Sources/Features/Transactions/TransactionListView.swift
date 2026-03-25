@@ -22,15 +22,11 @@ struct TransactionListView: View {
     var body: some View {
         VStack(spacing: 0) {
             // Header
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: WPSpacing.sm) {
                 Button { dismiss() } label: {
-                    HStack(spacing: 3) {
-                        Image(systemName: "chevron.left")
-                            .font(.system(size: 13, weight: .semibold))
-                        Text("Transactions")
-                            .font(.system(size: 15))
-                    }
-                    .foregroundStyle(Color.wpPrimary)
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(Color.wpPrimary)
                 }
 
                 Text(destination.title)
@@ -39,7 +35,7 @@ struct TransactionListView: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, WPSpacing.lg)
-            .padding(.top, WPSpacing.xxs)
+            .padding(.top, WPSpacing.xs)
             .padding(.bottom, WPSpacing.sm)
 
             // Search bar (ledger only)
