@@ -49,7 +49,7 @@ struct MainTabView: View {
                 sheetHeight: $quickEntryHeight
             )
             .presentationDetents([.height(quickEntryHeight)])
-            .presentationDragIndicator(.visible)
+            .presentationDragIndicator(.hidden)
         }
     }
 
