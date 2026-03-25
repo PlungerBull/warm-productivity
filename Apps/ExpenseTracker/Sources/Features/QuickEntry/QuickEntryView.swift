@@ -19,12 +19,7 @@ struct QuickEntryView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // 1. Destination indicator
-            destinationIndicator
-                .padding(.horizontal, WPSpacing.md)
-                .padding(.bottom, WPSpacing.sm)
-
-            // 2. Command input
+            // 1. Command input
             TextField(
                 "e.g. -45 Lunch @Food $BCP",
                 text: $viewModel.commandText
@@ -84,40 +79,6 @@ struct QuickEntryView: View {
     }
 
     // MARK: - Destination Indicator
-
-    private var destinationIndicator: some View {
-        Group {
-            if viewModel.canGoToLedger {
-                HStack(spacing: WPSpacing.xxs) {
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.wpCaption2)
-                    Text("Ledger")
-                        .font(.wpCaption2)
-                }
-                .foregroundStyle(Color.wpTextTertiary)
-            } else {
-                HStack(spacing: WPSpacing.xxs) {
-                    Image(systemName: "tray.and.arrow.down")
-                        .font(.wpCaption2)
-                    Text("Inbox — needs \(missingFieldsList)")
-                        .font(.wpCaption2)
-                }
-                .foregroundStyle(Color.wpWarning)
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-
-    private var missingFieldsList: String {
-        var missing: [String] = []
-        if viewModel.resolvedCategoryId == nil { missing.append("category") }
-        if viewModel.resolvedAccountId == nil { missing.append("account") }
-        if viewModel.parsedAmountCents == nil { missing.append("amount") }
-        if viewModel.parsedTitle == nil || (viewModel.parsedTitle?.isEmpty ?? true) { missing.append("title") }
-        if viewModel.resolvedDate == nil { missing.append("date") }
-        if missing.isEmpty { return "details" }
-        return missing.joined(separator: " and ")
-    }
 
     // MARK: - Toolbar Row
 
