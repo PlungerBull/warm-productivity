@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Transaction Detail — Sketch (Two States)</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #1a1a2e;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    padding: 40px 20px;
+    gap: 60px;
+    flex-wrap: wrap;
+  }
+
+  .phone-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+  .state-label {
+    color: #8b5cf6;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+  }
+  .state-sublabel {
+    color: #6b6b80;
+    font-size: 11px;
+    font-weight: 500;
+    margin-top: 2px;
+    text-align: center;
+  }
+
+  .phone-frame {
+    width: 393px;
+    height: 852px;
+    background: #0f0f17;
+    border-radius: 50px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 50px 100px rgba(0,0,0,0.5), 0 0 0 3px #2a2a3e;
+  }
+
+  /* Status bar */
+  .status-bar {
+    height: 59px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding: 0 32px 8px;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .status-bar .time { font-variant-numeric: tabular-nums; }
+  .status-icons { display: flex; gap: 5px; align-items: center; }
+  .status-icons svg { width: 16px; height: 12px; fill: #fff; }
+
+  /* ── Visible content behind the sheet ── */
+  .behind-content {
+    padding: 20px 20px 0;
+  }
+  .behind-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 0;
+    border-bottom: 1px solid #1f1f2b;
+  }
+  .behind-row .row-stripe {
+    width: 3px;
+    height: 36px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+  .behind-row .row-info { flex: 1; }
+  .behind-row .row-title {
+    color: #c0c0d0;
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+  .behind-row .row-sub {
+    color: #6b6b80;
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .behind-row .row-amount {
+    color: #f0f0f5;
+    font-size: 15px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  /* ── Scrim overlay ── */
+  .scrim {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 1;
+  }
+
+  /* ── Resting sheet — ~75% height ── */
+  .sheet-rest {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 75%;
+    background: #18181f;
+    border-radius: 24px 24px 0 0;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ── Full-height sheet (keyboard state) ── */
+  .sheet-full {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 100%;
+    background: #18181f;
+    border-radius: 0;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ── Drag handle ── */
+  .drag-handle {
+    width: 36px;
+    height: 4px;
+    background: #3a3a4a;
+    border-radius: 2px;
+    margin: 10px auto 0;
+    flex-shrink: 0;
+  }
+
+  /* ── Hero Section ── */
+  .hero {
+    text-align: center;
+    padding: 14px 24px 12px;
+    flex-shrink: 0;
+  }
+  .hero.compact {
+    padding: 10px 24px 8px;
+  }
+
+  .hero-title {
+    color: #f0f0f5;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+  }
+  .hero.compact .hero-title {
+    font-size: 17px;
+  }
+
+  .hero-amount {
+    margin-top: 8px;
+    font-size: 36px;
+    font-weight: 700;
+    letter-spacing: -1.5px;
+    font-variant-numeric: tabular-nums;
+    color: #f0f0f5;
+  }
+  .hero.compact .hero-amount {
+    font-size: 28px;
+    margin-top: 4px;
+  }
+  .hero-amount .sign { color: #8888a0; font-weight: 500; }
+  .hero-amount .currency {
+    font-size: 18px;
+    font-weight: 600;
+    color: #6b6b80;
+    vertical-align: super;
+    margin-right: 2px;
+  }
+  .hero.compact .hero-amount .currency {
+    font-size: 14px;
+  }
+  .hero-amount .cents {
+    font-size: 24px;
+    color: #8888a0;
+  }
+  .hero.compact .hero-amount .cents {
+    font-size: 18px;
+  }
+
+  /* ── Horizontally scrollable pills ── */
+  .pills-scroll {
+    flex-shrink: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding: 0 16px;
+  }
+  .pills-scroll::-webkit-scrollbar { display: none; }
+
+  .pills-track {
+    display: flex;
+    gap: 6px;
+    width: max-content;
+  }
+
+  .pill {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 12px;
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 600;
+    background: #1f1f2b;
+    border: 1px solid #2a2a3a;
+    color: #c0c0d0;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .pill svg { width: 13px; height: 13px; }
+  .pill .dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .pill.category .dot { background: #f59e0b; }
+  .pill.category { color: #f59e0b; border-color: #f59e0b33; background: #f59e0b0d; }
+  .pill.account { color: #60a5fa; border-color: #60a5fa33; background: #60a5fa0d; }
+  .pill.account svg { fill: #60a5fa; }
+  .pill.date svg { fill: #c0c0d0; }
+  .pill.tag { color: #a78bfa; border-color: #a78bfa33; background: #a78bfa0d; }
+
+  /* ── Section Divider ── */
+  .section-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #2a2a3a, transparent);
+    margin: 12px 20px 0;
+    flex-shrink: 0;
+  }
+
+  /* ── Info Section (scrollable content area) ── */
+  .info-section {
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
+  }
+  .info-section::-webkit-scrollbar { width: 0; }
+
+  .info-card {
+    background: #1f1f2b;
+    border: 1px solid #2a2a3a;
+    border-radius: 14px;
+    padding: 14px;
+    flex-shrink: 0;
+  }
+
+  .info-card-header {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-bottom: 8px;
+  }
+  .info-card-header svg { width: 14px; height: 14px; fill: #6b6b80; }
+  .info-card-header span {
+    font-size: 11px;
+    font-weight: 600;
+    color: #6b6b80;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+
+  .note-text {
+    color: #c0c0d0;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  /* Note card — auto-fits up to 3 lines, then truncates with ellipsis */
+  .note-clamp {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* ── Details Grid ── */
+  .details-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: #2a2a3a;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid #2a2a3a;
+    flex-shrink: 0;
+  }
+
+  .detail-cell {
+    background: #1f1f2b;
+    padding: 12px 14px;
+  }
+  .detail-cell:nth-child(1) { border-radius: 13px 0 0 0; }
+  .detail-cell:nth-child(2) { border-radius: 0 13px 0 0; }
+  .detail-cell:nth-child(3) { border-radius: 0 0 0 13px; }
+  .detail-cell:nth-child(4) { border-radius: 0 0 13px 0; }
+
+  .detail-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: #6b6b80;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-bottom: 4px;
+  }
+  .detail-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: #e0e0ee;
+  }
+  .detail-value.income { color: #4ade80; }
+  .detail-value .cleared-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: #4ade80;
+    font-size: 12px;
+  }
+  .detail-value .cleared-badge svg { width: 13px; height: 13px; fill: #4ade80; }
+
+  /* ── Bottom Action Bar ── */
+  .bottom-bar {
+    padding: 10px 16px 34px;
+    display: flex;
+    gap: 12px;
+    background: #18181f;
+    border-top: 1px solid #2a2a3a;
+    flex-shrink: 0;
+  }
+  .btn {
+    flex: 1;
+    padding: 13px;
+    border-radius: 14px;
+    font-size: 15px;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .btn svg { width: 18px; height: 18px; }
+  .btn-primary {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: #fff;
+    box-shadow: 0 4px 20px #6366f140;
+  }
+  .btn-primary svg { fill: #fff; }
+
+  /* ── Keyboard ── */
+  .keyboard {
+    flex-shrink: 0;
+    background: #2c2c34;
+    border-top: 1px solid #3a3a44;
+  }
+  .kb-row {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+    padding: 5px 3px;
+  }
+  .kb-key {
+    background: #4a4a54;
+    color: #f0f0f5;
+    font-size: 16px;
+    font-weight: 500;
+    border-radius: 6px;
+    min-width: 32px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+  }
+  .kb-key.wide { min-width: 44px; font-size: 12px; background: #3a3a44; }
+  .kb-key.space { flex: 1; max-width: 180px; font-size: 14px; }
+  .kb-key.dark { background: #3a3a44; }
+  .kb-row-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 6px 6px;
+    gap: 5px;
+  }
+
+  /* ── Editing field highlight ── */
+  .note-editing {
+    background: #1f1f2b;
+    border: 1px solid #6366f1;
+    border-radius: 14px;
+    padding: 14px;
+    flex-shrink: 0;
+  }
+  .note-editing .info-card-header span { color: #8b8bf0; }
+  .note-editing .info-card-header svg { fill: #8b8bf0; }
+  .note-cursor::after {
+    content: '';
+    display: inline-block;
+    width: 2px;
+    height: 16px;
+    background: #8b5cf6;
+    margin-left: 1px;
+    vertical-align: text-bottom;
+    animation: blink 1s step-end infinite;
+  }
+  @keyframes blink {
+    50% { opacity: 0; }
+  }
+
+  /* ── Fade hint for horizontal scroll ── */
+  .pills-container {
+    position: relative;
+    flex-shrink: 0;
+  }
+  .pills-container::after {
+    content: '';
+    position: absolute;
+    top: 0; right: 0; bottom: 0;
+    width: 32px;
+    background: linear-gradient(90deg, transparent, #18181f);
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════ -->
+<!-- PHONE 1: Resting — 75% sheet height  -->
+<!-- ══════════════════════════════════════ -->
+<div class="phone-wrapper">
+  <div>
+    <div class="state-label">Resting State</div>
+    <div class="state-sublabel">Sheet ~75% · pills scroll horizontally · note clamps at 3 lines</div>
+  </div>
+  <div class="phone-frame">
+
+    <div class="status-bar">
+      <span class="time">9:41</span>
+      <div class="status-icons">
+        <svg viewBox="0 0 17 12"><path d="M1.5 4.5h1.5v7H1.5a1 1 0 01-1-1v-5a1 1 0 011-1zm4-2h1.5v9H5.5a1 1 0 01-1-1v-7a1 1 0 011-1zm4-2h1.5v11H9.5a1 1 0 01-1-1V1.5a1 1 0 011-1zm4 0h1.5a1 1 0 011 1v9a1 1 0 01-1 1H13.5V.5z"/></svg>
+        <svg viewBox="0 0 16 12"><path d="M8 2.4A8.5 8.5 0 0114.7.1l.7.7A9.5 9.5 0 008 .1a9.5 9.5 0 00-7.4.7l.7.7A8.5 8.5 0 018 2.4zm0 3A5.5 5.5 0 0112.1 4l.7.7A6.5 6.5 0 008 3a6.5 6.5 0 00-4.8 1.7l.7.7A5.5 5.5 0 018 5.4zm0 3A2.5 2.5 0 019.5 7.8l.7.7A3.5 3.5 0 008 6.4a3.5 3.5 0 00-2.2 2.1l.7-.7A2.5 2.5 0 018 8.4zm0 1.6a1 1 0 100 2 1 1 0 000-2z"/></svg>
+        <svg viewBox="0 0 25 12"><rect x="0" y="1" width="22" height="10" rx="2" stroke="#fff" stroke-width="1" fill="none"/><rect x="23" y="4" width="2" height="4" rx="0.5" fill="#fff" opacity="0.4"/><rect x="1.5" y="2.5" width="14" height="7" rx="1" fill="#4ade80"/></svg>
+      </div>
+    </div>
+
+    <!-- List rows peeking behind -->
+    <div class="behind-content">
+      <div class="behind-row">
+        <div class="row-stripe" style="background: #f59e0b;"></div>
+        <div class="row-info">
+          <div class="row-title">Grocery Store</div>
+          <div class="row-sub">BCP Checking</div>
+        </div>
+        <div class="row-amount">-PEN124.00</div>
+      </div>
+      <div class="behind-row">
+        <div class="row-stripe" style="background: #60a5fa;"></div>
+        <div class="row-info">
+          <div class="row-title">Uber Ride</div>
+          <div class="row-sub">BBVA Visa</div>
+        </div>
+        <div class="row-amount">-PEN18.50</div>
+      </div>
+      <div class="behind-row" style="opacity: 0.4;">
+        <div class="row-stripe" style="background: #4ade80;"></div>
+        <div class="row-info">
+          <div class="row-title">Freelance Payment</div>
+          <div class="row-sub">BCP Checking</div>
+        </div>
+        <div class="row-amount" style="color: #4ade80;">+USD500.00</div>
+      </div>
+    </div>
+
+    <div class="scrim"></div>
+
+    <!-- Sheet at ~75% -->
+    <div class="sheet-rest">
+      <div class="drag-handle"></div>
+
+      <div class="hero">
+        <div class="hero-title">Ramen Nakamura</div>
+        <div class="hero-amount">
+          <span class="sign">-</span><span class="currency">PEN</span>67<span class="cents">.50</span>
+        </div>
+      </div>
+
+      <!-- Horizontal scroll pills — single line -->
+      <div class="pills-container">
+        <div class="pills-scroll">
+          <div class="pills-track">
+            <div class="pill date">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              Today, Mar 24
+            </div>
+            <div class="pill category">
+              <span class="dot"></span>
+              Dining
+            </div>
+            <div class="pill account">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 10h3v7H4zm6.5-6h3v13h-3zM17 6h3v11h-3z"/></svg>
+              BCP Checking
+            </div>
+            <div class="pill tag">#work-lunch</div>
+            <div class="pill tag">#team</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-divider"></div>
+
+      <div class="info-section">
+        <!-- Details Grid -->
+        <div class="details-grid">
+          <div class="detail-cell">
+            <div class="detail-label">Type</div>
+            <div class="detail-value">Expense</div>
+          </div>
+          <div class="detail-cell">
+            <div class="detail-label">Status</div>
+            <div class="detail-value">
+              <span class="cleared-badge">
+                <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+                Cleared
+              </span>
+            </div>
+          </div>
+          <div class="detail-cell">
+            <div class="detail-label">Exchange</div>
+            <div class="detail-value">1 USD = 3.72 PEN</div>
+          </div>
+          <div class="detail-cell">
+            <div class="detail-label">Home Amount</div>
+            <div class="detail-value income">USD 18.14</div>
+          </div>
+        </div>
+
+        <!-- Note — clamped to 3 lines max -->
+        <div class="info-card">
+          <div class="info-card-header">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM6 20V4h5v7h7v9H6z"/></svg>
+            <span>Note</span>
+          </div>
+          <div class="note-text note-clamp">
+            Work lunch with @Carlos — celebrating project launch. Split was 3 ways, I covered the extra tip. Great ramen as always.
+          </div>
+        </div>
+      </div>
+
+      <div class="bottom-bar">
+        <button class="btn btn-primary">
+          <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+          Save
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- PHONE 2: Editing — full screen + keyboard  -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="phone-wrapper">
+  <div>
+    <div class="state-label">Editing State</div>
+    <div class="state-sublabel">Tapped note · keyboard up · sheet goes full screen</div>
+  </div>
+  <div class="phone-frame">
+
+    <div class="status-bar">
+      <span class="time">9:41</span>
+      <div class="status-icons">
+        <svg viewBox="0 0 17 12"><path d="M1.5 4.5h1.5v7H1.5a1 1 0 01-1-1v-5a1 1 0 011-1zm4-2h1.5v9H5.5a1 1 0 01-1-1v-7a1 1 0 011-1zm4-2h1.5v11H9.5a1 1 0 01-1-1V1.5a1 1 0 011-1zm4 0h1.5a1 1 0 011 1v9a1 1 0 01-1 1H13.5V.5z"/></svg>
+        <svg viewBox="0 0 16 12"><path d="M8 2.4A8.5 8.5 0 0114.7.1l.7.7A9.5 9.5 0 008 .1a9.5 9.5 0 00-7.4.7l.7.7A8.5 8.5 0 018 2.4zm0 3A5.5 5.5 0 0112.1 4l.7.7A6.5 6.5 0 008 3a6.5 6.5 0 00-4.8 1.7l.7.7A5.5 5.5 0 018 5.4zm0 3A2.5 2.5 0 019.5 7.8l.7.7A3.5 3.5 0 008 6.4a3.5 3.5 0 00-2.2 2.1l.7-.7A2.5 2.5 0 018 8.4zm0 1.6a1 1 0 100 2 1 1 0 000-2z"/></svg>
+        <svg viewBox="0 0 25 12"><rect x="0" y="1" width="22" height="10" rx="2" stroke="#fff" stroke-width="1" fill="none"/><rect x="23" y="4" width="2" height="4" rx="0.5" fill="#fff" opacity="0.4"/><rect x="1.5" y="2.5" width="14" height="7" rx="1" fill="#4ade80"/></svg>
+      </div>
+    </div>
+
+    <div class="sheet-full">
+
+      <div class="hero compact">
+        <div class="hero-title">Ramen Nakamura</div>
+        <div class="hero-amount">
+          <span class="sign">-</span><span class="currency">PEN</span>67<span class="cents">.50</span>
+        </div>
+      </div>
+
+      <div class="pills-container">
+        <div class="pills-scroll">
+          <div class="pills-track">
+            <div class="pill date">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              Today, Mar 24
+            </div>
+            <div class="pill category">
+              <span class="dot"></span>
+              Dining
+            </div>
+            <div class="pill account">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 10h3v7H4zm6.5-6h3v13h-3zM17 6h3v11h-3z"/></svg>
+              BCP Checking
+            </div>
+            <div class="pill tag">#work-lunch</div>
+            <div class="pill tag">#team</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-divider"></div>
+
+      <div class="info-section">
+        <!-- Details Grid -->
+        <div class="details-grid">
+          <div class="detail-cell">
+            <div class="detail-label">Type</div>
+            <div class="detail-value">Expense</div>
+          </div>
+          <div class="detail-cell">
+            <div class="detail-label">Status</div>
+            <div class="detail-value">
+              <span class="cleared-badge">
+                <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+                Cleared
+              </span>
+            </div>
+          </div>
+          <div class="detail-cell">
+            <div class="detail-label">Exchange</div>
+            <div class="detail-value">1 USD = 3.72 PEN</div>
+          </div>
+          <div class="detail-cell">
+            <div class="detail-label">Home Amount</div>
+            <div class="detail-value income">USD 18.14</div>
+          </div>
+        </div>
+
+        <!-- Note — editing, highlighted, unclamped -->
+        <div class="note-editing">
+          <div class="info-card-header">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM6 20V4h5v7h7v9H6z"/></svg>
+            <span>Note</span>
+          </div>
+          <div class="note-text">
+            Work lunch with @Carlos — celebrating project launch. Split was 3 ways, I covered the extra tip<span class="note-cursor"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Save above keyboard -->
+      <div class="bottom-bar" style="padding-bottom: 8px;">
+        <button class="btn btn-primary">
+          <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+          Save
+        </button>
+      </div>
+
+      <!-- Keyboard -->
+      <div class="keyboard">
+        <div class="kb-row">
+          <div class="kb-key">q</div><div class="kb-key">w</div><div class="kb-key">e</div>
+          <div class="kb-key">r</div><div class="kb-key">t</div><div class="kb-key">y</div>
+          <div class="kb-key">u</div><div class="kb-key">i</div><div class="kb-key">o</div>
+          <div class="kb-key">p</div>
+        </div>
+        <div class="kb-row">
+          <div class="kb-key">a</div><div class="kb-key">s</div><div class="kb-key">d</div>
+          <div class="kb-key">f</div><div class="kb-key">g</div><div class="kb-key">h</div>
+          <div class="kb-key">j</div><div class="kb-key">k</div><div class="kb-key">l</div>
+        </div>
+        <div class="kb-row">
+          <div class="kb-key wide">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="#f0f0f5"><path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/></svg>
+          </div>
+          <div class="kb-key">z</div><div class="kb-key">x</div><div class="kb-key">c</div>
+          <div class="kb-key">v</div><div class="kb-key">b</div><div class="kb-key">n</div>
+          <div class="kb-key">m</div>
+          <div class="kb-key wide">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="#f0f0f5"><path d="M22 3H7c-.69 0-1.23.35-1.59.88L0 12l5.41 8.11c.36.53.9.89 1.59.89h15c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-3 12.59L17.59 17 14 13.41 10.41 17 9 15.59 12.59 12 9 8.41 10.41 7 14 10.59 17.59 7 19 8.41 15.41 12 19 15.59z"/></svg>
+          </div>
+        </div>
+        <div class="kb-row-bottom">
+          <div class="kb-key dark" style="min-width: 80px; font-size: 14px;">123</div>
+          <div class="kb-key space">space</div>
+          <div class="kb-key dark" style="min-width: 80px; font-size: 14px; color: #60a5fa;">return</div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>

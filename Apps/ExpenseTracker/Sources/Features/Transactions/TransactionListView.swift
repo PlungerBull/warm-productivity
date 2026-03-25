@@ -112,14 +112,14 @@ struct TransactionListView: View {
                 mode: .inbox(inboxItem),
                 onDismiss: { viewModel.dismissDetail() }
             )
-            .presentationDetents([.medium, .large])
+            .presentationDetents([.fraction(0.75), .large])
         } else if let ledgerItem = viewModel.selectedLedgerItem {
             TransactionDetailView(
                 viewModel: detailViewModelFactory(),
                 mode: .ledger(ledgerItem),
                 onDismiss: { viewModel.dismissDetail() }
             )
-            .presentationDetents([.medium, .large])
+            .presentationDetents([.fraction(0.75), .large])
         }
     }
 

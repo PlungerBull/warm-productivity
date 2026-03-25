@@ -152,6 +152,11 @@ public struct WPContentSheetStyle {
     public static let handleCornerRadius: CGFloat = 2
     public static let titleFontSize: CGFloat = 22
     public static let amountFontSize: CGFloat = 28
+    public static let heroTitleFontSize: CGFloat = 20
+    public static let heroAmountFontSize: CGFloat = 36
+    public static let compactTitleFontSize: CGFloat = 17
+    public static let compactAmountFontSize: CGFloat = 28
+    public static let noteMaxLines: Int = 3
 }
 
 // MARK: - Tag Chip Style
@@ -189,4 +194,37 @@ public struct WPBadgeStyle {
     public static let height: CGFloat = 20
     public static let cornerRadius: CGFloat = 10
     public static let horizontalPadding: CGFloat = 6
+}
+
+// MARK: - Horizontal Pill Scroll
+
+/// Horizontally scrollable single-line pill container with trailing fade hint.
+/// Used for metadata pills in transaction detail, task detail, etc.
+public struct WPHorizontalPillScroll<Content: View>: View {
+    let content: Content
+
+    public init(@ViewBuilder content: () -> Content) {
+        self.content = content()
+    }
+
+    public var body: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: WPSpacing.xs) {
+                content
+            }
+            .padding(.horizontal, WPSpacing.md)
+        }
+        .scrollIndicators(.hidden)
+        .mask {
+            HStack(spacing: 0) {
+                Color.black
+                LinearGradient(
+                    colors: [.black, .clear],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+                .frame(width: 32)
+            }
+        }
+    }
 }
