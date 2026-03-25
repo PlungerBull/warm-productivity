@@ -36,7 +36,14 @@ struct TransactionsTabView: View {
             }
         }
         .scrollContentBackground(.hidden)
-        .sheet(isPresented: $showSearch) {
+        .onChange(of: path) {
+            if path.isEmpty {
+                sidebarViewModel?.loadSidebar()
+            }
+        }
+        .sheet(isPresented: $showSearch, onDismiss: {
+            sidebarViewModel?.loadSidebar()
+        }) {
             SearchView(
                 viewModel: makeSearchViewModel(),
                 detailViewModelFactory: { makeDetailViewModel() }
