@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Add Transaction — Sketch</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
+    background: #0a0a0a;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    color: #fff;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .phone {
+    width: 393px;
+    height: 852px;
+    background: #111;
+    border-radius: 44px;
+    overflow: hidden;
+    position: relative;
+    border: 3px solid #333;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .status-bar {
+    height: 54px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding: 0 32px 8px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .status-bar .time { font-size: 16px; font-weight: 700; }
+  .status-bar .icons { display: flex; gap: 6px; align-items: center; font-size: 12px; }
+
+  .bg-content {
+    flex: 1;
+    padding: 0 16px;
+    opacity: 0.25;
+    filter: blur(1px);
+  }
+  .bg-row {
+    display: flex;
+    align-items: center;
+    padding: 14px 16px;
+    background: #1a1a1a;
+    border-radius: 12px;
+    margin-bottom: 8px;
+  }
+  .bg-row .dot { width: 4px; height: 32px; border-radius: 2px; margin-right: 12px; }
+  .bg-row .info { flex: 1; }
+  .bg-row .title { font-size: 15px; font-weight: 500; }
+  .bg-row .sub { font-size: 12px; color: #888; margin-top: 2px; }
+  .bg-row .amt { font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+  .overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 10;
+  }
+
+  .sheet {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 20;
+    background: rgba(28, 28, 30, 0.95);
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    border-radius: 20px 20px 0 0;
+    padding: 12px 0 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .drag-indicator {
+    width: 36px;
+    height: 5px;
+    background: rgba(255,255,255,0.18);
+    border-radius: 3px;
+    margin: 0 auto 16px;
+  }
+
+  .dest-indicator {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    justify-content: center;
+    padding: 0 0 12px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #4ade80;
+  }
+  .dest-indicator .dest-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #4ade80;
+  }
+
+  .command-section {
+    padding: 4px 20px 12px;
+  }
+  .command-input {
+    font-size: 20px;
+    font-weight: 500;
+    color: #fff;
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 4px;
+    min-height: 28px;
+    line-height: 1.5;
+  }
+  .command-input .token { color: #4ade80; font-weight: 600; }
+  .command-input .token.account { color: #60a5fa; }
+  .command-input .token.hashtag { color: #a78bfa; }
+  .command-input .amount-token { color: #fff; font-weight: 700; }
+
+  .amount-cursor {
+    width: 2px;
+    height: 20px;
+    background: #C67A3C;
+    border-radius: 1px;
+    animation: blink 1s step-end infinite;
+    margin-left: 2px;
+    align-self: center;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  /* Notes row */
+  .notes-row {
+    margin: 0 20px 12px;
+    padding: 12px 14px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.06);
+    font-size: 14px;
+    color: rgba(255,255,255,0.3);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+  }
+  .notes-row .icon { opacity: 0.4; }
+
+  /* Pill row — single horizontal scrollable line */
+  .pill-row {
+    display: flex;
+    gap: 8px;
+    padding: 0 20px 16px;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .pill-row::-webkit-scrollbar { display: none; }
+
+  .pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+    flex-shrink: 0;
+    cursor: pointer;
+    transition: all 0.15s;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .pill:hover { background: rgba(255,255,255,0.1); }
+  .pill.filled { border-color: rgba(255,255,255,0.15); }
+  .pill.empty {
+    color: rgba(255,255,255,0.3);
+    border-style: dashed;
+    border-color: rgba(255,255,255,0.12);
+  }
+
+  .pill.amount { color: #fff; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .pill.date { color: #4ade80; border-color: rgba(74,222,128,0.2); background: rgba(74,222,128,0.08); }
+  .pill.category { color: #ff9f43; border-color: rgba(255,159,67,0.2); background: rgba(255,159,67,0.08); }
+  .pill.category .chip-dot { width: 6px; height: 6px; border-radius: 50%; background: #ff9f43; }
+  .pill.account { color: #60a5fa; border-color: rgba(96,165,250,0.2); background: rgba(96,165,250,0.08); }
+  .pill.hashtag { color: #a78bfa; border-color: rgba(167,139,250,0.2); background: rgba(167,139,250,0.08); }
+
+  /* Keyboard bar */
+  .keyboard-bar {
+    display: flex;
+    align-items: center;
+    padding: 8px 20px;
+    gap: 6px;
+    background: rgba(255,255,255,0.04);
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+  .kb-suggestion {
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    background: rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.6);
+    cursor: pointer;
+  }
+  .kb-suggestion:hover { background: rgba(255,255,255,0.12); }
+  .kb-send {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #C67A3C;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: auto;
+    cursor: pointer;
+    font-size: 16px;
+    color: #fff;
+  }
+
+  /* Keyboard */
+  .keyboard { background: rgba(255,255,255,0.04); padding: 8px 4px 0; }
+  .kb-row { display: grid; gap: 4px; padding: 0 2px; margin-bottom: 6px; }
+  .kb-row.r1 { grid-template-columns: repeat(10,1fr); }
+  .kb-row.r2 { grid-template-columns: repeat(9,1fr); padding: 0 16px; }
+  .kb-row.r3 { grid-template-columns: 1.4fr repeat(7,1fr) 1.4fr; }
+  .kb-row.r4 { grid-template-columns: 1fr 2.5fr 1fr; padding: 0 2px 4px; }
+  .key {
+    background: rgba(255,255,255,0.09);
+    border-radius: 6px;
+    padding: 10px 0;
+    text-align: center;
+    font-size: 16px;
+    color: #fff;
+  }
+  .key.fn {
+    background: rgba(255,255,255,0.14);
+    font-size: 14px;
+  }
+  .key.done {
+    background: rgba(255,255,255,0.14);
+    font-size: 14px;
+    color: #C67A3C;
+    font-weight: 600;
+  }
+
+  .home-indicator {
+    width: 134px;
+    height: 5px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 3px;
+    margin: 8px auto 10px;
+  }
+</style>
+</head>
+<body>
+
+<div class="phone">
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <span class="icons">
+      <span>📶</span>
+      <span>🔋</span>
+    </span>
+  </div>
+
+  <div class="bg-content">
+    <div class="bg-row">
+      <div class="dot" style="background:#ff9f43"></div>
+      <div class="info">
+        <div class="title">Grocery Run</div>
+        <div class="sub">Food · Chase</div>
+      </div>
+      <div class="amt" style="color:#fff">-USD 67.32</div>
+    </div>
+    <div class="bg-row">
+      <div class="dot" style="background:#4ade80"></div>
+      <div class="info">
+        <div class="title">Freelance Payment</div>
+        <div class="sub">Income · BCP</div>
+      </div>
+      <div class="amt" style="color:#4ade80">+PEN 1,500</div>
+    </div>
+    <div class="bg-row">
+      <div class="dot" style="background:#60a5fa"></div>
+      <div class="info">
+        <div class="title">Netflix</div>
+        <div class="sub">Entertainment · Chase</div>
+      </div>
+      <div class="amt" style="color:#fff">-USD 15.99</div>
+    </div>
+  </div>
+
+  <div class="overlay"></div>
+
+  <div class="sheet">
+    <div class="drag-indicator"></div>
+
+    <!-- Destination badge -->
+    <div class="dest-indicator">
+      <span class="dest-dot"></span>
+      Ledger
+    </div>
+
+    <!-- Command input -->
+    <div class="command-section">
+      <div class="command-input">
+        <span class="amount-token">-45</span>
+        <span>Lunch with team</span>
+        <span class="token">@Food</span>
+        <span class="token account">$Chase</span>
+        <span class="token hashtag">#work</span>
+        <span class="amount-cursor"></span>
+      </div>
+    </div>
+
+    <!-- Notes (above pills) -->
+    <div class="notes-row">
+      <span class="icon">📝</span>
+      Add a note...
+    </div>
+
+    <!-- Single scrollable pill row -->
+    <div class="pill-row">
+      <div class="pill amount filled">-USD 45.00</div>
+      <div class="pill date filled">📅 Today</div>
+      <div class="pill category filled"><span class="chip-dot"></span> Food</div>
+      <div class="pill account filled">🏦 Chase</div>
+      <div class="pill hashtag filled"># work</div>
+      <div class="pill empty">📎 Attach</div>
+      <div class="pill empty">👤 Person</div>
+    </div>
+
+    <!-- Keyboard suggestions bar -->
+    <div class="keyboard-bar">
+      <div class="kb-suggestion">@Dining</div>
+      <div class="kb-suggestion">@Transport</div>
+      <div class="kb-suggestion">@Bills</div>
+      <div class="kb-send">↑</div>
+    </div>
+
+    <!-- Keyboard -->
+    <div class="keyboard">
+      <div class="kb-row r1">
+        <div class="key">q</div><div class="key">w</div><div class="key">e</div><div class="key">r</div><div class="key">t</div>
+        <div class="key">y</div><div class="key">u</div><div class="key">i</div><div class="key">o</div><div class="key">p</div>
+      </div>
+      <div class="kb-row r2">
+        <div class="key">a</div><div class="key">s</div><div class="key">d</div><div class="key">f</div><div class="key">g</div>
+        <div class="key">h</div><div class="key">j</div><div class="key">k</div><div class="key">l</div>
+      </div>
+      <div class="kb-row r3">
+        <div class="key fn">⇧</div>
+        <div class="key">z</div><div class="key">x</div><div class="key">c</div><div class="key">v</div>
+        <div class="key">b</div><div class="key">n</div><div class="key">m</div>
+        <div class="key fn">⌫</div>
+      </div>
+      <div class="kb-row r4">
+        <div class="key fn">123</div>
+        <div class="key">space</div>
+        <div class="key done">done</div>
+      </div>
+    </div>
+
+    <div class="home-indicator"></div>
+  </div>
+</div>
+
+</body>
+</html>

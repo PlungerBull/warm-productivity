@@ -42,7 +42,7 @@ final class QuickEntryViewModel {
     // UI state
     var errorMessage: String?
     var isSubmitting: Bool = false
-    private var mainCurrency: String = "USD"
+    private(set) var mainCurrency: String = "USD"
 
     /// Whether the parsed command has enough data to go directly to ledger.
     var canGoToLedger: Bool {

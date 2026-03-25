@@ -106,9 +106,11 @@ struct QuickEntryView: View {
         HStack(spacing: WPSpacing.xs) {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: WPSpacing.xs) {
+                    amountPill
                     datePill
                     categoryPill
                     accountPill
+                    hashtagPills
                 }
                 .fixedSize(horizontal: true, vertical: false)
             }
@@ -117,6 +119,48 @@ struct QuickEntryView: View {
             Spacer(minLength: WPSpacing.xs)
 
             sendButton
+        }
+    }
+
+    // MARK: - Amount Pill
+
+    private var amountPill: some View {
+        let hasAmount = viewModel.parsedAmountCents != nil
+        let amountColor: Color = if let cents = viewModel.parsedAmountCents {
+            cents < 0 ? Color.wpTextPrimary : Color.wpIncome
+        } else {
+            Color.wpTextTertiary
+        }
+        return HStack(spacing: WPSpacing.xxs) {
+            if let cents = viewModel.parsedAmountCents {
+                Text(CurrencyFormatter(currencyCode: viewModel.mainCurrency).formatSigned(cents))
+            } else {
+                Text("Amount")
+            }
+        }
+        .wpToolbarPill(
+            state: hasAmount ? .selected : .unselected,
+            color: amountColor
+        )
+    }
+
+    // MARK: - Hashtag Pills
+
+    @ViewBuilder
+    private var hashtagPills: some View {
+        if viewModel.parsedHashtags.isEmpty {
+            HStack(spacing: WPSpacing.xxs) {
+                Image(systemName: "number")
+            }
+            .wpToolbarPill(state: .unselected, color: Color.wpHashtag)
+        } else {
+            ForEach(viewModel.parsedHashtags, id: \.self) { tag in
+                HStack(spacing: WPSpacing.xxs) {
+                    Image(systemName: "number")
+                    Text(tag)
+                }
+                .wpToolbarPill(state: .selected, color: Color.wpHashtag)
+            }
         }
     }
 
