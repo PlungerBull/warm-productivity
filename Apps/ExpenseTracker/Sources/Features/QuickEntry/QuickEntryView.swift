@@ -37,13 +37,12 @@ struct QuickEntryView: View {
 
             // 3. Description field
             TextField("Description", text: $viewModel.descriptionText, axis: .vertical)
-                .font(.wpCallout)
+                .font(.wpCaption)
                 .foregroundStyle(Color.wpTextTertiary)
                 .textFieldStyle(.plain)
-                .lineLimit(1...3)
+                .lineLimit(1...5)
                 .padding(.horizontal, WPSpacing.md)
                 .padding(.top, WPSpacing.xxs)
-                .padding(.bottom, WPSpacing.sm)
 
             // Error banner
             if let error = viewModel.errorMessage {
@@ -54,17 +53,11 @@ struct QuickEntryView: View {
                 .padding(.bottom, WPSpacing.xs)
             }
 
-            Spacer()
-
-            // Divider above toolbar
-            Rectangle()
-                .fill(Color.wpBorder)
-                .frame(height: 0.5)
-
             // 4. Toolbar row
             toolbarRow
                 .padding(.horizontal, WPSpacing.sm)
-                .padding(.vertical, WPSpacing.xs)
+                .padding(.top, WPSpacing.sm)
+                .padding(.bottom, WPSpacing.xs)
         }
         .background(.clear)
         .onAppear {
