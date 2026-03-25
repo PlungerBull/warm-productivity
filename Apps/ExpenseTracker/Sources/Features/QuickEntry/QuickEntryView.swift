@@ -124,7 +124,9 @@ struct QuickEntryView: View {
             let hasDate = viewModel.resolvedDate != nil
             HStack(spacing: WPSpacing.xxs) {
                 Image(systemName: "calendar")
-                Text(dateDisplayText)
+                if hasDate {
+                    Text(dateDisplayText)
+                }
             }
             .wpToolbarPill(
                 state: hasDate ? .selected : .unselected,
@@ -135,7 +137,7 @@ struct QuickEntryView: View {
     }
 
     private var dateDisplayText: String {
-        guard let date = viewModel.resolvedDate else { return "Date" }
+        guard let date = viewModel.resolvedDate else { return "" }
         if Calendar.current.isDateInToday(date) { return "Today" }
         if Calendar.current.isDateInYesterday(date) { return "Yesterday" }
         return CurrencyFormatter.formatDate(date)
@@ -155,7 +157,9 @@ struct QuickEntryView: View {
             let hasCategory = name != nil
             HStack(spacing: WPSpacing.xxs) {
                 Image(systemName: "tag")
-                Text(name ?? "Category")
+                if let name {
+                    Text(name)
+                }
             }
             .wpToolbarPill(
                 state: hasCategory ? .selected : .missing,
@@ -184,7 +188,9 @@ struct QuickEntryView: View {
             let hasAccount = name != nil
             HStack(spacing: WPSpacing.xxs) {
                 Image(systemName: "building.columns")
-                Text(name ?? "Account")
+                if let name {
+                    Text(name)
+                }
             }
             .wpToolbarPill(
                 state: hasAccount ? .selected : .missing,
