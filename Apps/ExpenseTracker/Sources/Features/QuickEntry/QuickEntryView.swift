@@ -18,8 +18,8 @@ struct QuickEntryView: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            // 1. Command input
+        VStack(alignment: .leading, spacing: 0) {
+            // Command input
             TextField(
                 "e.g. -45 Lunch @Food $BCP",
                 text: $viewModel.commandText
@@ -35,12 +35,12 @@ struct QuickEntryView: View {
                 viewModel.parseCommand()
             }
 
-            // 3. Description field
+            // Description field
             TextField("Description", text: $viewModel.descriptionText, axis: .vertical)
                 .font(.wpCaption)
                 .foregroundStyle(Color.wpTextTertiary)
                 .textFieldStyle(.plain)
-                .lineLimit(1...5)
+                .lineLimit(1...10)
                 .padding(.horizontal, WPSpacing.md)
                 .padding(.top, WPSpacing.xxs)
 
@@ -53,7 +53,7 @@ struct QuickEntryView: View {
                 .padding(.bottom, WPSpacing.xs)
             }
 
-            // 4. Toolbar row
+            // Toolbar row
             toolbarRow
                 .padding(.horizontal, WPSpacing.sm)
                 .padding(.top, WPSpacing.sm)

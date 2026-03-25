@@ -34,30 +34,10 @@ public struct FABButton: View {
                 .font(.title2.weight(.semibold))
                 .foregroundStyle(Color.wpPrimary)
                 .frame(width: 56, height: 56)
-                .scaleEffect(isPressed ? 0.95 : 1.0)
+                .contentShape(Circle())
                 .glassEffect(.regular.interactive(), in: .circle)
         }
-        .buttonStyle(.plain)
-        .simultaneousGesture(
-            LongPressGesture(minimumDuration: 0.5)
-                .onEnded { _ in
-                    onLongPress?()
-                }
-        )
-        .simultaneousGesture(
-            DragGesture(minimumDistance: 0)
-                .onChanged { _ in
-                    withAnimation(.easeInOut(duration: 0.1)) {
-                        isPressed = true
-                    }
-                }
-                .onEnded { _ in
-                    withAnimation(.easeInOut(duration: 0.15)) {
-                        isPressed = false
-                    }
-                }
-        )
         .accessibilityLabel("Add new item")
-        .accessibilityHint("Tap to add a new entry, hold for more options")
+        .accessibilityHint("Tap to add a new entry")
     }
 }
