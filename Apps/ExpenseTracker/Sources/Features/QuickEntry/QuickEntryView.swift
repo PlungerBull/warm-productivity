@@ -247,3 +247,4 @@ struct QuickEntryView: View {
         .presentationDetents([.medium])
     }
 }
+
