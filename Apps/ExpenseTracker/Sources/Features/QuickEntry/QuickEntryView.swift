@@ -40,7 +40,7 @@ struct QuickEntryView: View {
                 .font(.wpCaption)
                 .foregroundStyle(Color.wpTextTertiary)
                 .textFieldStyle(.plain)
-                .lineLimit(1...10)
+                .lineLimit(1...8)
                 .padding(.horizontal, WPSpacing.md)
                 .padding(.top, WPSpacing.xxs)
 
