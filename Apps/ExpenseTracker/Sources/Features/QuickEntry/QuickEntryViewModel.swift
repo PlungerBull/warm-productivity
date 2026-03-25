@@ -11,6 +11,7 @@ final class QuickEntryViewModel {
     private let bankAccountRepository: BankAccountRepository
     private let hashtagRepository: HashtagRepository
     private let transactionHashtagRepository: TransactionHashtagRepository
+    private let exchangeRateRepository: ExchangeRateRepository
     private let noteEntryRepository: NoteEntryRepository
     private let entityLinkRepository: EntityLinkRepository
     private let userSettingsRepository: UserSettingsRepository
@@ -81,6 +82,7 @@ final class QuickEntryViewModel {
         bankAccountRepository: BankAccountRepository,
         hashtagRepository: HashtagRepository,
         transactionHashtagRepository: TransactionHashtagRepository,
+        exchangeRateRepository: ExchangeRateRepository,
         noteEntryRepository: NoteEntryRepository,
         entityLinkRepository: EntityLinkRepository,
         userSettingsRepository: UserSettingsRepository,
@@ -92,6 +94,7 @@ final class QuickEntryViewModel {
         self.bankAccountRepository = bankAccountRepository
         self.hashtagRepository = hashtagRepository
         self.transactionHashtagRepository = transactionHashtagRepository
+        self.exchangeRateRepository = exchangeRateRepository
         self.noteEntryRepository = noteEntryRepository
         self.entityLinkRepository = entityLinkRepository
         self.userSettingsRepository = userSettingsRepository
@@ -356,6 +359,19 @@ final class QuickEntryViewModel {
             let title = parsedTitle ?? TransactionDescriptionService.untitledPlaceholder
             let amount = parsedAmountCents
 
+            // Resolve exchange rate from account currency
+            var resolvedExchangeRate: Decimal = 1.0
+            if let accountId {
+                let account = accounts.first { $0.id == accountId }
+                if let currency = account?.currencyCode, currency != mainCurrency {
+                    if let rate = try exchangeRateRepository.fetchRate(base: currency, target: mainCurrency, date: resolvedDate ?? Date()) {
+                        resolvedExchangeRate = rate.rate
+                    } else if let rate = try exchangeRateRepository.fetchLatestRate(base: currency, target: mainCurrency) {
+                        resolvedExchangeRate = rate.rate
+                    }
+                }
+            }
+
             // Determine: ledger or inbox?
             if let amount, let resolvedDate, let accountId, let categoryId,
                title != TransactionDescriptionService.untitledPlaceholder, resolvedDate <= Date() {
@@ -366,6 +382,7 @@ final class QuickEntryViewModel {
                     date: resolvedDate,
                     accountId: accountId,
                     categoryId: categoryId,
+                    exchangeRate: resolvedExchangeRate,
                     sourceText: commandText
                 )
                 try transactionRepository.create(transaction)
@@ -388,6 +405,7 @@ final class QuickEntryViewModel {
                     date: resolvedDate,
                     accountId: accountId,
                     categoryId: categoryId,
+                    exchangeRate: resolvedExchangeRate,
                     sourceText: commandText
                 )
                 try inboxRepository.create(inbox)

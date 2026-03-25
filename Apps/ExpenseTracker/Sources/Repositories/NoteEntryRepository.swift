@@ -18,6 +18,10 @@ final class NoteEntryRepository {
     }
 
     func create(_ entry: NoteEntry) throws {
+        // CHECK: chk_note_pinned_requires_notebook
+        if entry.isPinned && entry.notebookId == nil {
+            entry.isPinned = false
+        }
         modelContext.insert(entry)
         try modelContext.save()
     }
@@ -25,6 +29,10 @@ final class NoteEntryRepository {
     func update(id: UUID, content: String) throws {
         guard let entry = try fetchById(id) else { return }
         entry.content = content
+        // CHECK: chk_note_pinned_requires_notebook
+        if entry.isPinned && entry.notebookId == nil {
+            entry.isPinned = false
+        }
         entry.markUpdated()
         try modelContext.save()
     }

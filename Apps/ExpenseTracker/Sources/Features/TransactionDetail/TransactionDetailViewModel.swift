@@ -188,6 +188,9 @@ final class TransactionDetailViewModel {
                     return
                 }
 
+                let oldAmountCents = transaction.amountCents
+                let oldAccountId = transaction.accountId
+
                 transaction.title = trimmedTitle
                 transaction.amountCents = amountCents
                 transaction.date = date
@@ -196,7 +199,7 @@ final class TransactionDetailViewModel {
                 if let rate = Decimal(string: exchangeRate) {
                     transaction.exchangeRate = rate
                 }
-                try transactionRepository.update(transaction)
+                try transactionRepository.update(transaction, oldAmountCents: oldAmountCents, oldAccountId: oldAccountId)
                 saveHashtags(transactionId: transaction.id, source: .ledger)
                 saveDescription(sourceType: .expenseLedger, sourceId: transaction.id)
 
@@ -295,13 +298,19 @@ final class TransactionDetailViewModel {
     }
 
     func autoPopulateExchangeRate() {
-        guard let currency = accountCurrency, currency != mainCurrency else { return }
+        guard let currency = accountCurrency else { return }
+        // Same currency as home — reset to 1.0
+        guard currency != mainCurrency else {
+            exchangeRate = "1.0"
+            return
+        }
         do {
             if let rate = try exchangeRateRepository.fetchRate(base: currency, target: mainCurrency, date: date) {
                 exchangeRate = "\(rate.rate)"
             } else if let rate = try exchangeRateRepository.fetchLatestRate(base: currency, target: mainCurrency) {
                 exchangeRate = "\(rate.rate)"
             }
+            // If no rate found, leave current value — user can enter manually
         } catch {
             // User can enter manually
         }

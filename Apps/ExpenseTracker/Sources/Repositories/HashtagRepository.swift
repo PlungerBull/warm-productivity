@@ -28,6 +28,10 @@ final class HashtagRepository {
     }
 
     func create(_ hashtag: ExpenseHashtag) throws {
+        // UNIQUE: uq_expense_hashtags_user_name
+        if try fetchByName(userId: hashtag.userId, name: hashtag.name) != nil {
+            throw ConstraintError.duplicate("Hashtag '\(hashtag.name)' already exists")
+        }
         modelContext.insert(hashtag)
         try modelContext.save()
     }

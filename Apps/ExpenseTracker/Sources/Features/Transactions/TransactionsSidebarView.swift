@@ -49,7 +49,7 @@ struct TransactionsSidebarView: View {
                                     symbol: "$",
                                     color: Color(hex: account.color),
                                     label: account.name,
-                                    value: viewModel.currencyFormatter.format(viewModel.accountBalances[account.id] ?? 0),
+                                    value: (viewModel.accountCurrencyFormatters[account.id] ?? viewModel.currencyFormatter).format(viewModel.accountBalances[account.id] ?? 0),
                                     valueColor: (viewModel.accountBalances[account.id] ?? 0) >= 0 ? Color.wpIncome : Color.wpExpense
                                 ) {
                                     onSelect(.bankAccount(id: account.id))

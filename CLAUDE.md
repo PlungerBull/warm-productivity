@@ -143,6 +143,20 @@ The full database schema is deployed before any UI is built. When there is tensi
 **5. Standalone First — cross-app UI last, AI last of all**
 Each app is built as a fully functional standalone tool first. Data layer integration (writing to `note_entries`, `entity_links`, `activity_log`) happens from day one. Cross-app UI (slash commands, linked references, dashboards) is deferred until all three apps are complete. AI features come last.
 
+**6. FIX NOW, NO FUTURE DEBT**
+Every database rule — triggers, constraints, CHECK clauses, CASCADE behavior, UNIQUE enforcement — must be enforced in the Swift layer at the time the feature is built. Never defer constraint enforcement to "when sync is built" or "a future phase." If the schema defines it, the repository enforces it locally before the feature ships. The database is the source of truth; the Swift code is the local mirror.
+
+**7. Offline-First Constraint Enforcement**
+Because all writes go to SwiftData first (offline-first), the Swift repositories must replicate the behavior of every server-side trigger and constraint that affects data integrity. Specifically:
+- **`update_version_and_timestamp()`** — every repository `update()` must increment `version` and set `updatedAt = Date()` before save.
+- **`update_bank_account_balance()`** — `TransactionRepository` must adjust `ExpenseBankAccount.currentBalanceCents` on every create, update, soft-delete, and restore of a transaction.
+- **`validate_transaction_hashtag_fk()`** — `TransactionHashtagRepository` must verify the referenced transaction exists in the correct table (ledger or inbox) before insert.
+- **UNIQUE constraints** — repositories must check for duplicates before insert and reject them.
+- **CASCADE deletes** — soft-deleting a parent must cascade `deletedAt` to all children.
+- **SET NULL on delete** — soft-deleting a referenced entity must nullify the FK on dependents.
+- **CHECK constraints** — enforce all CHECK clauses (e.g., `is_pinned = true` requires `notebookId != nil`).
+- **Currency from account** — a transaction's currency is derived from its account's `currencyCode`. When an account is selected, `exchangeRate` must be auto-populated if account currency ≠ home currency.
+
 ---
 
 ## Schema Conventions

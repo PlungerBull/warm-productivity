@@ -19,6 +19,7 @@ final class TransactionsSidebarViewModel {
     var hashtags: [ExpenseHashtag] = []
     var currencies: [GlobalCurrency] = []
     var accountBalances: [UUID: Int64] = [:]
+    var accountCurrencyFormatters: [UUID: CurrencyFormatter] = [:]
     var categorySpend: [UUID: Int64] = [:]
     var inboxCount: Int = 0
     var settings: UserSettings?
@@ -63,17 +64,25 @@ final class TransactionsSidebarViewModel {
             hashtags = try hashtagRepository.fetchAll(userId: userId)
             currencies = try currencyRepository.fetchAll()
             settings = try userSettingsRepository.fetchSettings(userId: userId)
-            newAccountCurrency = settings?.mainCurrency ?? "USD"
-            currencyFormatter = CurrencyFormatter(currencyCode: settings?.mainCurrency ?? "USD")
+            // Build a lookup for decimal places from global currencies
+            let decimalPlacesLookup = Dictionary(uniqueKeysWithValues: currencies.map { ($0.code, $0.decimalPlaces) })
+            let mainCode = settings?.mainCurrency ?? "USD"
+            newAccountCurrency = mainCode
+            let mainDp = decimalPlacesLookup[mainCode] ?? 2
+            currencyFormatter = CurrencyFormatter(currencyCode: mainCode, decimalPlaces: mainDp)
             inboxCount = try inboxRepository.count(userId: userId)
 
             var balances: [UUID: Int64] = [:]
+            var formatters: [UUID: CurrencyFormatter] = [:]
             for account in bankAccounts {
-                balances[account.id] = try transactionRepository.runningBalanceCents(
-                    userId: userId, accountId: account.id
-                )
+                // Use the account's own currentBalanceCents (maintained by balance trigger)
+                balances[account.id] = account.currentBalanceCents
+                // Each account gets a formatter for its own currency with correct decimal places
+                let dp = decimalPlacesLookup[account.currencyCode] ?? 2
+                formatters[account.id] = CurrencyFormatter(currencyCode: account.currencyCode, decimalPlaces: dp)
             }
             accountBalances = balances
+            accountCurrencyFormatters = formatters
 
             var spend: [UUID: Int64] = [:]
             for category in categories {

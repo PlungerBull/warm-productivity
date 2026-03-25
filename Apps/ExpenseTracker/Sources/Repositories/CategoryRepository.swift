@@ -55,6 +55,10 @@ final class CategoryRepository {
     }
 
     func create(_ category: ExpenseCategory) throws {
+        // UNIQUE: uq_expense_categories_user_name
+        if try fetchByName(userId: category.userId, name: category.name) != nil {
+            throw ConstraintError.duplicate("Category '\(category.name)' already exists")
+        }
         modelContext.insert(category)
         try modelContext.save()
     }
@@ -81,6 +85,36 @@ final class CategoryRepository {
         guard let category = try fetchById(id) else { return }
         // Refuse to delete system categories
         if Self.systemCategoryNames.contains(category.name) { return }
+        // CASCADE: soft-delete all transactions for this category
+        let categoryId = category.id
+        let userId = category.userId
+        let descriptor = FetchDescriptor<ExpenseTransaction>(
+            predicate: #Predicate {
+                $0.categoryId == categoryId && $0.userId == userId && $0.deletedAt == nil
+            }
+        )
+        let transactions = try modelContext.fetch(descriptor)
+        for transaction in transactions {
+            transaction.markDeleted()
+            // Balance trigger: subtract from account
+            let accountDescriptor = FetchDescriptor<ExpenseBankAccount>(
+                predicate: #Predicate { $0.id == transaction.accountId }
+            )
+            if let account = try modelContext.fetch(accountDescriptor).first {
+                account.currentBalanceCents -= transaction.amountCents
+                account.markUpdated()
+            }
+        }
+        // SET NULL: nullify categoryId on inbox items referencing this category
+        let inboxDescriptor = FetchDescriptor<ExpenseTransactionInbox>(
+            predicate: #Predicate {
+                $0.categoryId == categoryId && $0.userId == userId && $0.deletedAt == nil
+            }
+        )
+        for item in try modelContext.fetch(inboxDescriptor) {
+            item.categoryId = nil
+            item.markUpdated()
+        }
         category.markDeleted()
         try modelContext.save()
     }

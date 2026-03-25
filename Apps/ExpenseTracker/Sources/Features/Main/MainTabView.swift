@@ -61,6 +61,7 @@ struct MainTabView: View {
             bankAccountRepository: BankAccountRepository(modelContext: modelContext),
             hashtagRepository: HashtagRepository(modelContext: modelContext),
             transactionHashtagRepository: TransactionHashtagRepository(modelContext: modelContext),
+            exchangeRateRepository: ExchangeRateRepository(modelContext: modelContext),
             noteEntryRepository: NoteEntryRepository(modelContext: modelContext),
             entityLinkRepository: EntityLinkRepository(modelContext: modelContext),
             userSettingsRepository: UserSettingsRepository(modelContext: modelContext),

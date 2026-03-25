@@ -31,9 +31,27 @@ final class TransactionHashtagRepository {
     }
 
     func link(transactionId: UUID, source: TransactionSourceType, hashtagId: UUID, userId: UUID) throws {
-        // Check if link already exists
+        // Check if link already exists (UNIQUE: uq_expense_transaction_hashtags_txn_hashtag)
         let existing = try fetchForTransaction(transactionId: transactionId, source: source)
         if existing.contains(where: { $0.hashtagId == hashtagId }) { return }
+
+        // Polymorphic FK validation (mirrors validate_transaction_hashtag_fk trigger)
+        switch source {
+        case .ledger:
+            let descriptor = FetchDescriptor<ExpenseTransaction>(
+                predicate: #Predicate { $0.id == transactionId }
+            )
+            if try modelContext.fetch(descriptor).isEmpty {
+                throw ConstraintError.foreignKeyViolation("Ledger transaction \(transactionId) not found")
+            }
+        case .inbox:
+            let descriptor = FetchDescriptor<ExpenseTransactionInbox>(
+                predicate: #Predicate { $0.id == transactionId }
+            )
+            if try modelContext.fetch(descriptor).isEmpty {
+                throw ConstraintError.foreignKeyViolation("Inbox transaction \(transactionId) not found")
+            }
+        }
 
         let link = ExpenseTransactionHashtag(
             transactionId: transactionId,

@@ -5,20 +5,23 @@ import Foundation
 /// Used across all three apps for consistent amount display.
 public struct CurrencyFormatter: Sendable {
     public let currencyCode: String
+    public let decimalPlaces: Int
 
-    public init(currencyCode: String = "USD") {
+    public init(currencyCode: String = "USD", decimalPlaces: Int = 2) {
         self.currencyCode = currencyCode
+        self.decimalPlaces = decimalPlaces
     }
 
-    /// Formats cents into a plain decimal string: "1,234.56".
+    /// Formats cents into a plain decimal string: "1,234.56" (or "1,235" for 0-decimal currencies like JPY).
     /// Always uses the absolute value — caller controls sign display.
     private func formatDecimal(_ cents: Int64) -> String {
-        let value = Double(abs(cents)) / 100.0
+        let divisor = pow(10.0, Double(decimalPlaces))
+        let value = Double(abs(cents)) / divisor
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
-        formatter.minimumFractionDigits = 2
-        formatter.maximumFractionDigits = 2
-        return formatter.string(from: NSNumber(value: value)) ?? "0.00"
+        formatter.minimumFractionDigits = decimalPlaces
+        formatter.maximumFractionDigits = decimalPlaces
+        return formatter.string(from: NSNumber(value: value)) ?? "0"
     }
 
     /// Formats cents with currency code: "USD1,234.56".
