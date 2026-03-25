@@ -97,8 +97,9 @@ final class CategoryRepository {
         for transaction in transactions {
             transaction.markDeleted()
             // Balance trigger: subtract from account
+            let txnAccountId = transaction.accountId
             let accountDescriptor = FetchDescriptor<ExpenseBankAccount>(
-                predicate: #Predicate { $0.id == transaction.accountId }
+                predicate: #Predicate { $0.id == txnAccountId }
             )
             if let account = try modelContext.fetch(accountDescriptor).first {
                 account.currentBalanceCents -= transaction.amountCents
