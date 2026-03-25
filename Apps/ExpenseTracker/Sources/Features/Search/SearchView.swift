@@ -361,14 +361,12 @@ struct SearchView: View {
                 mode: .ledger(ledgerItem),
                 onDismiss: { viewModel.dismissDetail() }
             )
-            .presentationDetents([.fraction(0.75), .large])
         } else if let inboxItem = viewModel.selectedInboxItem {
             TransactionDetailView(
                 viewModel: detailViewModelFactory(),
                 mode: .inbox(inboxItem),
                 onDismiss: { viewModel.dismissDetail() }
             )
-            .presentationDetents([.fraction(0.75), .large])
         }
     }
 }

@@ -20,9 +20,10 @@ struct TransactionDetailView: View {
         case title, amount, note
     }
     @FocusState private var focusedField: DetailFocusField?
+    @State private var selectedDetent: PresentationDetent = .fraction(0.75)
 
     private var isCompact: Bool {
-        dynamicTypeSize >= .accessibility1
+        focusedField != nil
     }
 
     private var isNoteEditing: Bool {
@@ -58,6 +59,12 @@ struct TransactionDetailView: View {
         }
         .sheet(isPresented: $showHashtagPicker) {
             hashtagPickerSheet
+        }
+        .presentationDetents([.fraction(0.75), .large], selection: $selectedDetent)
+        .onChange(of: focusedField) { _, newValue in
+            withAnimation {
+                selectedDetent = newValue != nil ? .large : .fraction(0.75)
+            }
         }
         .task {
             viewModel.load(mode: mode)
@@ -99,10 +106,13 @@ struct TransactionDetailView: View {
     // MARK: - Hero Section
 
     private var heroSection: some View {
-        VStack(spacing: WPSpacing.xxs) {
+        let fontSize = isCompact ? WPContentSheetStyle.compactAmountFontSize : WPContentSheetStyle.heroAmountFontSize
+        let titleSize = isCompact ? WPContentSheetStyle.compactTitleFontSize : WPContentSheetStyle.heroTitleFontSize
+
+        return VStack(spacing: WPSpacing.xs) {
             // Title
             TextField("Untitled transaction", text: $viewModel.title)
-                .font(.system(size: isCompact ? WPContentSheetStyle.compactTitleFontSize : WPContentSheetStyle.heroTitleFontSize, weight: .bold))
+                .font(.system(size: titleSize, weight: .bold))
                 .foregroundStyle(Color.wpTextPrimary)
                 .multilineTextAlignment(.center)
                 .textFieldStyle(.plain)
@@ -116,35 +126,40 @@ struct TransactionDetailView: View {
                     }
                 }
 
-            // Amount
+            // Amount — centered: sign + currency code + number
             HStack(spacing: 0) {
+                Spacer(minLength: 0)
+
                 // Sign toggle
                 Button {
                     viewModel.isExpense.toggle()
                 } label: {
                     Text(viewModel.isExpense ? "\u{2212}" : "+")
-                        .font(.system(size: isCompact ? WPContentSheetStyle.compactAmountFontSize : WPContentSheetStyle.heroAmountFontSize, weight: .bold).monospacedDigit())
+                        .font(.system(size: fontSize, weight: .bold).monospacedDigit())
                         .foregroundStyle(amountColor)
                 }
                 .buttonStyle(.plain)
                 .contentTransition(.numericText())
 
-                // Currency code (superscript)
+                // Currency code — same line, after sign
                 if let currency = viewModel.accountCurrency {
                     Text(currency)
-                        .font(.system(size: (isCompact ? WPContentSheetStyle.compactAmountFontSize : WPContentSheetStyle.heroAmountFontSize) * 0.5, weight: .bold))
+                        .font(.system(size: fontSize * 0.5, weight: .bold))
                         .foregroundStyle(Color.wpTextTertiary)
                         .alignmentGuide(.firstTextBaseline) { d in d[.firstTextBaseline] }
+                        .padding(.trailing, WPSpacing.xxs)
                 }
 
                 // Amount field
                 TextField("0.00", text: $viewModel.amountString)
-                    .font(.system(size: isCompact ? WPContentSheetStyle.compactAmountFontSize : WPContentSheetStyle.heroAmountFontSize, weight: .bold).monospacedDigit())
+                    .font(.system(size: fontSize, weight: .bold).monospacedDigit())
                     .foregroundStyle(amountColor)
-                    .multilineTextAlignment(.center)
                     .textFieldStyle(.plain)
                     .keyboardType(.decimalPad)
                     .focused($focusedField, equals: .amount)
+                    .fixedSize(horizontal: true, vertical: false)
+
+                Spacer(minLength: 0)
             }
             .overlay(alignment: .leading) {
                 if viewModel.validationErrors.contains(.amount) {
@@ -157,7 +172,7 @@ struct TransactionDetailView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.horizontal, WPSpacing.md)
-        .padding(.top, WPSpacing.sm)
+        .padding(.top, WPSpacing.lg)
         .padding(.bottom, WPSpacing.sm)
     }
 
@@ -248,13 +263,10 @@ struct TransactionDetailView: View {
                 detailCell(label: "TYPE", value: viewModel.isExpense ? "Expense" : "Income")
                 detailCell(label: "STATUS", valueView: statusBadge)
             }
-            GridRow {
-                if viewModel.showExchangeRate {
+            if viewModel.showExchangeRate {
+                GridRow {
                     detailCell(label: "EXCHANGE", valueView: exchangeRateCell)
                     detailCell(label: "HOME AMOUNT", valueView: homeAmountView)
-                } else {
-                    detailCell(label: "SOURCE", value: viewModel.isInbox ? "Inbox" : "Ledger")
-                    detailCell(label: "CLEARED", valueView: clearedBadge)
                 }
             }
         }
@@ -292,17 +304,6 @@ struct TransactionDetailView: View {
     }
 
     private var statusBadge: some View {
-        HStack(spacing: WPSpacing.xxs) {
-            Image(systemName: "checkmark.circle.fill")
-                .font(.wpCaption)
-            Text("Cleared")
-                .font(.wpCallout)
-                .fontWeight(.semibold)
-        }
-        .foregroundStyle(Color.wpSuccess)
-    }
-
-    private var clearedBadge: some View {
         HStack(spacing: WPSpacing.xxs) {
             Image(systemName: "checkmark.circle.fill")
                 .font(.wpCaption)
