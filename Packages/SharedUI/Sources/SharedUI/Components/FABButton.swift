@@ -28,15 +28,34 @@ public struct FABButton: View {
 
     public var body: some View {
         Button {
+            let generator = UIImpactFeedbackGenerator(style: .medium)
+            generator.impactOccurred()
             action()
         } label: {
             Image(systemName: "plus")
-                .font(.title2.weight(.semibold))
+                .font(.system(size: 22, weight: .semibold))
                 .foregroundStyle(Color.wpPrimary)
-                .frame(width: 56, height: 56)
+                .frame(width: WPSize.fabButton, height: WPSize.fabButton)
                 .contentShape(Circle())
+                .scaleEffect(isPressed ? 0.92 : 1.0)
                 .glassEffect(.regular.interactive(), in: .circle)
         }
+        .buttonStyle(.plain)
+        .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
+        .shadow(color: .black.opacity(0.04), radius: 2, x: 0, y: 1)
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged { _ in
+                    withAnimation(.snappy(duration: 0.15)) {
+                        isPressed = true
+                    }
+                }
+                .onEnded { _ in
+                    withAnimation(.snappy(duration: 0.2)) {
+                        isPressed = false
+                    }
+                }
+        )
         .accessibilityLabel("Add new item")
         .accessibilityHint("Tap to add a new entry")
     }

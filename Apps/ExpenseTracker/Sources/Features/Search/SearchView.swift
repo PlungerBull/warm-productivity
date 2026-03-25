@@ -24,7 +24,7 @@ struct SearchView: View {
                 HStack(spacing: WPSpacing.xs) {
                     Image(systemName: "magnifyingglass")
                         .foregroundStyle(Color.wpTextTertiary)
-                        .font(.system(size: 15))
+                        .font(.wpCallout)
 
                     TextField("Search transactions...", text: $viewModel.query)
                         .font(.wpBody)
@@ -36,18 +36,22 @@ struct SearchView: View {
 
                     if !viewModel.query.isEmpty {
                         Button {
-                            viewModel.query = ""
-                            viewModel.search()
+                            withAnimation(.easeOut(duration: 0.15)) {
+                                viewModel.query = ""
+                                viewModel.search()
+                            }
                         } label: {
                             Image(systemName: "xmark.circle.fill")
                                 .foregroundStyle(Color.wpTextTertiary)
+                                .font(.wpCallout)
                         }
+                        .transition(.scale.combined(with: .opacity))
                     }
                 }
                 .padding(.horizontal, WPSpacing.sm)
-                .padding(.vertical, WPSpacing.xs)
+                .padding(.vertical, 10)
                 .background(Color.wpSurface)
-                .clipShape(Capsule())
+                .clipShape(RoundedRectangle(cornerRadius: WPCornerRadius.small))
 
                 Button("Cancel") {
                     dismiss()
@@ -59,9 +63,6 @@ struct SearchView: View {
             .padding(.top, WPSpacing.md)
             .padding(.bottom, WPSpacing.sm)
 
-            Divider()
-                .overlay(Color.wpBorder)
-
             // MARK: - Content
             if viewModel.query.isEmpty {
                 emptySearchState
@@ -72,6 +73,9 @@ struct SearchView: View {
             }
         }
         .background(.clear)
+        .animation(.easeInOut(duration: 0.2), value: viewModel.query.isEmpty)
+        .animation(.easeInOut(duration: 0.2), value: viewModel.results.count)
+        .animation(.easeInOut(duration: 0.2), value: viewModel.inboxResults.count)
         .onChange(of: viewModel.query) {
             viewModel.search()
         }
@@ -95,20 +99,23 @@ struct SearchView: View {
             Image(systemName: "magnifyingglass")
                 .font(.wpIconDecorative)
                 .foregroundStyle(Color.wpTextTertiary)
+                .padding(.bottom, WPSpacing.xxs)
 
             Text("Search Transactions")
                 .font(.wpHeadline)
                 .foregroundStyle(Color.wpTextPrimary)
 
-            Text("Search by title, category, account, hashtag, amount, or notes.")
+            Text("Search by title, category, account,\nhashtag, amount, or notes.")
                 .font(.wpCallout)
                 .foregroundStyle(Color.wpTextSecondary)
                 .multilineTextAlignment(.center)
-                .padding(.horizontal, WPSpacing.xl)
+                .lineSpacing(3)
 
+            Spacer()
             Spacer()
         }
         .frame(maxWidth: .infinity)
+        .padding(.horizontal, WPSpacing.xl)
     }
 
     // MARK: - No Results State
@@ -117,23 +124,26 @@ struct SearchView: View {
         VStack(spacing: WPSpacing.md) {
             Spacer()
 
-            Image(systemName: "magnifyingglass")
+            Image(systemName: "text.magnifyingglass")
                 .font(.wpIconDecorative)
                 .foregroundStyle(Color.wpTextTertiary)
+                .padding(.bottom, WPSpacing.xxs)
 
             Text("No Results")
                 .font(.wpHeadline)
                 .foregroundStyle(Color.wpTextPrimary)
 
-            Text("Try a different search term or check your spelling.")
+            Text("No matches for \"\(viewModel.query)\".\nTry a different search term.")
                 .font(.wpCallout)
                 .foregroundStyle(Color.wpTextSecondary)
                 .multilineTextAlignment(.center)
-                .padding(.horizontal, WPSpacing.xl)
+                .lineSpacing(3)
 
+            Spacer()
             Spacer()
         }
         .frame(maxWidth: .infinity)
+        .padding(.horizontal, WPSpacing.xl)
     }
 
     // MARK: - Results List
@@ -141,49 +151,83 @@ struct SearchView: View {
     private var resultsList: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 0) {
+                // Result count summary
+                resultsSummary
+                    .padding(.horizontal, WPSpacing.md)
+                    .padding(.top, WPSpacing.sm)
+                    .padding(.bottom, WPSpacing.xxs)
+
                 // Ledger Section
                 if !viewModel.results.isEmpty {
-                    sectionHeader("LEDGER (\(viewModel.results.count) \(viewModel.results.count == 1 ? "RESULT" : "RESULTS"))")
+                    sectionHeader("Ledger")
 
-                    ForEach(viewModel.results, id: \.id) { transaction in
-                        ledgerRow(transaction)
-                            .contentShape(Rectangle())
-                            .onTapGesture {
-                                viewModel.selectLedgerItem(transaction)
+                    VStack(spacing: 0) {
+                        ForEach(Array(viewModel.results.enumerated()), id: \.element.id) { index, transaction in
+                            ledgerRow(transaction)
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    viewModel.selectLedgerItem(transaction)
+                                }
+
+                            if index < viewModel.results.count - 1 {
+                                Divider()
+                                    .overlay(Color.wpBorder)
+                                    .padding(.leading, WPSpacing.md)
                             }
-
-                        Divider()
-                            .overlay(Color.wpBorder)
-                            .padding(.leading, WPSpacing.md)
+                        }
                     }
+                    .background(Color.wpSurface)
+                    .clipShape(RoundedRectangle(cornerRadius: WPCornerRadius.medium))
+                    .padding(.horizontal, WPSpacing.md)
                 }
 
                 // Inbox Section
                 if !viewModel.inboxResults.isEmpty {
-                    sectionHeader("INBOX (\(viewModel.inboxResults.count) \(viewModel.inboxResults.count == 1 ? "RESULT" : "RESULTS"))")
+                    sectionHeader("Inbox")
 
-                    ForEach(viewModel.inboxResults, id: \.id) { item in
-                        inboxRow(item)
-                            .contentShape(Rectangle())
-                            .onTapGesture {
-                                viewModel.selectInboxItem(item)
+                    VStack(spacing: 0) {
+                        ForEach(Array(viewModel.inboxResults.enumerated()), id: \.element.id) { index, item in
+                            inboxRow(item)
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    viewModel.selectInboxItem(item)
+                                }
+
+                            if index < viewModel.inboxResults.count - 1 {
+                                Divider()
+                                    .overlay(Color.wpBorder)
+                                    .padding(.leading, WPSpacing.md)
                             }
-
-                        Divider()
-                            .overlay(Color.wpBorder)
-                            .padding(.leading, WPSpacing.md)
+                        }
                     }
+                    .background(Color.wpSurface)
+                    .clipShape(RoundedRectangle(cornerRadius: WPCornerRadius.medium))
+                    .padding(.horizontal, WPSpacing.md)
                 }
+
+                // Bottom spacing
+                Spacer()
+                    .frame(height: WPSpacing.xl)
             }
         }
+    }
+
+    // MARK: - Results Summary
+
+    private var resultsSummary: some View {
+        let total = viewModel.results.count + viewModel.inboxResults.count
+        return Text("\(total) \(total == 1 ? "result" : "results")")
+            .font(.wpCaption)
+            .foregroundStyle(Color.wpTextTertiary)
     }
 
     // MARK: - Section Header
 
     private func sectionHeader(_ title: String) -> some View {
         Text(title)
-            .font(.wpCaption.weight(.semibold))
-            .foregroundStyle(Color.wpTextSecondary)
+            .font(.wpCaption.weight(.medium))
+            .foregroundStyle(Color.wpTextTertiary)
+            .textCase(.uppercase)
             .tracking(0.5)
             .padding(.horizontal, WPSpacing.md)
             .padding(.top, WPSpacing.lg)
@@ -193,36 +237,41 @@ struct SearchView: View {
     // MARK: - Ledger Row
 
     private func ledgerRow(_ transaction: ExpenseTransaction) -> some View {
-        HStack(alignment: .top, spacing: WPSpacing.sm) {
+        HStack(alignment: .center, spacing: WPSpacing.sm) {
+            // Category color indicator
+            if let color = viewModel.categoryColors[transaction.categoryId] {
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(Color(hex: color))
+                    .frame(width: 3, height: 32)
+            }
+
             // Left content
             VStack(alignment: .leading, spacing: WPSpacing.xxs) {
-                // Title with highlighted search term
                 Text(highlightedTitle(transaction.title))
                     .font(.wpBody)
                     .lineLimit(1)
 
-                // Date · @category
                 HStack(spacing: WPSpacing.xxs) {
                     Text(Self.dateFormatter.string(from: transaction.date))
                         .font(.wpCaption)
-                        .foregroundStyle(Color.wpTextSecondary)
+                        .foregroundStyle(Color.wpTextTertiary)
 
                     if let categoryName = viewModel.categoryNames[transaction.categoryId] {
                         Text("\u{00B7}")
                             .font(.wpCaption)
-                            .foregroundStyle(Color.wpTextSecondary)
+                            .foregroundStyle(Color.wpTextTertiary)
                         Text("@\(categoryName)")
                             .font(.wpCaption)
-                            .foregroundStyle(Color.wpPrimary)
+                            .foregroundStyle(Color.wpTextSecondary)
                     }
                 }
             }
 
             Spacer(minLength: WPSpacing.xs)
 
-            // Amount — right-aligned
+            // Amount
             Text(viewModel.currencyFormatter.formatSigned(transaction.amountCents))
-                .font(.wpAmount)
+                .font(.wpAmountCompact)
                 .foregroundStyle(transaction.amountCents >= 0 ? Color.wpIncome : Color.wpExpense)
                 .lineLimit(1)
                 .fixedSize()
@@ -234,13 +283,12 @@ struct SearchView: View {
     // MARK: - Inbox Row
 
     private func inboxRow(_ item: ExpenseTransactionInbox) -> some View {
-        HStack(alignment: .top, spacing: WPSpacing.sm) {
-            // Status dot
+        HStack(alignment: .center, spacing: WPSpacing.sm) {
+            // Status indicator
             let isComplete = item.amountCents != nil && item.accountId != nil && item.categoryId != nil
             Circle()
                 .fill(isComplete ? Color.wpSuccess : Color.wpWarning)
-                .frame(width: 8, height: 8)
-                .padding(.top, 6) // Align with first line of text
+                .frame(width: 6, height: 6)
 
             // Left content
             VStack(alignment: .leading, spacing: WPSpacing.xxs) {
@@ -249,7 +297,6 @@ struct SearchView: View {
                     .font(.wpBody)
                     .lineLimit(1)
 
-                // Missing fields caption
                 let missingFields = inboxMissingFields(item)
                 if !missingFields.isEmpty {
                     Text("Missing \(missingFields)")
@@ -262,7 +309,7 @@ struct SearchView: View {
 
             // Amount
             Text(viewModel.currencyFormatter.formatOptionalSigned(item.amountCents))
-                .font(.wpAmount)
+                .font(.wpAmountCompact)
                 .foregroundStyle((item.amountCents ?? 0) >= 0 ? Color.wpIncome : Color.wpExpense)
                 .lineLimit(1)
                 .fixedSize()
@@ -284,10 +331,10 @@ struct SearchView: View {
 
         while searchStart < lowercased.endIndex,
               let range = lowercased.range(of: queryLower, range: searchStart..<lowercased.endIndex) {
-            // Convert String range to AttributedString range
             if let attrStart = AttributedString.Index(range.lowerBound, within: attributed),
                let attrEnd = AttributedString.Index(range.upperBound, within: attributed) {
-                attributed[attrStart..<attrEnd].backgroundColor = Color.wpPrimary.opacity(0.15)
+                attributed[attrStart..<attrEnd].foregroundColor = Color.wpPrimary
+                attributed[attrStart..<attrEnd].font = .wpHeadline
             }
             searchStart = range.upperBound
         }

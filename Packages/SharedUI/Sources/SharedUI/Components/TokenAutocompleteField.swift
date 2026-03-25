@@ -52,12 +52,14 @@ public struct TokenAutocompleteField: View {
     }
 
     public var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        VStack(alignment: .leading, spacing: WPSpacing.xxs) {
             TextField(placeholder, text: $text)
                 .font(.wpBody)
                 .focused($fieldFocused)
                 .onChange(of: fieldFocused) { _, newValue in
-                    isFocused = newValue
+                    withAnimation(.easeOut(duration: 0.15)) {
+                        isFocused = newValue
+                    }
                 }
                 .onSubmit {
                     if let first = suggestions.first {
@@ -67,6 +69,7 @@ public struct TokenAutocompleteField: View {
 
             if isFocused && !text.isEmpty {
                 dropdownContent
+                    .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
     }
@@ -75,13 +78,18 @@ public struct TokenAutocompleteField: View {
     private var dropdownContent: some View {
         if !suggestions.isEmpty {
             VStack(alignment: .leading, spacing: 0) {
-                ForEach(suggestions) { suggestion in
+                ForEach(Array(suggestions.enumerated()), id: \.element.id) { index, suggestion in
                     Button {
                         selectSuggestion(suggestion)
                     } label: {
                         suggestionRow(suggestion)
                     }
                     .buttonStyle(.plain)
+
+                    if index < suggestions.count - 1 {
+                        Divider()
+                            .padding(.leading, WPSpacing.sm)
+                    }
                 }
             }
             .clipShape(RoundedRectangle(cornerRadius: WPCornerRadius.small))
@@ -97,9 +105,10 @@ public struct TokenAutocompleteField: View {
             } label: {
                 HStack(spacing: WPSpacing.xs) {
                     Image(systemName: "plus.circle.fill")
+                        .font(.system(size: 16))
                         .foregroundStyle(Color.wpPrimary)
                     Text("Create '\(text.trimmingCharacters(in: .whitespacesAndNewlines))'")
-                        .font(.wpBody)
+                        .font(.wpCallout)
                         .foregroundStyle(Color.wpTextPrimary)
                 }
                 .padding(.horizontal, WPSpacing.sm)
@@ -117,16 +126,16 @@ public struct TokenAutocompleteField: View {
             if let color = suggestion.color {
                 Circle()
                     .fill(color)
-                    .frame(width: 10, height: 10)
+                    .frame(width: 8, height: 8)
             }
             Text(suggestion.text)
-                .font(.wpBody)
+                .font(.wpCallout)
                 .foregroundStyle(Color.wpTextPrimary)
             if let secondary = suggestion.secondaryText {
                 Spacer()
                 Text(secondary)
                     .font(.wpCaption)
-                    .foregroundStyle(Color.wpTextSecondary)
+                    .foregroundStyle(Color.wpTextTertiary)
             }
         }
         .padding(.horizontal, WPSpacing.sm)

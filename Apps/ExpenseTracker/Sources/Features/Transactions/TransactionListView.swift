@@ -22,25 +22,11 @@ struct TransactionListView: View {
     var body: some View {
         VStack(spacing: 0) {
             // Header
-            VStack(alignment: .leading, spacing: WPSpacing.sm) {
-                Button { dismiss() } label: {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 15, weight: .semibold))
-                        .foregroundStyle(Color.wpPrimary)
-                }
-
-                Text(destination.title)
-                    .font(.wpLargeTitle)
-                    .foregroundStyle(Color.wpTextPrimary)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, WPSpacing.lg)
-            .padding(.top, WPSpacing.xs)
-            .padding(.bottom, WPSpacing.sm)
+            header
 
             // Search bar (ledger only)
             if isLedger {
-                searchBarPlaceholder
+                searchBar
                     .padding(.horizontal, WPSpacing.lg)
                     .padding(.bottom, WPSpacing.sm)
             }
@@ -53,7 +39,7 @@ struct TransactionListView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.wpBackground.ignoresSafeArea())
+        .background(.background)
         .navigationBarHidden(true)
         .task {
             viewModel.load(destination: destination)
@@ -74,6 +60,46 @@ struct TransactionListView: View {
         } message: {
             Text("This transaction will be permanently removed.")
         }
+    }
+
+    // MARK: - Header
+
+    private var header: some View {
+        VStack(alignment: .leading, spacing: WPSpacing.xxs) {
+            Button { dismiss() } label: {
+                HStack(spacing: WPSpacing.xxs) {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 16, weight: .semibold))
+                    Text("Back")
+                        .font(.wpBody)
+                }
+                .foregroundStyle(Color.wpPrimary)
+            }
+            .padding(.bottom, WPSpacing.xxs)
+
+            HStack(alignment: .firstTextBaseline) {
+                Text(destination.title)
+                    .font(.wpLargeTitle)
+                    .foregroundStyle(Color.wpTextPrimary)
+
+                Spacer()
+
+                // Item count badge
+                if itemCount > 0 {
+                    Text("\(itemCount)")
+                        .font(.wpCaption)
+                        .foregroundStyle(Color.wpTextTertiary)
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, WPSpacing.lg)
+        .padding(.top, WPSpacing.xs)
+        .padding(.bottom, WPSpacing.sm)
+    }
+
+    private var itemCount: Int {
+        isInbox ? viewModel.inboxItems.count : viewModel.ledgerItems.count
     }
 
     // MARK: - Detail Sheet
@@ -103,26 +129,67 @@ struct TransactionListView: View {
     private var inboxContent: some View {
         if viewModel.inboxItems.isEmpty {
             EmptyStateView(
-                icon: "tray.and.arrow.down",
+                icon: "tray",
                 title: "Inbox Empty",
-                message: "No draft transactions. Tap + to add one."
+                message: "Quick-add transactions land here as drafts. Fill in the details, then promote them to your ledger."
             )
         } else {
             ScrollView {
-                LazyVStack(spacing: 0) {
-                    ForEach(viewModel.inboxItems, id: \.id) { item in
-                        inboxRow(item)
+                LazyVStack(spacing: WPSpacing.md) {
+                    // Overdue section
+                    let overdue = viewModel.overdueInboxItems
+                    if !overdue.isEmpty {
+                        inboxSection(title: "Overdue", items: overdue, tint: Color.wpError)
+                    }
 
-                        if item.id != viewModel.inboxItems.last?.id {
-                            Divider()
-                                .padding(.leading, WPSpacing.md)
-                        }
+                    // Current section
+                    let current = viewModel.currentInboxItems
+                    if !current.isEmpty {
+                        inboxSection(
+                            title: overdue.isEmpty ? nil : "Current",
+                            items: current,
+                            tint: nil
+                        )
                     }
                 }
-                .background(Color.wpSurface)
-                .clipShape(RoundedRectangle(cornerRadius: WPCornerRadius.medium))
                 .padding(.horizontal, WPSpacing.lg)
+                .padding(.bottom, WPSpacing.xxl)
             }
+            .scrollContentBackground(.hidden)
+        }
+    }
+
+    private func inboxSection(title: String?, items: [ExpenseTransactionInbox], tint: Color?) -> some View {
+        VStack(alignment: .leading, spacing: WPSpacing.xs) {
+            if let title {
+                HStack(spacing: WPSpacing.xxs) {
+                    if let tint {
+                        Circle()
+                            .fill(tint)
+                            .frame(width: 6, height: 6)
+                    }
+                    Text(title.uppercased())
+                        .font(.wpCaption)
+                        .foregroundStyle(tint ?? Color.wpTextTertiary)
+                        .tracking(0.5)
+                }
+                .padding(.leading, WPSpacing.xxs)
+                .padding(.bottom, WPSpacing.xxs)
+            }
+
+            VStack(spacing: 0) {
+                ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
+                    inboxRow(item)
+
+                    if index < items.count - 1 {
+                        Divider()
+                            .foregroundStyle(Color.wpBorder)
+                            .padding(.leading, WPSpacing.md)
+                    }
+                }
+            }
+            .background(Color.wpSurface)
+            .clipShape(RoundedRectangle(cornerRadius: WPCornerRadius.medium))
         }
     }
 
@@ -164,20 +231,42 @@ struct TransactionListView: View {
             )
         } else {
             ScrollView {
-                LazyVStack(spacing: 0) {
-                    ForEach(viewModel.ledgerItems, id: \.id) { transaction in
-                        ledgerRow(transaction)
-
-                        if transaction.id != viewModel.ledgerItems.last?.id {
-                            Divider()
-                                .padding(.leading, WPSpacing.md)
-                        }
+                LazyVStack(spacing: WPSpacing.md) {
+                    ForEach(viewModel.ledgerDateGroups) { group in
+                        dateSection(group)
                     }
                 }
-                .background(Color.wpSurface)
-                .clipShape(RoundedRectangle(cornerRadius: WPCornerRadius.medium))
                 .padding(.horizontal, WPSpacing.lg)
+                .padding(.bottom, WPSpacing.xxl)
             }
+            .scrollContentBackground(.hidden)
+        }
+    }
+
+    private func dateSection(_ group: DateGroup<ExpenseTransaction>) -> some View {
+        VStack(alignment: .leading, spacing: WPSpacing.xs) {
+            // Date header
+            Text(group.label)
+                .font(.wpCaption)
+                .foregroundStyle(Color.wpTextTertiary)
+                .tracking(0.3)
+                .padding(.leading, WPSpacing.xxs)
+                .padding(.bottom, WPSpacing.xxs)
+
+            // Grouped card
+            VStack(spacing: 0) {
+                ForEach(Array(group.items.enumerated()), id: \.element.id) { index, transaction in
+                    ledgerRow(transaction)
+
+                    if index < group.items.count - 1 {
+                        Divider()
+                            .foregroundStyle(Color.wpBorder)
+                            .padding(.leading, WPSpacing.md)
+                    }
+                }
+            }
+            .background(Color.wpSurface)
+            .clipShape(RoundedRectangle(cornerRadius: WPCornerRadius.medium))
         }
     }
 
@@ -204,25 +293,29 @@ struct TransactionListView: View {
         }
     }
 
-    // MARK: - Search Bar Placeholder
+    // MARK: - Search Bar
 
-    private var searchBarPlaceholder: some View {
+    private var searchBar: some View {
         Button {
             // Trigger search via parent — currently search is a sheet from TransactionsTabView
         } label: {
             HStack(spacing: WPSpacing.xs) {
                 Image(systemName: "magnifyingglass")
-                    .font(.system(size: 16))
+                    .font(.wpCaption)
                     .foregroundStyle(Color.wpTextTertiary)
                 Text("Search transactions")
-                    .font(.system(size: 15))
+                    .font(.wpCallout)
                     .foregroundStyle(Color.wpTextTertiary)
                 Spacer()
             }
             .padding(.horizontal, WPSpacing.sm)
-            .padding(.vertical, 10)
-            .background(Color.wpGroupedBackground)
+            .padding(.vertical, WPSpacing.xs)
+            .background(Color.wpSurface)
             .clipShape(RoundedRectangle(cornerRadius: WPCornerRadius.small))
+            .overlay(
+                RoundedRectangle(cornerRadius: WPCornerRadius.small)
+                    .strokeBorder(Color.wpBorder.opacity(0.5), lineWidth: 0.5)
+            )
         }
         .buttonStyle(.plain)
     }
@@ -231,8 +324,8 @@ struct TransactionListView: View {
 
     private var emptyIcon: String {
         switch destination {
-        case .inbox: "tray.and.arrow.down"
-        case .ledger: "list.bullet"
+        case .inbox: "tray"
+        case .ledger: "list.bullet.rectangle"
         case .bankAccount: "building.columns"
         case .category: "folder"
         case .hashtag: "number"

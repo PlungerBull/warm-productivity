@@ -15,7 +15,7 @@ public struct SymbolBadge: View {
 
     public var body: some View {
         Text(symbol)
-            .font(.system(size: WPSymbolBadgeStyle.fontSize, weight: .bold, design: .default))
+            .font(.system(size: WPSymbolBadgeStyle.fontSize, weight: .semibold, design: .rounded))
             .foregroundStyle(color)
             .frame(
                 width: WPSymbolBadgeStyle.size,

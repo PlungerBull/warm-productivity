@@ -23,12 +23,18 @@ struct QuickEntryView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // Command input
+            // Destination badge — subtle indicator of where this entry will land
+            destinationBadge
+                .padding(.horizontal, WPSpacing.md)
+                .padding(.top, WPSpacing.sm)
+                .padding(.bottom, WPSpacing.xxs)
+
+            // Command input — large, prominent, the hero element
             TextField(
                 "e.g. -45 Lunch @Food $BCP",
                 text: $viewModel.commandText
             )
-            .font(.wpBody)
+            .font(.wpHeadline)
             .textFieldStyle(.plain)
             .autocorrectionDisabled()
             .textInputAutocapitalization(.never)
@@ -39,10 +45,10 @@ struct QuickEntryView: View {
                 viewModel.parseCommand()
             }
 
-            // Description field
-            TextField("Description", text: $viewModel.descriptionText, axis: .vertical)
-                .font(.wpCaption)
-                .foregroundStyle(Color.wpTextTertiary)
+            // Description field — Notion-style minimal text input
+            TextField("Add a note...", text: $viewModel.descriptionText, axis: .vertical)
+                .font(.wpCallout)
+                .foregroundStyle(Color.wpTextSecondary)
                 .textFieldStyle(.plain)
                 .lineLimit(1...8)
                 .padding(.horizontal, WPSpacing.md)
@@ -54,10 +60,10 @@ struct QuickEntryView: View {
                     viewModel.errorMessage = nil
                 }
                 .padding(.horizontal, WPSpacing.md)
-                .padding(.bottom, WPSpacing.xs)
+                .padding(.top, WPSpacing.xs)
             }
 
-            // Toolbar row
+            // Toolbar row — pills + send
             toolbarRow
                 .padding(.horizontal, WPSpacing.sm)
                 .padding(.top, WPSpacing.sm)
@@ -80,7 +86,19 @@ struct QuickEntryView: View {
         }
     }
 
-    // MARK: - Destination Indicator
+    // MARK: - Destination Badge
+
+    private var destinationBadge: some View {
+        HStack(spacing: WPSpacing.xxs) {
+            Image(systemName: viewModel.canGoToLedger ? "checkmark.circle.fill" : "tray.fill")
+                .font(.wpCaption2)
+            Text(viewModel.canGoToLedger ? "Ledger" : "Inbox")
+                .font(.wpCaption2)
+                .fontWeight(.medium)
+        }
+        .foregroundStyle(viewModel.canGoToLedger ? Color.wpSuccess : Color.wpTextTertiary)
+        .animation(.easeInOut(duration: 0.2), value: viewModel.canGoToLedger)
+    }
 
     // MARK: - Toolbar Row
 
@@ -88,33 +106,16 @@ struct QuickEntryView: View {
         HStack(spacing: WPSpacing.xs) {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: WPSpacing.xs) {
-                    // Date pill
                     datePill
-
-                    // Category pill
                     categoryPill
-
-                    // Account pill
                     accountPill
-
-                    // Overflow button
-                    Button {
-                        // Future: extra options
-                    } label: {
-                        Text("···")
-                            .font(.system(size: 15))
-                            .foregroundStyle(Color.wpTextTertiary)
-                            .frame(width: 32, height: 30)
-                            .background(Color.wpSurface)
-                            .clipShape(RoundedRectangle(cornerRadius: 6))
-                    }
-                    .buttonStyle(.plain)
                 }
+                .fixedSize(horizontal: true, vertical: false)
             }
+            .scrollClipDisabled()
 
             Spacer(minLength: WPSpacing.xs)
 
-            // Circular send button
             sendButton
         }
     }
@@ -219,7 +220,7 @@ struct QuickEntryView: View {
             let isReady = !viewModel.commandText.isEmpty
             ZStack {
                 Circle()
-                    .fill(isReady ? Color.wpPrimary : Color.wpTextTertiary.opacity(0.4))
+                    .fill(isReady ? Color.wpPrimary : Color.wpTextTertiary.opacity(0.3))
                     .frame(width: WPSendButtonStyle.size, height: WPSendButtonStyle.size)
 
                 Image(systemName: "arrow.up")
@@ -229,6 +230,7 @@ struct QuickEntryView: View {
         }
         .buttonStyle(.plain)
         .disabled(viewModel.commandText.isEmpty || viewModel.isSubmitting)
+        .animation(.easeInOut(duration: 0.15), value: viewModel.commandText.isEmpty)
     }
 
     // MARK: - Date Picker Sheet
@@ -256,4 +258,3 @@ struct QuickEntryView: View {
         .presentationDetents([.medium])
     }
 }
-

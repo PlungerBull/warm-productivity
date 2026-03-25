@@ -35,23 +35,25 @@ public struct EmptyStateView: View {
     }
 
     public var body: some View {
-        VStack(spacing: WPSpacing.md) {
+        VStack(spacing: WPSpacing.lg) {
             if let icon {
                 Image(systemName: icon)
-                    .font(.system(size: 44, weight: .light))
-                    .foregroundStyle(Color.wpTextTertiary)
+                    .font(.wpIconDecorative)
+                    .foregroundStyle(Color.wpTextTertiary.opacity(0.6))
+                    .padding(.bottom, WPSpacing.xxs)
             }
 
             VStack(spacing: WPSpacing.xs) {
                 Text(title)
-                    .font(.wpHeadline)
-                    .foregroundStyle(Color.wpTextPrimary)
+                    .font(.wpSubheadline)
+                    .foregroundStyle(Color.wpTextSecondary)
 
                 if let message {
                     Text(message)
-                        .font(.wpCallout)
-                        .foregroundStyle(Color.wpTextSecondary)
+                        .font(.wpCaption)
+                        .foregroundStyle(Color.wpTextTertiary)
                         .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
 
@@ -59,13 +61,17 @@ public struct EmptyStateView: View {
                 Button(action: action) {
                     Text(actionTitle)
                         .font(.wpSubheadline)
-                        .foregroundStyle(Color.wpPrimary)
+                        .foregroundStyle(Color.wpOnPrimary)
+                        .padding(.horizontal, WPSpacing.lg)
+                        .padding(.vertical, WPSpacing.xs)
+                        .background(Color.wpPrimary)
+                        .clipShape(Capsule())
                 }
-                .padding(.top, WPSpacing.xs)
+                .buttonStyle(.plain)
+                .padding(.top, WPSpacing.xxs)
             }
         }
-        .padding(.horizontal, WPSpacing.xl)
-        .padding(.vertical, WPSpacing.xxl)
+        .padding(.horizontal, WPSpacing.xxl)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .accessibilityElement(children: .combine)
     }

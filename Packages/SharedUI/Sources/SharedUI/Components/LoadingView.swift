@@ -9,24 +9,31 @@ import SwiftUI
 /// ```
 public struct LoadingView: View {
     private let message: String?
+    @State private var appeared = false
 
     public init(message: String? = nil) {
         self.message = message
     }
 
     public var body: some View {
-        VStack(spacing: WPSpacing.md) {
+        VStack(spacing: WPSpacing.sm) {
             ProgressView()
                 .controlSize(.regular)
-                .tint(Color.wpPrimary)
+                .tint(Color.wpTextTertiary)
 
             if let message {
                 Text(message)
-                    .font(.wpCallout)
-                    .foregroundStyle(Color.wpTextSecondary)
+                    .font(.wpCaption)
+                    .foregroundStyle(Color.wpTextTertiary)
             }
         }
+        .opacity(appeared ? 1 : 0)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .onAppear {
+            withAnimation(.easeIn(duration: 0.3).delay(0.1)) {
+                appeared = true
+            }
+        }
         .accessibilityElement(children: .combine)
         .accessibilityLabel(message ?? "Loading")
     }

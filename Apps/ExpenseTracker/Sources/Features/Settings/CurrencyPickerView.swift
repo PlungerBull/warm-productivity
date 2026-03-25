@@ -24,19 +24,28 @@ struct CurrencyPickerView: View {
                 onSelect(currency.code)
                 dismiss()
             } label: {
-                HStack {
-                    Text("\(currency.flag ?? "") \(currency.code)")
-                        .font(.wpHeadline)
-                        .foregroundStyle(Color.wpTextPrimary)
-                    Text(currency.name)
-                        .font(.wpBody)
-                        .foregroundStyle(Color.wpTextSecondary)
+                HStack(spacing: WPSpacing.sm) {
+                    if let flag = currency.flag {
+                        Text(flag)
+                            .font(.wpTitle)
+                            .frame(width: 32, alignment: .center)
+                    }
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(currency.code)
+                            .font(.wpHeadline)
+                            .foregroundStyle(Color.wpTextPrimary)
+                        Text(currency.name)
+                            .font(.wpCaption)
+                            .foregroundStyle(Color.wpTextSecondary)
+                    }
                     Spacer()
                     if currency.code == selectedCode {
                         Image(systemName: "checkmark")
+                            .font(.wpBody)
                             .foregroundStyle(Color.wpPrimary)
                     }
                 }
+                .contentShape(Rectangle())
             }
         }
         .scrollContentBackground(.hidden)

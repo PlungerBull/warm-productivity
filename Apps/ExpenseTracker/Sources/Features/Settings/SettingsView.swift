@@ -19,11 +19,11 @@ struct SettingsView: View {
                         // Future: profile detail
                         EmptyView()
                     } label: {
-                        HStack(spacing: WPSpacing.sm) {
+                        HStack(spacing: WPSpacing.md) {
                             initialsAvatar
-                            VStack(alignment: .leading, spacing: WPSpacing.xxs) {
+                            VStack(alignment: .leading, spacing: 2) {
                                 Text(viewModel.user?.displayName ?? "User")
-                                    .font(.wpBody)
+                                    .font(.wpHeadline)
                                     .foregroundStyle(Color.wpTextPrimary)
                                 if let email = viewModel.user?.email {
                                     Text(email)
@@ -37,7 +37,7 @@ struct SettingsView: View {
                 }
 
                 // General section
-                Section("General") {
+                Section {
                     NavigationLink {
                         CurrencyPickerView(
                             currencies: viewModel.currencies,
@@ -45,44 +45,77 @@ struct SettingsView: View {
                             onSelect: { code in viewModel.updateCurrency(code) }
                         )
                     } label: {
-                        settingsRow("Home Currency", value: "\(viewModel.settings?.mainCurrency ?? "USD")")
+                        settingsRow(
+                            icon: "banknote",
+                            label: "Home Currency",
+                            value: viewModel.settings?.mainCurrency ?? "USD"
+                        )
                     }
 
-                    settingsRow("Default Account", value: "Chase")
+                    settingsRow(
+                        icon: "building.columns",
+                        label: "Default Account",
+                        value: "Chase"
+                    )
+                } header: {
+                    Text("General")
                 }
 
                 // Display section
-                Section("Display") {
+                Section {
                     NavigationLink {
                         AppearancePickerView(
                             currentTheme: viewModel.settings?.theme ?? "system",
                             onSelect: { theme in viewModel.updateTheme(theme) }
                         )
                     } label: {
-                        settingsRow("Appearance", value: viewModel.settings?.theme.capitalized ?? "System")
+                        settingsRow(
+                            icon: "circle.lefthalf.filled",
+                            label: "Appearance",
+                            value: viewModel.settings?.theme.capitalized ?? "System"
+                        )
                     }
+                } header: {
+                    Text("Display")
                 }
 
                 // Data section
-                Section("Data") {
+                Section {
                     NavigationLink {
                         CSVImportView(viewModel: makeCSVImportViewModel())
                     } label: {
-                        Label("Import CSV", systemImage: "square.and.arrow.down")
+                        Label {
+                            Text("Import CSV")
+                                .font(.wpBody)
+                        } icon: {
+                            Image(systemName: "square.and.arrow.down")
+                                .foregroundStyle(Color.wpPrimary)
+                        }
                     }
-                    Label("Export Data", systemImage: "square.and.arrow.up")
-                        .foregroundStyle(Color.wpTextTertiary)
+
+                    Label {
+                        Text("Export Data")
+                            .font(.wpBody)
+                            .foregroundStyle(Color.wpTextTertiary)
+                    } icon: {
+                        Image(systemName: "square.and.arrow.up")
+                            .foregroundStyle(Color.wpTextTertiary)
+                    }
+                } header: {
+                    Text("Data")
                 }
 
-                // Sign Out
+                // Sign Out section
                 Section {
-                    Button {
+                    Button(role: .destructive) {
                         showSignOutConfirmation = true
                     } label: {
-                        Text("Sign Out")
-                            .font(.wpBody)
-                            .foregroundStyle(Color.wpError)
-                            .frame(maxWidth: .infinity, alignment: .center)
+                        HStack {
+                            Spacer()
+                            Text("Sign Out")
+                                .font(.wpBody)
+                            Spacer()
+                        }
                     }
                 }
             }
@@ -102,6 +135,8 @@ struct SettingsView: View {
         }
     }
 
+    // MARK: - Components
+
     private var initialsAvatar: some View {
         let name = viewModel.user?.displayName ?? "U"
         let components = name.split(separator: " ")
@@ -112,7 +147,7 @@ struct SettingsView: View {
         return Text(initials)
             .font(.wpHeadline)
             .foregroundStyle(Color.wpPrimary)
-            .frame(width: 44, height: 44)
+            .frame(width: WPSize.avatarMedium, height: WPSize.avatarMedium)
             .background(Color.wpPrimary.opacity(0.1))
             .clipShape(Circle())
     }
@@ -124,11 +159,17 @@ struct SettingsView: View {
         return symbols[index]
     }
 
-    private func settingsRow(_ label: String, value: String) -> some View {
-        HStack {
+    private func settingsRow(icon: String, label: String, value: String) -> some View {
+        HStack(spacing: WPSpacing.sm) {
+            Image(systemName: icon)
+                .font(.wpBody)
+                .foregroundStyle(Color.wpPrimary)
+                .frame(width: 24, alignment: .center)
             Text(label)
+                .font(.wpBody)
             Spacer()
             Text(value)
+                .font(.wpBody)
                 .foregroundStyle(Color.wpTextSecondary)
         }
     }

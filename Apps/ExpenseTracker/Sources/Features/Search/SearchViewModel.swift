@@ -24,6 +24,7 @@ final class SearchViewModel {
 
     // Lookup dictionaries
     private(set) var categoryNames: [UUID: String] = [:]
+    private(set) var categoryColors: [UUID: String] = [:]
     private(set) var accountNames: [UUID: String] = [:]
     private var hashtagNames: [UUID: String] = [:]
     private var transactionHashtags: [UUID: Set<UUID>] = [:]  // transactionId → hashtagIds
@@ -67,6 +68,7 @@ final class SearchViewModel {
             // Build category name lookup
             let categories = try categoryRepository.fetchAll(userId: userId)
             categoryNames = Dictionary(uniqueKeysWithValues: categories.map { ($0.id, $0.name) })
+            categoryColors = Dictionary(uniqueKeysWithValues: categories.map { ($0.id, $0.color) })
 
             // Build account name lookup
             let accounts = try bankAccountRepository.fetchAll(userId: userId)

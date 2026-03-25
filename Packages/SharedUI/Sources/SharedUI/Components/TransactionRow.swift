@@ -32,12 +32,13 @@ public struct TransactionRow: View {
     public var body: some View {
         HStack(spacing: 0) {
             // Left border — category color (ledger) or green/clear (inbox)
-            Rectangle()
+            RoundedRectangle(cornerRadius: 1.5)
                 .fill(borderColor ?? Color.clear)
                 .frame(width: 3)
+                .padding(.vertical, WPSpacing.xxs)
 
             // Row content
-            HStack {
+            HStack(spacing: WPSpacing.xs) {
                 Text(title)
                     .font(isUntitled ? Font.wpCallout.italic() : .wpCallout)
                     .foregroundStyle(isUntitled ? Color.wpTextTertiary : Color.wpTextPrimary)
@@ -61,9 +62,9 @@ public struct TransactionRow: View {
                     .lineLimit(1)
                     .fixedSize()
             }
-            .padding(.leading, 13)
+            .padding(.leading, WPSpacing.sm)
             .padding(.trailing, WPSpacing.md)
-            .padding(.vertical, WPSpacing.sm)
+            .padding(.vertical, 10)
         }
     }
 

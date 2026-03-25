@@ -35,6 +35,7 @@ struct TransactionsTabView: View {
                 LoadingView()
             }
         }
+        .scrollContentBackground(.hidden)
         .sheet(isPresented: $showSearch) {
             SearchView(
                 viewModel: makeSearchViewModel(),

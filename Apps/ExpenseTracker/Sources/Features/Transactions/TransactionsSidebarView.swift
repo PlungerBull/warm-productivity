@@ -7,6 +7,10 @@ struct TransactionsSidebarView: View {
     let onSelect: (SidebarDestination) -> Void
     var onSearch: (() -> Void)?
 
+    @State private var accountsExpanded: Bool = true
+    @State private var categoriesExpanded: Bool = true
+    @State private var hashtagsExpanded: Bool = true
+
     var body: some View {
         ScrollView {
             VStack(spacing: 0) {
@@ -14,7 +18,7 @@ struct TransactionsSidebarView: View {
                 header
                     .padding(.horizontal, WPSpacing.md)
                     .padding(.top, WPSpacing.xs)
-                    .padding(.bottom, WPSpacing.lg)
+                    .padding(.bottom, WPSpacing.md)
 
                 // MARK: - Inbox & Ledger Card
                 VStack(spacing: 0) {
@@ -28,10 +32,14 @@ struct TransactionsSidebarView: View {
 
                 // MARK: - Bank Accounts
                 if viewModel.settings?.sidebarShowBankAccounts != false {
-                    sidebarSection(title: "BANK ACCOUNTS", onCreate: {
-                        viewModel.newItemName = ""
-                        viewModel.showCreateAccount = true
-                    }) {
+                    collapsibleSection(
+                        title: "Accounts",
+                        isExpanded: $accountsExpanded,
+                        onCreate: {
+                            viewModel.newItemName = ""
+                            viewModel.showCreateAccount = true
+                        }
+                    ) {
                         if viewModel.bankAccounts.isEmpty {
                             emptyHint("Tap + to add your first account")
                         } else {
@@ -57,10 +65,14 @@ struct TransactionsSidebarView: View {
 
                 // MARK: - Categories
                 if viewModel.settings?.sidebarShowCategories != false {
-                    sidebarSection(title: "CATEGORIES", onCreate: {
-                        viewModel.newItemName = ""
-                        viewModel.showCreateCategory = true
-                    }) {
+                    collapsibleSection(
+                        title: "Categories",
+                        isExpanded: $categoriesExpanded,
+                        onCreate: {
+                            viewModel.newItemName = ""
+                            viewModel.showCreateCategory = true
+                        }
+                    ) {
                         if viewModel.categories.isEmpty {
                             emptyHint("Tap + to create categories")
                         } else {
@@ -87,10 +99,14 @@ struct TransactionsSidebarView: View {
                 }
 
                 // MARK: - Hashtags
-                sidebarSection(title: "HASHTAGS", onCreate: {
-                    viewModel.newItemName = ""
-                    viewModel.showCreateHashtag = true
-                }) {
+                collapsibleSection(
+                    title: "Hashtags",
+                    isExpanded: $hashtagsExpanded,
+                    onCreate: {
+                        viewModel.newItemName = ""
+                        viewModel.showCreateHashtag = true
+                    }
+                ) {
                     if viewModel.hashtags.isEmpty {
                         emptyHint("Hashtags appear as you use them")
                     } else {
@@ -114,8 +130,9 @@ struct TransactionsSidebarView: View {
                 Spacer(minLength: 120)
             }
         }
+        .scrollIndicators(.hidden)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.wpGroupedBackground.ignoresSafeArea())
+        .background(.background)
         .sheet(isPresented: $viewModel.showCreateAccount) {
             CreateAccountSheet(viewModel: viewModel)
                 .presentationDetents([.medium])
@@ -146,7 +163,7 @@ struct TransactionsSidebarView: View {
     // MARK: - Header
 
     private var header: some View {
-        HStack {
+        HStack(alignment: .center) {
             Text("Transactions")
                 .font(.wpLargeTitle)
                 .foregroundStyle(Color.wpTextPrimary)
@@ -154,8 +171,10 @@ struct TransactionsSidebarView: View {
             Spacer()
             Button(action: { onSearch?() }) {
                 Image(systemName: "magnifyingglass")
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundStyle(Color.wpTextSecondary)
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundStyle(Color.wpTextTertiary)
+                    .frame(width: 32, height: 32)
+                    .contentShape(Circle())
             }
             .buttonStyle(.plain)
         }
@@ -167,9 +186,9 @@ struct TransactionsSidebarView: View {
         Button { onSelect(.inbox) } label: {
             HStack(spacing: WPSpacing.sm) {
                 Image(systemName: "tray.and.arrow.down")
-                    .font(.system(size: 22))
+                    .font(.system(size: 18, weight: .regular))
                     .foregroundStyle(Color.wpPrimary)
-                    .frame(width: 24)
+                    .frame(width: 28, height: 28)
                 Text("Inbox")
                     .font(.wpBody)
                     .foregroundStyle(Color.wpTextPrimary)
@@ -183,12 +202,10 @@ struct TransactionsSidebarView: View {
                         .background(Color.wpPrimary)
                         .clipShape(Capsule())
                 }
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(Color.wpTextTertiary)
             }
             .padding(.horizontal, WPSpacing.md)
-            .padding(.vertical, WPSpacing.sm)
+            .frame(minHeight: 44)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
     }
@@ -199,19 +216,17 @@ struct TransactionsSidebarView: View {
         Button { onSelect(.ledger) } label: {
             HStack(spacing: WPSpacing.sm) {
                 Image(systemName: "creditcard")
-                    .font(.system(size: 22))
+                    .font(.system(size: 18, weight: .regular))
                     .foregroundStyle(Color.wpPrimary)
-                    .frame(width: 24)
+                    .frame(width: 28, height: 28)
                 Text("Ledger")
                     .font(.wpBody)
                     .foregroundStyle(Color.wpTextPrimary)
                 Spacer()
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(Color.wpTextTertiary)
             }
             .padding(.horizontal, WPSpacing.md)
-            .padding(.vertical, WPSpacing.sm)
+            .frame(minHeight: 44)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
     }
@@ -230,57 +245,80 @@ struct TransactionsSidebarView: View {
             HStack(spacing: WPSpacing.sm) {
                 SymbolBadge(symbol: symbol, color: color)
                 Text(label)
-                    .font(.wpBody)
+                    .font(.wpCallout)
                     .foregroundStyle(Color.wpTextPrimary)
                     .lineLimit(1)
                 Spacer(minLength: WPSpacing.xs)
                 if let value {
                     Text(value)
-                        .font(.wpAmount)
+                        .font(.wpAmountCompact)
                         .foregroundStyle(valueColor)
                         .lineLimit(1)
                         .fixedSize()
                 }
             }
             .padding(.horizontal, WPSpacing.md)
-            .padding(.vertical, WPSpacing.xs)
+            .frame(minHeight: 40)
         }
         .buttonStyle(.plain)
     }
 
-    // MARK: - Section Container
+    // MARK: - Collapsible Section
 
-    private func sidebarSection<Content: View>(
+    private func collapsibleSection<Content: View>(
         title: String,
+        isExpanded: Binding<Bool>,
         onCreate: @escaping () -> Void,
         @ViewBuilder content: () -> Content
     ) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            // Section header with + button
-            HStack {
-                Text(title)
-                    .font(.wpCaption.weight(.medium))
-                    .foregroundStyle(Color.wpTextSecondary)
-                    .tracking(0.8)
+            // Section header
+            HStack(spacing: WPSpacing.xs) {
+                Button {
+                    withAnimation(.easeInOut(duration: 0.25)) {
+                        isExpanded.wrappedValue.toggle()
+                    }
+                } label: {
+                    HStack(spacing: WPSpacing.xxs) {
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundStyle(Color.wpTextTertiary)
+                            .rotationEffect(.degrees(isExpanded.wrappedValue ? 90 : 0))
+
+                        Text(title.uppercased())
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(Color.wpTextTertiary)
+                            .tracking(0.6)
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+
                 Spacer()
+
                 Button(action: onCreate) {
                     Image(systemName: "plus")
-                        .font(.system(size: 18, weight: .medium))
-                        .foregroundStyle(Color.wpPrimary)
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundStyle(Color.wpTextTertiary)
+                        .frame(width: 28, height: 28)
+                        .contentShape(Circle())
                 }
                 .buttonStyle(.plain)
             }
             .padding(.horizontal, WPSpacing.md)
             .padding(.top, WPSpacing.lg)
-            .padding(.bottom, WPSpacing.xs)
+            .padding(.bottom, WPSpacing.xxs)
 
             // Card with rows
-            VStack(spacing: 0) {
-                content()
+            if isExpanded.wrappedValue {
+                VStack(spacing: 0) {
+                    content()
+                }
+                .background(Color.wpSurface)
+                .clipShape(RoundedRectangle(cornerRadius: WPCornerRadius.medium))
+                .padding(.horizontal, WPSpacing.md)
+                .transition(.opacity.combined(with: .move(edge: .top)))
             }
-            .background(Color.wpSurface)
-            .clipShape(RoundedRectangle(cornerRadius: WPCornerRadius.medium))
-            .padding(.horizontal, WPSpacing.md)
         }
     }
 
@@ -288,10 +326,10 @@ struct TransactionsSidebarView: View {
 
     private func emptyHint(_ text: String) -> some View {
         Text(text)
-            .font(.wpBody)
+            .font(.wpCaption)
             .foregroundStyle(Color.wpTextTertiary)
             .padding(.horizontal, WPSpacing.md)
-            .padding(.vertical, WPSpacing.sm)
+            .frame(maxWidth: .infinity, minHeight: 40, alignment: .leading)
     }
 
     // MARK: - Card Divider

@@ -12,23 +12,26 @@ struct AuthView: View {
     var body: some View {
         VStack(spacing: 0) {
             Spacer()
+            Spacer()
 
             // Line-art brand mark — rounded square with stylized "E" letterform
             BrandMark()
                 .stroke(Color.wpPrimary, lineWidth: 2.5)
-                .frame(width: 72, height: 72)
-                .padding(.bottom, WPSpacing.lg)
+                .frame(width: 80, height: 80)
+                .padding(.bottom, WPSpacing.xl)
 
             // Title and subtitle
             Text("Warm Productivity")
-                .font(.wpTitle)
+                .font(.wpLargeTitle)
                 .foregroundStyle(Color.wpTextPrimary)
-                .padding(.bottom, 6)
+                .padding(.bottom, WPSpacing.xxs)
 
             Text("Expense Tracker")
-                .font(.wpCallout)
+                .font(.wpSubheadline)
                 .foregroundStyle(Color.wpTextSecondary)
 
+            Spacer()
+            Spacer()
             Spacer()
 
             // Error banner
@@ -76,13 +79,13 @@ struct AuthView: View {
                 .font(.wpCaption)
                 .foregroundStyle(Color.wpTextTertiary)
                 .multilineTextAlignment(.center)
-                .lineSpacing(4)
-                .padding(.top, 20)
-                .padding(.bottom, WPSpacing.xl)
+                .lineSpacing(3)
+                .padding(.top, WPSpacing.lg)
+                .padding(.bottom, WPSpacing.xxl)
         }
         .padding(.horizontal, WPSpacing.xl)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.wpBackground.ignoresSafeArea())
+        .background(.background)
         .accessibilityElement(children: .contain)
     }
 }

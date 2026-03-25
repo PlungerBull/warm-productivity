@@ -21,10 +21,10 @@ struct OnboardingView: View {
                         .foregroundStyle(Color.wpTextPrimary)
 
                     Text("Two quick things and you're in.")
-                        .font(.wpCallout)
+                        .font(.wpBody)
                         .foregroundStyle(Color.wpTextSecondary)
                 }
-                .padding(.top, WPSpacing.xl)
+                .padding(.top, WPSpacing.xxl)
                 .padding(.horizontal, WPSpacing.lg)
 
                 if let error = viewModel.errorMessage {
@@ -40,11 +40,11 @@ struct OnboardingView: View {
                         .padding(.top, WPSpacing.xxl)
                 } else {
                     // Form fields
-                    VStack(alignment: .leading, spacing: WPSpacing.lg) {
+                    VStack(alignment: .leading, spacing: WPSpacing.xl) {
                         // Currency picker
-                        VStack(alignment: .leading, spacing: 6) {
+                        VStack(alignment: .leading, spacing: WPSpacing.xs) {
                             Text("Home Currency")
-                                .font(.wpCaption.weight(.medium))
+                                .font(.wpSubheadline)
                                 .foregroundStyle(Color.wpTextSecondary)
 
                             NavigationLink {
@@ -64,36 +64,36 @@ struct OnboardingView: View {
                                             .foregroundStyle(Color.wpTextTertiary)
                                     }
                                     Spacer()
-                                    Image(systemName: "chevron.down")
-                                        .font(.system(size: 12, weight: .medium))
+                                    Image(systemName: "chevron.right")
+                                        .font(.wpCaption)
                                         .foregroundStyle(Color.wpTextTertiary)
                                 }
                                 .padding(.horizontal, WPSpacing.md)
                                 .padding(.vertical, WPSpacing.sm)
-                                .background(Color.wpGroupedBackground)
+                                .background(Color.wpSurface)
                                 .clipShape(RoundedRectangle(cornerRadius: WPCornerRadius.small))
                                 .overlay(
                                     RoundedRectangle(cornerRadius: WPCornerRadius.small)
-                                        .stroke(Color.wpBorder, lineWidth: 1)
+                                        .stroke(Color.wpBorder, lineWidth: 0.5)
                                 )
                             }
                         }
 
                         // Bank account name
-                        VStack(alignment: .leading, spacing: 6) {
+                        VStack(alignment: .leading, spacing: WPSpacing.xs) {
                             Text("First Bank Account")
-                                .font(.wpCaption.weight(.medium))
+                                .font(.wpSubheadline)
                                 .foregroundStyle(Color.wpTextSecondary)
 
                             TextField("e.g., Chase Checking", text: $viewModel.bankAccountName)
                                 .font(.wpBody)
                                 .padding(.horizontal, WPSpacing.md)
                                 .padding(.vertical, WPSpacing.sm)
-                                .background(Color.wpGroupedBackground)
+                                .background(Color.wpSurface)
                                 .clipShape(RoundedRectangle(cornerRadius: WPCornerRadius.small))
                                 .overlay(
                                     RoundedRectangle(cornerRadius: WPCornerRadius.small)
-                                        .stroke(Color.wpBorder, lineWidth: 1)
+                                        .stroke(Color.wpBorder, lineWidth: 0.5)
                                 )
                                 .textInputAutocapitalization(.words)
                                 .autocorrectionDisabled()
@@ -101,7 +101,7 @@ struct OnboardingView: View {
                         }
                     }
                     .padding(.horizontal, WPSpacing.lg)
-                    .padding(.top, WPSpacing.xxl)
+                    .padding(.top, WPSpacing.xl)
 
                     Spacer()
 
@@ -138,7 +138,7 @@ struct OnboardingView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Color.wpBackground.ignoresSafeArea())
+            .background(.background)
             .navigationBarHidden(true)
             .task {
                 await viewModel.loadCurrencies()
@@ -170,26 +170,28 @@ private struct CurrencyPickerList: View {
                 selectedCode = currency.code
                 dismiss()
             } label: {
-                HStack {
-                    Text("\(currency.code)")
+                HStack(spacing: WPSpacing.sm) {
+                    Text(currency.code)
                         .font(.wpHeadline)
                         .foregroundStyle(Color.wpTextPrimary)
+                        .frame(width: 44, alignment: .leading)
                     Text(currency.name)
                         .font(.wpBody)
                         .foregroundStyle(Color.wpTextSecondary)
                     Spacer()
                     if currency.code == selectedCode {
                         Image(systemName: "checkmark")
+                            .font(.wpBody)
                             .foregroundStyle(Color.wpPrimary)
                     }
                 }
+                .contentShape(Rectangle())
             }
-            .listRowBackground(Color.wpSurface)
         }
         .searchable(text: $searchText, prompt: "Search currencies")
         .navigationTitle("Select Currency")
         .navigationBarTitleDisplayMode(.inline)
         .listStyle(.plain)
-        .background(Color.wpBackground)
+        .scrollContentBackground(.hidden)
     }
 }

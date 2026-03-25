@@ -21,83 +21,79 @@ public struct ErrorBanner: View {
     private let onDismiss: (() -> Void)?
     @State private var isVisible = false
 
-    @Environment(\.colorScheme) private var colorScheme
-
     public init(message: String, onDismiss: (() -> Void)? = nil) {
         self.message = message
         self.onDismiss = onDismiss
     }
 
-    /// Light: dark red #991b1b. Dark: soft pink #fca5a5.
+    /// Adaptive error text: dark maroon in light mode, soft pink in dark mode.
     private var errorTextColor: Color {
-        colorScheme == .dark
-            ? Color(hex: "fca5a5")
-            : Color(hex: "991b1b")
+        Color(light: Color(hex: "7f1d1d"), dark: Color(hex: "fecaca"))
     }
 
-    /// Light: #fef2f2. Dark: error at 10% opacity.
+    /// Subtle error background tint.
     private var errorBackground: Color {
-        colorScheme == .dark
-            ? Color.wpError.opacity(0.1)
-            : Color(hex: "fef2f2")
+        Color(light: Color(hex: "fef2f2"), dark: Color.wpError.opacity(0.08))
     }
 
-    /// Light: #fecaca. Dark: error at 20% opacity.
+    /// Matching border color.
     private var errorBorderColor: Color {
-        colorScheme == .dark
-            ? Color.wpError.opacity(0.2)
-            : Color(hex: "fecaca")
+        Color(light: Color(hex: "fecaca").opacity(0.8), dark: Color.wpError.opacity(0.15))
     }
 
     public var body: some View {
         HStack(spacing: WPSpacing.xs) {
-            Image(systemName: "exclamationmark.circle")
-                .font(.system(size: 16))
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.system(size: 14, weight: .medium))
                 .foregroundStyle(Color.wpError)
 
             Text(message)
-                .font(.system(size: 13))
+                .font(.wpCaption)
                 .foregroundStyle(errorTextColor)
                 .lineLimit(2)
-                .lineSpacing(2)
 
-            Spacer(minLength: WPSpacing.xs)
+            Spacer(minLength: WPSpacing.xxs)
 
             if let onDismiss {
                 Button {
-                    withAnimation(.easeOut(duration: 0.2)) {
-                        isVisible = false
-                    }
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                        onDismiss()
-                    }
+                    dismiss(onDismiss)
                 } label: {
                     Image(systemName: "xmark")
-                        .font(.system(size: 12, weight: .medium))
+                        .font(.system(size: 10, weight: .semibold))
                         .foregroundStyle(Color.wpTextTertiary)
-                        .frame(width: 24, height: 24)
+                        .frame(width: 20, height: 20)
+                        .contentShape(Circle())
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Dismiss error")
             }
         }
-        .padding(.horizontal, WPSpacing.md)
-        .padding(.vertical, WPSpacing.sm)
+        .padding(.horizontal, WPSpacing.sm)
+        .padding(.vertical, WPSpacing.xs)
         .background(errorBackground)
         .clipShape(RoundedRectangle(cornerRadius: WPCornerRadius.small))
         .overlay(
             RoundedRectangle(cornerRadius: WPCornerRadius.small)
-                .stroke(errorBorderColor, lineWidth: 1)
+                .stroke(errorBorderColor, lineWidth: 0.5)
         )
         .padding(.horizontal, WPSpacing.md)
-        .offset(y: isVisible ? 0 : -20)
+        .offset(y: isVisible ? 0 : -12)
         .opacity(isVisible ? 1 : 0)
         .onAppear {
-            withAnimation(.easeOut(duration: 0.25)) {
+            withAnimation(.spring(duration: 0.35, bounce: 0.15)) {
                 isVisible = true
             }
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Error: \(message)")
+    }
+
+    private func dismiss(_ handler: @escaping () -> Void) {
+        withAnimation(.easeOut(duration: 0.2)) {
+            isVisible = false
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            handler()
+        }
     }
 }

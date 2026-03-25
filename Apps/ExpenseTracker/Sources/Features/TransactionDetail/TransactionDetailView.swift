@@ -23,10 +23,13 @@ struct TransactionDetailView: View {
     var body: some View {
         VStack(spacing: 0) {
             sheetContent
+
             Spacer(minLength: 0)
+
             if viewModel.canPromote {
                 promoteButton
             }
+
             bottomToolbar
         }
         .background(.clear)
@@ -53,31 +56,17 @@ struct TransactionDetailView: View {
         }
     }
 
-    // MARK: - Drag Handle
-
-    private var dragHandle: some View {
-        RoundedRectangle(cornerRadius: WPContentSheetStyle.handleCornerRadius)
-            .fill(Color.wpBorder)
-            .frame(
-                width: WPContentSheetStyle.handleWidth,
-                height: WPContentSheetStyle.handleHeight
-            )
-            .padding(.top, WPSpacing.sm)
-            .padding(.bottom, WPSpacing.sm)
-    }
-
     // MARK: - Sheet Content
 
     private var sheetContent: some View {
         VStack(alignment: .leading, spacing: 0) {
             headerRow
 
-            dateLine
-                .padding(.top, WPSpacing.sm)
-
+            // Title field — large and prominent
             titleField
-                .padding(.top, WPSpacing.xs)
+                .padding(.top, WPSpacing.md)
 
+            // Amount field — the hero number
             amountField
                 .padding(.top, WPSpacing.xxs)
 
@@ -86,11 +75,23 @@ struct TransactionDetailView: View {
                     .padding(.top, WPSpacing.xs)
             }
 
-            descriptionField
+            // Metadata row — date + account inline
+            metadataRow
                 .padding(.top, WPSpacing.md)
 
+            // Thin separator
+            Rectangle()
+                .fill(Color.wpBorder.opacity(0.5))
+                .frame(height: 0.5)
+                .padding(.top, WPSpacing.md)
+
+            // Description field — Notion-style clean text area
+            descriptionField
+                .padding(.top, WPSpacing.sm)
+
+            // Tags — flow layout chips
             tagsArea
-                .padding(.top, WPSpacing.lg)
+                .padding(.top, WPSpacing.md)
         }
         .padding(.horizontal, WPSpacing.md)
     }
@@ -99,31 +100,25 @@ struct TransactionDetailView: View {
 
     private var headerRow: some View {
         HStack {
-            Button {
-                showAccountPicker = true
-            } label: {
-                HStack(spacing: WPSpacing.xxs) {
-                    Image(systemName: "building.columns")
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundStyle(Color.wpPrimary)
-                    Text(selectedAccountName)
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundStyle(Color.wpPrimary)
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 10, weight: .medium))
-                        .foregroundStyle(Color.wpTextTertiary)
-                }
+            // Source badge
+            HStack(spacing: WPSpacing.xxs) {
+                Circle()
+                    .fill(viewModel.isInbox ? Color.wpWarning : Color.wpSuccess)
+                    .frame(width: 6, height: 6)
+                Text(viewModel.isInbox ? "Inbox" : "Ledger")
+                    .font(.wpCaption)
+                    .fontWeight(.medium)
+                    .foregroundStyle(Color.wpTextSecondary)
             }
-            .buttonStyle(.plain)
 
             Spacer()
 
-            HStack(spacing: WPSpacing.lg) {
+            HStack(spacing: WPSpacing.md) {
                 Button {
                     viewModel.showDeleteConfirmation = true
                 } label: {
                     Image(systemName: "trash")
-                        .font(.system(size: 16))
+                        .font(.wpCallout)
                         .foregroundStyle(Color.wpTextTertiary)
                 }
                 .buttonStyle(.plain)
@@ -159,38 +154,10 @@ struct TransactionDetailView: View {
                     }
                 } label: {
                     Image(systemName: "ellipsis")
-                        .font(.system(size: 16))
+                        .font(.wpCallout)
                         .foregroundStyle(Color.wpTextTertiary)
                 }
             }
-        }
-    }
-
-    // MARK: - Date Line
-
-    private var dateLine: some View {
-        Button {
-            showDatePicker.toggle()
-        } label: {
-            HStack(spacing: WPSpacing.xxs) {
-                Image(systemName: "calendar")
-                    .font(.system(size: 13))
-                    .foregroundStyle(Color.wpPrimary)
-                Text(formattedDate)
-                    .font(.system(size: 13))
-                    .foregroundStyle(Color.wpPrimary)
-            }
-        }
-        .buttonStyle(.plain)
-        .popover(isPresented: $showDatePicker) {
-            DatePicker(
-                "Date",
-                selection: $viewModel.date,
-                displayedComponents: .date
-            )
-            .datePickerStyle(.graphical)
-            .padding()
-            .presentationCompactAdaptation(.popover)
         }
     }
 
@@ -203,7 +170,7 @@ struct TransactionDetailView: View {
             .textFieldStyle(.plain)
             .overlay(alignment: .leading) {
                 if viewModel.validationErrors.contains(.title) {
-                    Rectangle()
+                    RoundedRectangle(cornerRadius: 1)
                         .fill(Color.wpError)
                         .frame(width: 2)
                         .offset(x: -WPSpacing.xs)
@@ -223,11 +190,13 @@ struct TransactionDetailView: View {
                     .foregroundStyle(amountColor)
             }
             .buttonStyle(.plain)
+            .contentTransition(.numericText())
 
             if let currency = viewModel.accountCurrency {
-                Text(currencySymbol(for: currency))
-                    .font(.system(size: WPContentSheetStyle.amountFontSize, weight: .semibold).monospacedDigit())
-                    .foregroundStyle(amountColor)
+                Text(currency)
+                    .font(.system(size: WPContentSheetStyle.amountFontSize * 0.6, weight: .medium).monospacedDigit())
+                    .foregroundStyle(amountColor.opacity(0.6))
+                    .alignmentGuide(.firstTextBaseline) { d in d[.firstTextBaseline] }
             }
 
             TextField("0.00", text: $viewModel.amountString)
@@ -238,7 +207,7 @@ struct TransactionDetailView: View {
         }
         .overlay(alignment: .leading) {
             if viewModel.validationErrors.contains(.amount) {
-                Rectangle()
+                RoundedRectangle(cornerRadius: 1)
                     .fill(Color.wpError)
                     .frame(width: 2)
                     .offset(x: -WPSpacing.xs)
@@ -250,6 +219,9 @@ struct TransactionDetailView: View {
 
     private var exchangeRateLine: some View {
         HStack(spacing: WPSpacing.xxs) {
+            Image(systemName: "arrow.left.arrow.right")
+                .font(.wpCaption2)
+                .foregroundStyle(Color.wpTextTertiary)
             Text("\(viewModel.accountCurrency ?? "") \u{2192} \(viewModel.currencyFormatter.currencyCode)")
                 .font(.wpCaption)
                 .foregroundStyle(Color.wpTextTertiary)
@@ -262,16 +234,67 @@ struct TransactionDetailView: View {
         }
     }
 
+    // MARK: - Metadata Row (Date + Account)
+
+    private var metadataRow: some View {
+        HStack(spacing: WPSpacing.md) {
+            // Date button
+            Button {
+                showDatePicker.toggle()
+            } label: {
+                HStack(spacing: WPSpacing.xxs) {
+                    Image(systemName: "calendar")
+                        .font(.wpCaption)
+                    Text(formattedDate)
+                        .font(.wpCaption)
+                        .fontWeight(.medium)
+                }
+                .foregroundStyle(Color.wpPrimary)
+            }
+            .buttonStyle(.plain)
+            .popover(isPresented: $showDatePicker) {
+                DatePicker(
+                    "Date",
+                    selection: $viewModel.date,
+                    displayedComponents: .date
+                )
+                .datePickerStyle(.graphical)
+                .padding()
+                .presentationCompactAdaptation(.popover)
+            }
+
+            // Account button
+            Button {
+                showAccountPicker = true
+            } label: {
+                HStack(spacing: WPSpacing.xxs) {
+                    Image(systemName: "building.columns")
+                        .font(.wpCaption)
+                    Text(selectedAccountName)
+                        .font(.wpCaption)
+                        .fontWeight(.medium)
+                    Image(systemName: "chevron.up.chevron.down")
+                        .font(.wpCaption2)
+                        .foregroundStyle(Color.wpTextTertiary)
+                }
+                .foregroundStyle(Color.wpPrimary)
+            }
+            .buttonStyle(.plain)
+
+            Spacer()
+        }
+    }
+
     // MARK: - Description
 
     private var descriptionField: some View {
-        TextField("Add a description...", text: $viewModel.descriptionText, axis: .vertical)
-            .font(.wpCallout)
-            .foregroundStyle(
-                viewModel.descriptionText.isEmpty ? Color.wpTextTertiary : Color.wpTextPrimary
-            )
-            .textFieldStyle(.plain)
-            .lineLimit(1...4)
+        VStack(alignment: .leading, spacing: WPSpacing.xxs) {
+            TextField("Add a note...", text: $viewModel.descriptionText, axis: .vertical)
+                .font(.wpCallout)
+                .foregroundStyle(Color.wpTextPrimary)
+                .textFieldStyle(.plain)
+                .lineLimit(1...6)
+        }
     }
 
     // MARK: - Tags Area
@@ -282,8 +305,19 @@ struct TransactionDetailView: View {
                 Button {
                     showCategoryPicker = true
                 } label: {
-                    Text("@\(category.name)")
-                        .wpTagChip(color: Color(hex: category.color))
+                    HStack(spacing: WPSpacing.xxs) {
+                        Circle()
+                            .fill(Color(hex: category.color))
+                            .frame(width: 6, height: 6)
+                        Text(category.name)
+                            .font(.wpCaption)
+                            .fontWeight(.medium)
+                    }
+                    .foregroundStyle(Color(hex: category.color))
+                    .padding(.horizontal, WPSpacing.xs)
+                    .padding(.vertical, WPSpacing.xxs)
+                    .background(Color(hex: category.color).opacity(0.08))
+                    .clipShape(RoundedRectangle(cornerRadius: WPCornerRadius.small))
                 }
                 .buttonStyle(.plain)
             }
@@ -293,7 +327,13 @@ struct TransactionDetailView: View {
                     showHashtagPicker = true
                 } label: {
                     Text("#\(hashtag.name)")
-                        .wpTagChip(color: Color.wpHashtag)
+                        .font(.wpCaption)
+                        .fontWeight(.medium)
+                        .foregroundStyle(Color.wpHashtag)
+                        .padding(.horizontal, WPSpacing.xs)
+                        .padding(.vertical, WPSpacing.xxs)
+                        .background(Color.wpHashtag.opacity(0.08))
+                        .clipShape(RoundedRectangle(cornerRadius: WPCornerRadius.small))
                 }
                 .buttonStyle(.plain)
             }
@@ -302,13 +342,22 @@ struct TransactionDetailView: View {
                 Button {
                     showCategoryPicker = true
                 } label: {
-                    Text("+ category")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(Color.wpTextTertiary)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 3)
-                        .background(Color.wpBorder.opacity(0.3))
-                        .clipShape(RoundedRectangle(cornerRadius: 4))
+                    HStack(spacing: WPSpacing.xxs) {
+                        Image(systemName: "plus")
+                            .font(.wpCaption2)
+                        Text("Category")
+                            .font(.wpCaption)
+                            .fontWeight(.medium)
+                    }
+                    .foregroundStyle(Color.wpTextTertiary)
+                    .padding(.horizontal, WPSpacing.xs)
+                    .padding(.vertical, WPSpacing.xxs)
+                    .background(Color.wpBorder.opacity(0.2))
+                    .clipShape(RoundedRectangle(cornerRadius: WPCornerRadius.small))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: WPCornerRadius.small)
+                            .strokeBorder(Color.wpBorder.opacity(0.5), style: StrokeStyle(lineWidth: 1, dash: [4, 3]))
+                    }
                 }
                 .buttonStyle(.plain)
             }
@@ -323,14 +372,14 @@ struct TransactionDetailView: View {
             onDismiss()
         } label: {
             HStack(spacing: WPSpacing.xs) {
-                Image(systemName: "arrow.up")
-                    .font(.system(size: 14, weight: .semibold))
+                Image(systemName: "arrow.up.circle.fill")
+                    .font(.wpBody)
                 Text("Promote to Ledger")
                     .font(.wpHeadline)
             }
             .foregroundStyle(Color.wpOnPrimary)
             .frame(maxWidth: .infinity)
-            .padding(.vertical, WPSpacing.md)
+            .padding(.vertical, WPSpacing.sm)
             .background(Color.wpPrimary)
             .clipShape(RoundedRectangle(cornerRadius: WPCornerRadius.medium))
         }
@@ -347,8 +396,8 @@ struct TransactionDetailView: View {
                 showCategoryPicker = true
             } label: {
                 Image(systemName: "tag")
-                    .font(.system(size: 16))
-                    .foregroundStyle(Color.wpTextTertiary)
+                    .font(.wpCallout)
+                    .foregroundStyle(selectedCategory != nil ? Color.wpPrimary : Color.wpTextTertiary)
             }
             .buttonStyle(.plain)
 
@@ -356,14 +405,14 @@ struct TransactionDetailView: View {
                 showHashtagPicker = true
             } label: {
                 Image(systemName: "number")
-                    .font(.system(size: 16))
-                    .foregroundStyle(Color.wpTextTertiary)
+                    .font(.wpCallout)
+                    .foregroundStyle(!selectedHashtags.isEmpty ? Color.wpHashtag : Color.wpTextTertiary)
             }
             .buttonStyle(.plain)
 
             Button {} label: {
                 Image(systemName: "paperclip")
-                    .font(.system(size: 16))
+                    .font(.wpCallout)
                     .foregroundStyle(Color.wpTextTertiary)
             }
             .buttonStyle(.plain)
@@ -374,8 +423,8 @@ struct TransactionDetailView: View {
                 viewModel.save()
                 onDismiss()
             } label: {
-                Image(systemName: "checkmark")
-                    .font(.system(size: 16, weight: .semibold))
+                Text("Save")
+                    .font(.wpSubheadline)
                     .foregroundStyle(Color.wpPrimary)
             }
             .buttonStyle(.plain)
@@ -384,7 +433,7 @@ struct TransactionDetailView: View {
         .padding(.vertical, WPSpacing.sm)
         .overlay(alignment: .top) {
             Rectangle()
-                .fill(Color.wpBorder)
+                .fill(Color.wpBorder.opacity(0.4))
                 .frame(height: 0.5)
         }
     }
@@ -409,6 +458,7 @@ struct TransactionDetailView: View {
                         Spacer()
                         if viewModel.selectedAccountId == account.id {
                             Image(systemName: "checkmark")
+                                .font(.wpCallout)
                                 .foregroundStyle(Color.wpPrimary)
                         }
                     }
@@ -463,6 +513,7 @@ struct TransactionDetailView: View {
                             Spacer()
                             if viewModel.selectedCategoryId == category.id {
                                 Image(systemName: "checkmark")
+                                    .font(.wpCallout)
                                     .foregroundStyle(Color.wpPrimary)
                             }
                         }
@@ -526,6 +577,7 @@ struct TransactionDetailView: View {
                                             .foregroundStyle(Color.wpHashtag)
                                         Spacer()
                                         Image(systemName: "xmark.circle.fill")
+                                            .font(.wpCallout)
                                             .foregroundStyle(Color.wpTextTertiary)
                                     }
                                 }
@@ -607,7 +659,7 @@ struct TransactionDetailView: View {
     }
 
     private var amountColor: Color {
-        viewModel.isExpense ? Color.wpExpense : Color.wpIncome // wpExpense = black, wpIncome = muted green
+        viewModel.isExpense ? Color.wpExpense : Color.wpIncome
     }
 
     private var formattedDate: String {
@@ -626,13 +678,6 @@ struct TransactionDetailView: View {
         let formatter = DateFormatter()
         formatter.dateFormat = "MMM d"
         return formatter.string(from: viewModel.date)
-    }
-
-    private func currencySymbol(for code: String) -> String {
-        let locale = Locale.availableIdentifiers
-            .map { Locale(identifier: $0) }
-            .first { $0.currency?.identifier == code }
-        return locale?.currencySymbol ?? "$"
     }
 }
 
