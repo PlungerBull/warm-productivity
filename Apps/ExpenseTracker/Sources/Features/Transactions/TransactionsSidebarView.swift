@@ -259,6 +259,7 @@ struct TransactionsSidebarView: View {
             }
             .padding(.horizontal, WPSpacing.md)
             .frame(minHeight: 40)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
     }

@@ -51,6 +51,9 @@ struct TransactionDetailView: View {
         } message: {
             Text("This transaction will be permanently removed.")
         }
+        .sheet(isPresented: $showDatePicker) {
+            datePickerSheet
+        }
         .sheet(isPresented: $showAccountPicker) {
             accountPickerSheet
         }
@@ -192,16 +195,6 @@ struct TransactionDetailView: View {
                 .wpToolbarPill(state: .selected, color: Color.wpTextSecondary)
             }
             .buttonStyle(.plain)
-            .popover(isPresented: $showDatePicker) {
-                DatePicker(
-                    "Date",
-                    selection: $viewModel.date,
-                    displayedComponents: .date
-                )
-                .datePickerStyle(.graphical)
-                .padding()
-                .presentationCompactAdaptation(.popover)
-            }
 
             // Category pill
             Button { showCategoryPicker = true } label: {
@@ -442,6 +435,28 @@ struct TransactionDetailView: View {
             .padding(.horizontal, WPSpacing.md)
             .padding(.vertical, WPSpacing.sm)
         }
+    }
+
+    // MARK: - Date Picker Sheet
+
+    private var datePickerSheet: some View {
+        NavigationStack {
+            DatePicker(
+                "Date",
+                selection: $viewModel.date,
+                displayedComponents: .date
+            )
+            .datePickerStyle(.graphical)
+            .padding()
+            .navigationTitle("Date")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { showDatePicker = false }
+                }
+            }
+        }
+        .presentationDetents([.medium])
     }
 
     // MARK: - Account Picker Sheet
