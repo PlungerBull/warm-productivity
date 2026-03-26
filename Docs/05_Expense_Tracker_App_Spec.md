@@ -46,8 +46,10 @@ UI polish passes happen at natural milestones — after a group of phases delive
 | 5 | Expense Planning + Recurrence | Planned expenses, recurring templates, overdue section, shared recurrence engine |
 | 6 | Polish & Utilities | Receipt photos, CSV export, final full-app polish pass |
 
-**Deferred to Step 12 (Cross-App UI):** Budget tracking UI, dashboard, future-date routing.
+**Deferred to Step 12 (Cross-App UI):** Budget tracking UI, dashboard.
 **Deferred to Step 13 (AI Layer):** Voice entry, natural language parsing.
+
+> **Note:** Future-date routing ships as part of Phase 5 (Expense Planning). The data model is defined in the Cross-App Integration Map; the feature UI is built here alongside Expense Planning.
 
 ---
 
@@ -836,9 +838,10 @@ A dedicated refinement pass over all existing screens before adding new feature 
 | Feature | Deferred to |
 |---|---|
 | Budget tracking UI and dashboard | Step 12 (Cross-App UI) |
-| Future-date routing UI | Step 12 (Cross-App UI) |
 | Slash command entry from Notes | Step 12 (Cross-App UI) |
 | Voice and natural language entry | Step 13 (AI Layer) |
+
+> Future-date routing is **not deferred** — it ships with Phase 5 (Expense Planning).
 
 ---
 

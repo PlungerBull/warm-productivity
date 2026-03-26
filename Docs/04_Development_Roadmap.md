@@ -18,6 +18,8 @@ This keeps your documentation lean and avoids conflicting sources of truth.
 
 ## The Build Principle: Schema-First, Core Flow First
 
+> **Canonical source for core principles:** CLAUDE.md § Core Principles. This section expands on the build-order rationale.
+
 This principle governs how every app is built. It applies to Steps 7, 9, and 11 (the app build steps).
 
 **1. Deploy the complete database schema first.** All tables, all columns, all constraints, all relationships — even for features that won't have UI for months. The schema is the foundation. No mid-development migrations, no schema surprises. If the data model is wrong, you want to find out before any UI depends on it.
@@ -163,19 +165,18 @@ This step is unique because you're building two things at once: the expense trac
 - Recurrence engine (built during Phase 5 — shared date calculation, schedule anchoring, next-occurrence logic reused by To-Do app)
 - Base deployment pipeline
 
-**Standalone phases (each phase hardens before the next begins):**
+**Standalone phases** *(canonical scope definitions are in the Expense Tracker App Spec — this is a summary):*
 
 1. Core Tracking — inbox/ledger, categories, hashtags, multi-currency, accounts, descriptions, CSV import
 2. Search & Filtering — category breakdown, hashtag filtering, search
 — **UI Polish Pass 1** — visual refinement of all Phase 1–2 screens (spacing, transitions, empty/loading/error states, dark mode, accessibility)
 3. Reconciliation — batch reconciliation, field locking
 4. People & Transfers — `/` syntax, person accounts, debt tracking, cross-user sharing
-5. Expense Planning + Recurrence Engine — planned expenses, recurring templates, shared recurrence engine (reused by To-Do Phase 3)
+5. Expense Planning + Recurrence Engine — planned expenses, recurring templates, future-date routing, shared recurrence engine (reused by To-Do Phase 3)
 6. Polish & Utilities — receipt photos, CSV export, final full-app polish pass
 
-**See the Expense Tracker App Spec for detailed phase scope, screens, flows, and edge cases.**
-
-**Deferred to cross-app UI integration (Step 12):** Dashboard, budget tracking, future-date routing.
+**Included in Phase 5 (Expense Planning):** Future-date routing (creates inbox record + linked task when a future date is entered via the FAB). The data model is defined in the Cross-App Integration Map; the feature UI ships with Expense Planning.
+**Deferred to cross-app UI integration (Step 12):** Dashboard, budget tracking.
 **Deferred to AI layer (Step 13):** Voice and natural language expense entry.
 
 **Documents to load per session:**
@@ -207,12 +208,10 @@ This step is unique because you're building two things at once: the expense trac
 
 Notes launches with content already in it — all the notes created as expense descriptions during App #1 populate automatically in the Inbox. The Notes app is built as a standalone tool first; slash commands and cross-app UI are wired up in Step 12.
 
-**Standalone phases (each phase hardens before the next begins):**
+**Standalone phases** *(canonical scope definitions are in the Notes App Spec — this is a summary):*
 
 1. Core Notes — create, edit (markdown), notebooks, hashtags, timeline view, pinning, search, delete
 2. Export — per-notebook export as consolidated `.md` file
-
-**See the Notes App Spec for detailed phase scope, screens, flows, and edge cases.**
 
 **Deferred to cross-app UI integration (Step 12):** Slash commands (`/expense`, `/todo`), Objects sidebar section, cross-app linked references UI.
 **Deferred to AI layer (Step 13):** AI-powered natural language parsing (extracting expenses and tasks from notes).
@@ -246,7 +245,7 @@ Notes launches with content already in it — all the notes created as expense d
 
 By this point, adding a new app should be a well-practiced process. The CLAUDE.md and skills carry most of the institutional knowledge. The To-Do app is built as a standalone tool first — cross-app connections (expense generation, slash commands) are wired up in Step 12.
 
-**Standalone phases (each phase hardens before the next begins):**
+**Standalone phases** *(canonical scope definitions are in the To-Do App Spec — this is a summary):*
 
 1. Core Tasks — create, edit, due dates, priority, categories, hashtags, complete, delete
 2. Subtasks — one level of nesting, independent and gated completion modes
@@ -257,8 +256,6 @@ By this point, adding a new app should be a well-practiced process. The CLAUDE.m
 7. Export — CSV export of tasks
 
 > **⚠ Dependency:** To-Do Phase 3 cannot begin until Expense Tracker Phase 5 (Recurrence Engine) is complete.
-
-**See the To-Do App Spec for detailed phase scope, screens, flows, and edge cases.**
 
 **Deferred to cross-app UI integration (Step 12):** Expense connection full UI (financial fields on tasks, linked inbox display, Expense Planning view in To-Do).
 **Deferred to AI layer (Step 13):** AI-powered task creation from voice or natural language.
@@ -280,7 +277,7 @@ By this point, adding a new app should be a well-practiced process. The CLAUDE.m
 
 **What to build:**
 
-- **Expense Tracker:** Dashboard (3-month table view — categories as rows, months as columns, rolling 3-month window with current month rightmost, spend vs. budget per cell, scrollable backward), budget tracking (monthly per-category budgets for income and expense categories, all-or-nothing, static template, @Debt defaults to 0, set in main_currency, inline budget editing on current month only), future-date routing (future-dated expenses auto-create planned expenses with linked tasks)
+- **Expense Tracker:** Dashboard (3-month table view — categories as rows, months as columns, rolling 3-month window with current month rightmost, spend vs. budget per cell, scrollable backward), budget tracking (monthly per-category budgets for income and expense categories, all-or-nothing, static template, @Debt defaults to 0, set in main_currency, inline budget editing on current month only)
 - **Notes:** Slash commands (`/expense`, `/todo`) with simplified bottom sheet registration flow and confirmation flow, Objects sidebar section, cross-app linked references UI ("Linked to expense: Lunch at Noma")
 - **To-Do:** Expense connection UI — financial fields on tasks (`has_financial_data` + `linked_inbox_id`), task→expense generation on completion, "Generated expense" indicator on completed tasks
 - **Cross-cutting:** Cross-app search and filtering (low priority — users typically search within a single app), data export and backup across the ecosystem, performance optimization and UX polish

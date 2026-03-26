@@ -8,12 +8,12 @@ This is the practical reference for every touchpoint between apps. The Architect
 
 Organized by relationship, not by concept. Find the app pair you're working on, and you'll see every data flow, event, and UI surface that connects them.
 
-## Phase Reference Guide
+## Integration Tier Reference
 
-This document covers both Phase 1 (data layer, built as part of each standalone app) and Phase 12 (Cross-App UI, built after all three standalone apps are complete). Each section is labelled accordingly.
+This document covers two integration tiers (see CLAUDE.md § Terminology for definitions):
 
-**Phase 1 (data layer):** Tables, columns, entity_links writes, and sync behaviour that are wired up from day one — even if the UI to surface them is not yet built.
-**Phase 12 (Cross-App UI):** UI surfaces, slash commands, linked reference panels, and interactive cross-app flows. None of these exist until Step 12 of the development roadmap.
+**[Data Layer]** — Tables, columns, entity_links writes, and sync behaviour that are wired up during each app's standalone build phases. The schema exists from day one; apps write to shared tables as part of their standalone functionality.
+**[Cross-App UI]** — UI surfaces, slash commands, linked reference panels, and interactive cross-app flows. None of these exist until Step 12 of the Development Roadmap.
 
 ## Shared Ecosystem Layer
 
@@ -33,16 +33,18 @@ All three apps share a single auth session via the iOS Keychain in a shared App 
 
 ### Entity Links (Cross-App Glue)
 
-**[Phase 1 — Data Layer]** The `entity_links` table is the single mechanism for all cross-app relationships. Every app reads from and writes to this table.
+> **Canonical schema definition:** System Architecture § Entity Links Table. This section covers practical integration behavior.
 
-**[Phase 1 — Data Layer]** What every app must do:
+**[Data Layer]** The `entity_links` table is the single mechanism for all cross-app relationships. Every app reads from and writes to this table.
+
+**[Data Layer]** What every app must do:
 
 - When creating a cross-app relationship (e.g., linking a note to an expense), create an `entity_link` row
 - When displaying an item, query `entity_links` for any linked items to show references (e.g., "Linked to expense: Lunch at Noma")
 - When deleting an item, check `entity_links` and present the appropriate deletion options ("remove from here" vs. "delete everywhere")
 - When an item is deleted everywhere, soft-delete all `entity_links` rows referencing it (set `deleted_at`)
 
-**[Phase 1 — Data Layer]** Link contexts currently defined:
+**[Data Layer]** Link contexts currently defined:
 
 | link_context | source_type | target_type | Created by |
 |---|---|---|---|
@@ -54,7 +56,7 @@ All three apps share a single auth session via the iOS Keychain in a shared App 
 
 ### Universal Description Model
 
-**[Phase 1 — Data Layer]** All three apps follow the same pattern: there is no `description` column on any entity. When a user adds a description to an expense or task, a `note_entry` is created and linked via `entity_links`.
+**[Data Layer]** All three apps follow the same pattern: there is no `description` column on any entity. When a user adds a description to an expense or task, a `note_entry` is created and linked via `entity_links`.
 
 **What every app must do:**
 
@@ -68,9 +70,9 @@ All three apps share a single auth session via the iOS Keychain in a shared App 
 
 ### Activity Logging
 
-**[Phase 1 — Data Layer]** Every app writes to the `activity_log` table when the user creates, deletes, completes, or modifies an entity.
+**[Data Layer]** Every app writes to the `activity_log` table when the user creates, deletes, completes, or modifies an entity.
 
-**[Phase 1 — Data Layer]** What every app must do:
+**[Data Layer]** What every app must do:
 
 - On entity create: write an activity_log entry with `action_type = 'created'`
 - On entity delete: write an entry with `action_type = 'deleted'`
@@ -152,7 +154,7 @@ When one app displays or interacts with another app's data, it can edit a **scop
 | Expense Tracker | To-Dos (linked tasks from Expense Planning) | Title, due date, recurrence pattern (via linked task) | Open To-Do (for non-financial task fields like priority) |
 | Expense Tracker | Expense Planning records (inbox with `linked_task_id`) | Full expense data: title, amount, currency, bank account, category, exchange rate, description | N/A (Expense Tracker owns the inbox table) |
 
-**[Phase 1 — Data Layer]** The Expense Planning section in the Expense Tracker is a **filtered view of the inbox table** — it shows all `expense_transaction_inbox` records that have a `linked_task_id`, sorted by the linked task's `due_date`. Both recurring and one-off planned expenses live here. There is no separate creation form in the Planning section — planned expenses are created via the FAB by setting a future date (see Future-date routing below). From this view, the user can:
+**[Data Layer — schema and data model only; feature UI ships in Expense Tracker Build Phase 5]** The Expense Planning section in the Expense Tracker is a **filtered view of the inbox table** — it shows all `expense_transaction_inbox` records that have a `linked_task_id`, sorted by the linked task's `due_date`. Both recurring and one-off planned expenses live here. There is no separate creation form in the Planning section — planned expenses are created via the FAB by setting a future date (see Future-date routing below). From this view, the user can:
 
 - **View** all upcoming planned expenses sorted by the linked task's due date
 - **Edit** inbox templates directly. Changes to financial fields apply to all future generated expenses.
@@ -162,7 +164,7 @@ When one app displays or interacts with another app's data, it can edit a **scop
 
 The linked tasks also appear in the To-Do app as normal tasks, where the user sees the restricted cross-app expense fields (title, amount, currency, category — read from the linked inbox record) plus normal to-do fields (due date, recurrence, completed status). Completing the task from the To-Do app triggers the same expense generation flow.
 
-**Future-date routing:** When a user adds an expense with a future date (any date after today) via the FAB, the system creates an `expense_transaction_inbox` record (`date = null`) and a linked `todo_task` with the future date as `due_date` (plus a `todo_recurrence_rule` if the user sets a recurrence pattern). The expense appears in Expense Planning. When the user adds an expense with today's date or a past date, a normal expense is created directly (inbox or ledger depending on field completeness).
+**Future-date routing** *(data model described here; feature UI ships in Expense Tracker Build Phase 5, after Expense Planning is built)***:** When a user adds an expense with a future date (any date after today) via the FAB, the system creates an `expense_transaction_inbox` record (`date = null`) and a linked `todo_task` with the future date as `due_date` (plus a `todo_recurrence_rule` if the user sets a recurrence pattern). The expense appears in Expense Planning. When the user adds an expense with today's date or a past date, a normal expense is created directly (inbox or ledger depending on field completeness).
 
 **One occurrence at a time:** For recurring planned expenses, the inbox template is persistent and the linked task shows the next due date. When registered, a ledger entry is generated with the completion date and the linked task's `due_date` advances to the next occurrence. Schedule anchoring is configurable per recurrence rule (anchor to original schedule or from last completion). One-off planned expenses are consumed (deleted) on registration. This keeps the list clean — one row per recurring expense, plus any one-off planned expenses.
 
@@ -190,7 +192,7 @@ The linked tasks also appear in the To-Do app as normal tasks, where the user se
 2. Edits from either app update the same row — no duplication
 3. Sync engine handles multi-device conflict resolution via version-based last-write-wins
 
-**[Phase 12 — Cross-App UI]** Slash commands — simplified registration flow (Phase 12)
+**[Cross-App UI — Step 12]** Slash commands — simplified registration flow (Step 12)
 
 When a user types `/expense` or `/todo` in a Note, a **bottom sheet** slides up with a simplified creation form. No inline preview card is embedded in the note body — the note text remains clean.
 
@@ -211,10 +213,10 @@ On cancel: nothing is created. The typed `/expense` or `/todo` text remains as p
 
 **In Notes:**
 
-- **[Phase 12 — Cross-App UI]** Linked references section in note detail → shows "Linked to expense: Lunch at Noma" when a note is connected to an expense
-- **[Phase 12 — Cross-App UI]** `/expense` slash command rendering → static display of linked expense within note content (after user confirms the inline preview card)
-- **[Phase 12 — Cross-App UI]** Objects sidebar section → **Objects defined:** The Objects section is a virtual sidebar view in the Notes app listing all cross-app entities (expenses, tasks) created from within Notes via slash commands. Populated by querying `entity_links` where `link_context IN ('note_created_expense', 'note_created_task')`. Shows entity type, title, key info, and source note. Clicking opens details in the third panel.
-- **[Phase 12 — Cross-App UI]** Inbox → auto-generated expense notes appear here until assigned to a notebook
+- **[Cross-App UI — Step 12]** Linked references section in note detail → shows "Linked to expense: Lunch at Noma" when a note is connected to an expense
+- **[Cross-App UI — Step 12]** `/expense` slash command rendering → static display of linked expense within note content (after user confirms the inline preview card)
+- **[Cross-App UI — Step 12]** Objects sidebar section → **Objects defined:** The Objects section is a virtual sidebar view in the Notes app listing all cross-app entities (expenses, tasks) created from within Notes via slash commands. Populated by querying `entity_links` where `link_context IN ('note_created_expense', 'note_created_task')`. Shows entity type, title, key info, and source note. Clicking opens details in the third panel.
+- **[Cross-App UI — Step 12]** Inbox → auto-generated expense notes appear here until assigned to a notebook
 
 ### Deletion Behavior
 
@@ -244,14 +246,14 @@ On cancel: nothing is created. The typed `/expense` or `/todo` text remains as p
 4. Same edit/sync behavior as expense descriptions
 
 
-**[Phase 12 — Cross-App UI]** User checks the checkbox in a note (Notes):
+**[Cross-App UI — Step 12]** User checks the checkbox in a note (Notes):
 
 1. Notes app finds the `entity_link` for this checkbox
 2. Updates the linked `todo_tasks` record: `is_completed = true`, `completed_at = now()`
 3. If the task has `has_financial_data = true`, this triggers the Task → Expense flow (see Expense ↔ To-Do section)
 4. The task shows as completed in the To-Do app
 
-**[Phase 12 — Cross-App UI]** User completes a task in To-Do app:
+**[Cross-App UI — Step 12]** User completes a task in To-Do app:
 
 1. To-Do sets `is_completed = true`, `completed_at = now()`
 2. Sync engine propagates the change
@@ -266,10 +268,10 @@ On cancel: nothing is created. The typed `/expense` or `/todo` text remains as p
 
 **In Notes:**
 
-- **[Phase 12 — Cross-App UI]** Linked references section → shows "Linked to task: Buy groceries" when a note is connected to a task
-- **[Phase 12 — Cross-App UI]** `/todo` slash command rendering → interactive checkbox with bidirectional sync (after user confirms the inline preview card)
-- **[Phase 12 — Cross-App UI]** Objects sidebar section → same section as above, also shows to-dos created from slash commands
-- **[Phase 12 — Cross-App UI]** Inbox → auto-generated task notes appear here
+- **[Cross-App UI — Step 12]** Linked references section → shows "Linked to task: Buy groceries" when a note is connected to a task
+- **[Cross-App UI — Step 12]** `/todo` slash command rendering → interactive checkbox with bidirectional sync (after user confirms the inline preview card)
+- **[Cross-App UI — Step 12]** Objects sidebar section → same section as above, also shows to-dos created from slash commands
+- **[Cross-App UI — Step 12]** Inbox → auto-generated task notes appear here
 
 ### Deletion Behavior
 
@@ -296,7 +298,7 @@ This is a bidirectional relationship. Task completions generate expenses (To-Do 
 
 ### Events That Trigger Cross-App Actions
 
-**[Phase 1 — Data Layer]** User completes a task with financial data — first time (no linked inbox record):
+**[Data Layer]** User completes a task with financial data — first time (no linked inbox record):
 
 1. To-Do marks the task complete: `is_completed = true`, `completed_at = now()`
 2. An Edge Function fires, checks `has_financial_data = true`, checks for a linked inbox record via `linked_inbox_id` — none found
@@ -305,7 +307,7 @@ This is a bidirectional relationship. Task completions generate expenses (To-Do 
 5. The expense appears in the Expense Tracker's Expense Planning section. The user fills in remaining financial fields (amount, bank account, category). If the task is recurring, the inbox record is marked `is_recurring = true` and becomes the persistent template.
 6. Activity log records the task completion and expense creation.
 
-**[Phase 1 — Data Layer]** User completes a recurring task — subsequent times (linked inbox record exists with all financial fields filled):
+**[Data Layer]** User completes a recurring task — subsequent times (linked inbox record exists with all financial fields filled):
 
 1. To-Do marks the task complete, recurrence engine generates next occurrence
 2. Edge Function fires, checks `has_financial_data = true`, finds linked inbox record via `linked_inbox_id` with all financial fields filled

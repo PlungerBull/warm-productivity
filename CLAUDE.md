@@ -15,6 +15,20 @@ Three native iOS apps — Expense Tracker, Notes, To-Do — that share a single 
 
 ---
 
+## Terminology
+
+These three scoped terms appear across the docs. They are not interchangeable.
+
+| Term | Scope | Example | Used In |
+|---|---|---|---|
+| **Step** (1–13) | Ecosystem-level milestones — the full build sequence from docs to AI layer | Step 7: Build Expense Tracker, Step 12: Cross-App UI | Development Roadmap |
+| **Build Phase** (per app) | Feature stages within a single app's build | Expense Tracker Phase 3: Reconciliation | App Specs, Roadmap (within a Step) |
+| **Integration Tier** | Data layer vs. UI delivery classification for cross-app features | Data Layer (ships with standalone app), Cross-App UI (Step 12) | Cross-App Integration Map |
+
+**Key distinction:** A feature's *data layer* (schema, writes to shared tables) ships during the app's standalone build phases. The feature's *cross-app UI* (one app surfacing another app's data) ships at Step 12. The Integration Map labels these as `[Data Layer]` and `[Cross-App UI]` respectively.
+
+---
+
 ## Tech Stack
 
 | Layer | Choice |
@@ -161,6 +175,8 @@ Because all writes go to SwiftData first (offline-first), the Swift repositories
 
 ## Schema Conventions
 
+> **Full schema details:** System Architecture § Database Design. This section is a quick-reference summary.
+
 Every mutable table has:
 ```
 created_at   (timestamptz, default now())
@@ -181,6 +197,8 @@ synced_at    (timestamptz, nullable)             ← last confirmed server sync
 ---
 
 ## Cross-App Data Patterns
+
+> **Full details:** System Architecture § Universal Description Model, § Entity Links Table. Cross-App Integration Map for all touchpoints and deletion matrices.
 
 **Universal Description Model** — no `description` column on any table. All free-text content lives in `note_entries`, linked via `entity_links`. This means Notes content appears in Notes automatically.
 
