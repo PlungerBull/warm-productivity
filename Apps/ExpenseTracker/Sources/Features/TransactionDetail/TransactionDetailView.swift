@@ -20,6 +20,7 @@ struct TransactionDetailView: View {
         case title, amount, note
     }
     @FocusState private var focusedField: DetailFocusField?
+    @State private var sheetContentHeight: CGFloat = 0
 
     private var isNoteEditing: Bool {
         focusedField == .note
@@ -36,7 +37,11 @@ struct TransactionDetailView: View {
             sheetContent
             bottomBar
         }
-        .fixedSize(horizontal: false, vertical: true)
+        .onGeometryChange(for: CGFloat.self) { proxy in
+            proxy.size.height
+        } action: { newHeight in
+            sheetContentHeight = newHeight
+        }
         .background(.background)
         .alert("Delete Transaction", isPresented: $viewModel.showDeleteConfirmation) {
             Button("Cancel", role: .cancel) {}
@@ -59,7 +64,7 @@ struct TransactionDetailView: View {
         .sheet(isPresented: $showHashtagPicker) {
             hashtagPickerSheet
         }
-        .presentationSizing(.fitted)
+        .presentationDetents([.height(sheetContentHeight)])
         .presentationDragIndicator(.visible)
         .task {
             viewModel.load(mode: mode)
