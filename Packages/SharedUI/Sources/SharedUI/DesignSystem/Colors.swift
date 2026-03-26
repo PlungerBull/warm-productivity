@@ -13,7 +13,7 @@ public extension Color {
     static let wpBackground = Color(light: Color(hex: "#ffffff"), dark: Color(hex: "#1c1917"))
 
     /// Surface — cards, sheets, elevated containers.
-    static let wpSurface = Color(light: Color(hex: "#fafaf9"), dark: Color(hex: "#292524"))
+    static let wpSurface = Color(light: Color(hex: "#fafaf9"), dark: Color(hex: "#3c3836"))
 
     /// Grouped background — for grouped table/list backgrounds.
     static let wpGroupedBackground = Color(light: Color(hex: "#f5f5f4"), dark: Color(hex: "#1c1917"))

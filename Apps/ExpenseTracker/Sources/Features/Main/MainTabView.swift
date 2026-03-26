@@ -50,6 +50,7 @@ struct MainTabView: View {
             )
             .presentationDetents([.height(quickEntryHeight)])
             .presentationDragIndicator(.hidden)
+            .presentationSizing(.page)
         }
     }
 

@@ -64,6 +64,8 @@ struct TransactionDetailView: View {
             hashtagPickerSheet
         }
         .presentationDetents([.fraction(0.75), .large], selection: $selectedDetent)
+        .presentationDragIndicator(.visible)
+        .presentationSizing(.page)
         .onChange(of: focusedField) { _, newValue in
             withAnimation {
                 selectedDetent = newValue != nil ? .large : .fraction(0.75)
@@ -78,30 +80,15 @@ struct TransactionDetailView: View {
 
     private var sheetContent: some View {
         VStack(spacing: 0) {
-            dragHandle
             heroSection
             pillsSection
-            sectionDivider
             ScrollView {
                 VStack(spacing: WPSpacing.sm) {
-                    detailsGrid
+                    metadataRows
                     noteCard
                 }
                 .padding(.horizontal, WPSpacing.md)
                 .padding(.vertical, WPSpacing.sm)
-            }
-        }
-    }
-
-    // MARK: - Drag Handle
-
-    private var dragHandle: some View {
-        Group {
-            if focusedField == nil {
-                RoundedRectangle(cornerRadius: WPContentSheetStyle.handleCornerRadius)
-                    .fill(Color.wpTextTertiary.opacity(0.4))
-                    .frame(width: WPContentSheetStyle.handleWidth, height: WPContentSheetStyle.handleHeight)
-                    .padding(.top, 10)
             }
         }
     }
@@ -209,7 +196,7 @@ struct TransactionDetailView: View {
                         Image(systemName: "tag").font(.wpCaption)
                         Text("Category").font(.wpPillLabel)
                     }
-                    .wpToolbarPill(state: .missing, color: Color.wpWarning)
+                    .wpToolbarPill(state: .unselected, color: Color.wpTextTertiary)
                 }
             }
             .buttonStyle(.plain)
@@ -221,8 +208,8 @@ struct TransactionDetailView: View {
                     Text(selectedAccountName).font(.wpPillLabel)
                 }
                 .wpToolbarPill(
-                    state: viewModel.selectedAccountId != nil ? .selected : .missing,
-                    color: Color.wpSuccess
+                    state: viewModel.selectedAccountId != nil ? .selected : .unselected,
+                    color: viewModel.selectedAccountId != nil ? Color.wpSuccess : Color.wpTextTertiary
                 )
             }
             .buttonStyle(.plain)
@@ -239,96 +226,108 @@ struct TransactionDetailView: View {
         }
     }
 
-    // MARK: - Section Divider
+    // MARK: - Metadata Rows
 
-    private var sectionDivider: some View {
-        Rectangle()
-            .fill(Color.wpBorder.opacity(0.3))
-            .frame(height: 0.5)
-            .padding(.horizontal, WPSpacing.lg)
-            .padding(.top, WPSpacing.sm)
-    }
-
-    // MARK: - Details Grid
-
-    private var detailsGrid: some View {
-        Grid(horizontalSpacing: 0.5, verticalSpacing: 0.5) {
-            GridRow {
-                detailCell(label: "TYPE", value: viewModel.isExpense ? "Expense" : "Income")
-                detailCell(label: "STATUS", valueView: statusBadge)
+    private var metadataRows: some View {
+        VStack(spacing: 0) {
+            // Income/Expense row
+            metadataRow(
+                icon: viewModel.isExpense ? "arrow.down" : "arrow.up",
+                iconColor: viewModel.isExpense ? Color.wpTextSecondary : Color.wpIncome,
+                label: viewModel.isExpense ? "Expense" : "Income",
+                showDivider: viewModel.showExchangeRate
+            ) {
+                Text(formattedTransactionAmount)
+                    .font(.wpCallout)
+                    .fontWeight(.medium)
+                    .foregroundStyle(viewModel.isExpense ? Color.wpExpense : Color.wpIncome)
             }
+
             if viewModel.showExchangeRate {
-                GridRow {
-                    detailCell(label: "EXCHANGE", valueView: exchangeRateCell)
-                    detailCell(label: "HOME AMOUNT", valueView: homeAmountView)
+                // Exchange rate row
+                metadataRow(
+                    icon: "arrow.left.arrow.right",
+                    iconColor: Color.wpTextSecondary,
+                    label: "Exchange rate",
+                    showDivider: true
+                ) {
+                    HStack(spacing: WPSpacing.xxs) {
+                        Text("\(viewModel.accountCurrency ?? "") \u{2192} \(viewModel.currencyFormatter.currencyCode) \u{00D7}")
+                            .font(.wpCallout)
+                            .fontWeight(.medium)
+                            .foregroundStyle(Color.wpTextPrimary)
+                        TextField("1.0", text: $viewModel.exchangeRate)
+                            .font(.wpCallout)
+                            .fontWeight(.medium)
+                            .foregroundStyle(Color.wpTextSecondary)
+                            .textFieldStyle(.plain)
+                            .keyboardType(.decimalPad)
+                            .frame(width: 50)
+                    }
+                }
+
+                // Home amount row
+                metadataRow(
+                    icon: "house",
+                    iconColor: Color.wpTextSecondary,
+                    label: "Home amount",
+                    showDivider: false
+                ) {
+                    Text(formattedHomeAmount)
+                        .font(.wpCallout)
+                        .fontWeight(.medium)
+                        .foregroundStyle(viewModel.isExpense ? Color.wpExpense : Color.wpIncome)
                 }
             }
         }
-        .background(Color.wpBorder.opacity(0.5))
-        .clipShape(RoundedRectangle(cornerRadius: WPCornerRadius.medium))
+        .padding(.horizontal, WPSpacing.md)
     }
 
-    private func detailCell(label: String, value: String) -> some View {
-        VStack(alignment: .leading, spacing: WPSpacing.xxs) {
-            Text(label)
-                .font(.wpCaption2)
-                .fontWeight(.semibold)
-                .foregroundStyle(Color.wpTextTertiary)
-            Text(value)
-                .font(.wpCallout)
-                .fontWeight(.semibold)
-                .foregroundStyle(Color.wpTextPrimary)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(WPSpacing.sm)
-        .background(Color.wpSurface)
-    }
+    private func metadataRow<V: View>(
+        icon: String,
+        iconColor: Color,
+        label: String,
+        showDivider: Bool,
+        @ViewBuilder value: () -> V
+    ) -> some View {
+        VStack(spacing: 0) {
+            HStack(spacing: WPSpacing.sm) {
+                // Icon box
+                Image(systemName: icon)
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundStyle(iconColor)
+                    .frame(width: 32, height: 32)
+                    .background(iconColor.opacity(0.1))
+                    .clipShape(RoundedRectangle(cornerRadius: WPCornerRadius.small))
 
-    private func detailCell<V: View>(label: String, valueView: V) -> some View {
-        VStack(alignment: .leading, spacing: WPSpacing.xxs) {
-            Text(label)
-                .font(.wpCaption2)
-                .fontWeight(.semibold)
-                .foregroundStyle(Color.wpTextTertiary)
-            valueView
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(WPSpacing.sm)
-        .background(Color.wpSurface)
-    }
+                // Label
+                Text(label)
+                    .font(.wpCallout)
+                    .foregroundStyle(Color.wpTextSecondary)
 
-    private var statusBadge: some View {
-        HStack(spacing: WPSpacing.xxs) {
-            Image(systemName: "checkmark.circle.fill")
-                .font(.wpCaption)
-            Text("Cleared")
-                .font(.wpCallout)
-                .fontWeight(.semibold)
-        }
-        .foregroundStyle(Color.wpSuccess)
-    }
+                Spacer()
 
-    private var exchangeRateCell: some View {
-        HStack(spacing: WPSpacing.xxs) {
-            Text("\(viewModel.accountCurrency ?? "") \u{2192} \(viewModel.currencyFormatter.currencyCode)")
-                .font(.wpCallout)
-                .fontWeight(.semibold)
-                .foregroundStyle(Color.wpTextPrimary)
-            TextField("1.0", text: $viewModel.exchangeRate)
-                .font(.wpCallout)
-                .fontWeight(.semibold)
-                .foregroundStyle(Color.wpTextSecondary)
-                .textFieldStyle(.plain)
-                .keyboardType(.decimalPad)
-                .frame(width: 60)
+                // Value
+                value()
+            }
+            .padding(.vertical, 14)
+
+            if showDivider {
+                Rectangle()
+                    .fill(Color.wpBorder.opacity(0.25))
+                    .frame(height: 0.5)
+            }
         }
     }
 
-    private var homeAmountView: some View {
-        Text(formattedHomeAmount)
-            .font(.wpCallout)
-            .fontWeight(.semibold)
-            .foregroundStyle(viewModel.isExpense ? Color.wpExpense : Color.wpIncome)
+    private var formattedTransactionAmount: String {
+        guard let amountCents = viewModel.parsedAmountCents else { return "\u{2014}" }
+        let sign = viewModel.isExpense ? "\u{2212}" : "+"
+        let currency = viewModel.accountCurrency ?? viewModel.currencyFormatter.currencyCode
+        let amount = abs(amountCents)
+        let whole = amount / 100
+        let frac = amount % 100
+        return "\(sign)\(currency) \(whole).\(String(format: "%02d", frac))"
     }
 
     private var formattedHomeAmount: String {
@@ -339,24 +338,18 @@ struct TransactionDetailView: View {
         }
         let homeCents = Double(abs(amountCents)) * rateValue / 100.0
         let sign = viewModel.isExpense ? "\u{2212}" : "+"
-        return "\(sign)\(viewModel.currencyFormatter.currencyCode)\(String(format: "%.2f", homeCents))"
+        return "\(sign)\(viewModel.currencyFormatter.currencyCode) \(String(format: "%.2f", homeCents))"
     }
 
     // MARK: - Note Card
 
     private var noteCard: some View {
-        VStack(alignment: .leading, spacing: WPSpacing.xs) {
-            // Header
-            HStack(spacing: WPSpacing.xxs) {
-                Image(systemName: "doc.text")
-                    .font(.wpCaption)
-                Text("NOTE")
-                    .font(.wpCaption2)
-                    .fontWeight(.semibold)
-            }
-            .foregroundStyle(isNoteEditing ? Color.wpPrimary : Color.wpTextTertiary)
+        HStack(alignment: .top, spacing: WPSpacing.xs) {
+            Image(systemName: "doc.text")
+                .font(.system(size: 14))
+                .foregroundStyle(isNoteEditing ? Color.wpPrimary : Color.wpTextTertiary)
+                .padding(.top, 2)
 
-            // Text field
             TextField("Add a note...", text: $viewModel.descriptionText, axis: .vertical)
                 .font(.wpCallout)
                 .foregroundStyle(Color.wpTextPrimary)
@@ -364,77 +357,79 @@ struct TransactionDetailView: View {
                 .lineLimit(isNoteEditing ? 1...10 : 1...WPContentSheetStyle.noteMaxLines)
                 .focused($focusedField, equals: .note)
         }
-        .padding(WPSpacing.sm)
+        .padding(14)
         .background(Color.wpSurface)
         .clipShape(RoundedRectangle(cornerRadius: WPCornerRadius.medium))
         .overlay {
-            if isNoteEditing {
-                RoundedRectangle(cornerRadius: WPCornerRadius.medium)
-                    .strokeBorder(Color.wpPrimary, lineWidth: 1)
-            }
+            RoundedRectangle(cornerRadius: WPCornerRadius.medium)
+                .strokeBorder(
+                    isNoteEditing ? Color.wpPrimary : Color.wpBorder.opacity(0.4),
+                    lineWidth: 1
+                )
         }
     }
 
     // MARK: - Bottom Bar
 
     private var bottomBar: some View {
-        VStack(spacing: 0) {
-            Rectangle().fill(Color.wpBorder.opacity(0.3)).frame(height: 0.5)
-
-            HStack(spacing: WPSpacing.sm) {
-                // Delete button (small, left side)
-                Button {
-                    viewModel.showDeleteConfirmation = true
-                } label: {
-                    Image(systemName: "trash")
-                        .font(.wpCallout)
-                        .foregroundStyle(Color.wpTextTertiary)
-                }
-                .buttonStyle(.plain)
-
-                Spacer()
-
-                // Promote button (inbox only, when ready)
-                if viewModel.canPromote {
-                    Button {
-                        viewModel.promote()
-                        onDismiss()
-                    } label: {
-                        HStack(spacing: WPSpacing.xxs) {
-                            Image(systemName: "arrow.up.circle.fill")
-                                .font(.wpCaption)
-                            Text("Promote")
-                                .font(.wpSubheadline)
-                                .fontWeight(.bold)
-                        }
-                        .foregroundStyle(Color.wpOnPrimary)
-                        .padding(.horizontal, WPSpacing.md)
-                        .padding(.vertical, WPSpacing.xs)
-                        .background(Color.wpPrimary)
-                        .clipShape(RoundedRectangle(cornerRadius: WPCornerRadius.small))
+        HStack(spacing: WPSpacing.sm) {
+            // Delete button
+            Button {
+                viewModel.showDeleteConfirmation = true
+            } label: {
+                Image(systemName: "trash")
+                    .font(.system(size: 16))
+                    .foregroundStyle(Color.wpTextTertiary)
+                    .frame(width: 48, height: 48)
+                    .background(Color.clear)
+                    .clipShape(RoundedRectangle(cornerRadius: WPCornerRadius.medium))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: WPCornerRadius.medium)
+                            .strokeBorder(Color.wpBorder, lineWidth: 1)
                     }
-                    .buttonStyle(.plain)
-                }
+            }
+            .buttonStyle(.plain)
 
-                // Save button
+            // Promote button (inbox only, when ready)
+            if viewModel.canPromote {
                 Button {
-                    viewModel.save()
+                    viewModel.promote()
                     onDismiss()
                 } label: {
-                    Text("Save")
-                        .font(.wpSubheadline)
-                        .fontWeight(.bold)
-                        .foregroundStyle(Color.wpOnPrimary)
-                        .padding(.horizontal, WPSpacing.lg)
-                        .padding(.vertical, WPSpacing.xs)
-                        .background(Color.wpPrimary)
-                        .clipShape(RoundedRectangle(cornerRadius: WPCornerRadius.small))
+                    HStack(spacing: WPSpacing.xxs) {
+                        Image(systemName: "arrow.up.circle.fill")
+                            .font(.wpCaption)
+                        Text("Promote")
+                            .font(.wpSubheadline)
+                            .fontWeight(.bold)
+                    }
+                    .foregroundStyle(Color.wpOnPrimary)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .background(Color.wpSuccess)
+                    .clipShape(RoundedRectangle(cornerRadius: WPCornerRadius.medium))
                 }
                 .buttonStyle(.plain)
             }
-            .padding(.horizontal, WPSpacing.md)
-            .padding(.vertical, WPSpacing.sm)
+
+            // Save button — full width
+            Button {
+                viewModel.save()
+                onDismiss()
+            } label: {
+                Text("Save")
+                    .font(.wpSubheadline)
+                    .fontWeight(.bold)
+                    .foregroundStyle(Color.wpOnPrimary)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .background(Color.wpPrimary)
+                    .clipShape(RoundedRectangle(cornerRadius: WPCornerRadius.medium))
+            }
+            .buttonStyle(.plain)
         }
+        .padding(.horizontal, WPSpacing.md)
+        .padding(.vertical, WPSpacing.sm)
     }
 
     // MARK: - Date Picker Sheet

@@ -135,6 +135,63 @@ public extension View {
     }
 }
 
+// MARK: - Icon-Only Pill Style
+
+/// Icon-only pill for quick entry toolbar — shows just an SF Symbol.
+/// Empty state is a subtle ghost; filled state has a colored tint.
+public enum WPIconPillState {
+    case empty
+    case filled(color: Color)
+}
+
+public struct WPIconPillModifier: ViewModifier {
+    let state: WPIconPillState
+
+    public init(state: WPIconPillState) {
+        self.state = state
+    }
+
+    public func body(content: Content) -> some View {
+        content
+            .font(.system(size: 14, weight: .medium))
+            .foregroundStyle(foregroundColor)
+            .frame(width: 34, height: 30)
+            .background(backgroundColor)
+            .clipShape(RoundedRectangle(cornerRadius: 6))
+            .overlay {
+                RoundedRectangle(cornerRadius: 6)
+                    .strokeBorder(borderColor, lineWidth: 1)
+            }
+    }
+
+    private var foregroundColor: Color {
+        switch state {
+        case .empty: Color.wpTextTertiary
+        case .filled(let color): color
+        }
+    }
+
+    private var backgroundColor: Color {
+        switch state {
+        case .empty: Color.wpTextTertiary.opacity(0.04)
+        case .filled(let color): color.opacity(0.1)
+        }
+    }
+
+    private var borderColor: Color {
+        switch state {
+        case .empty: Color.wpTextTertiary.opacity(0.08)
+        case .filled(let color): color.opacity(0.25)
+        }
+    }
+}
+
+public extension View {
+    func wpIconPill(state: WPIconPillState) -> some View {
+        modifier(WPIconPillModifier(state: state))
+    }
+}
+
 // MARK: - Circular Send Button Style
 
 /// The circular send/submit button used in quick entry.

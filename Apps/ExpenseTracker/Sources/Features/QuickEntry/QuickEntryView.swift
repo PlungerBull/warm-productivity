@@ -23,12 +23,6 @@ struct QuickEntryView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // Destination badge — subtle indicator of where this entry will land
-            destinationBadge
-                .padding(.horizontal, WPSpacing.md)
-                .padding(.top, WPSpacing.sm)
-                .padding(.bottom, WPSpacing.xxs)
-
             // Command input — large, prominent, the hero element
             TextField(
                 "e.g. -45 Lunch @Food $BCP",
@@ -40,7 +34,8 @@ struct QuickEntryView: View {
             .textInputAutocapitalization(.never)
             .focused($isCommandFocused)
             .padding(.horizontal, WPSpacing.md)
-            .padding(.vertical, WPSpacing.xs)
+            .padding(.top, WPSpacing.sm)
+            .padding(.bottom, WPSpacing.xs)
             .onChange(of: viewModel.commandText) {
                 viewModel.parseCommand()
             }
@@ -84,20 +79,6 @@ struct QuickEntryView: View {
         .task {
             viewModel.loadPickerData()
         }
-    }
-
-    // MARK: - Destination Badge
-
-    private var destinationBadge: some View {
-        HStack(spacing: WPSpacing.xxs) {
-            Image(systemName: viewModel.canGoToLedger ? "checkmark.circle.fill" : "tray.fill")
-                .font(.wpCaption2)
-            Text(viewModel.canGoToLedger ? "Ledger" : "Inbox")
-                .font(.wpCaption2)
-                .fontWeight(.medium)
-        }
-        .foregroundStyle(viewModel.canGoToLedger ? Color.wpSuccess : Color.wpTextTertiary)
-        .animation(.easeInOut(duration: 0.2), value: viewModel.canGoToLedger)
     }
 
     // MARK: - Toolbar Row
@@ -144,53 +125,19 @@ struct QuickEntryView: View {
         )
     }
 
-    // MARK: - Hashtag Pills
-
-    @ViewBuilder
-    private var hashtagPills: some View {
-        if viewModel.parsedHashtags.isEmpty {
-            HStack(spacing: WPSpacing.xxs) {
-                Image(systemName: "number")
-            }
-            .wpToolbarPill(state: .unselected, color: Color.wpHashtag)
-        } else {
-            ForEach(viewModel.parsedHashtags, id: \.self) { tag in
-                HStack(spacing: WPSpacing.xxs) {
-                    Image(systemName: "number")
-                    Text(tag)
-                }
-                .wpToolbarPill(state: .selected, color: Color.wpHashtag)
-            }
-        }
-    }
-
-    // MARK: - Date Pill
+    // MARK: - Date Pill (icon-only)
 
     private var datePill: some View {
         Button { showDatePicker = true } label: {
-            let hasDate = viewModel.resolvedDate != nil
-            HStack(spacing: WPSpacing.xxs) {
-                Image(systemName: "calendar")
-                if hasDate {
-                    Text(dateDisplayText)
-                }
-            }
-            .wpToolbarPill(
-                state: hasDate ? .selected : .unselected,
-                color: Color.wpSuccess
-            )
+            Image(systemName: "calendar")
+                .wpIconPill(state: viewModel.resolvedDate != nil
+                    ? .filled(color: Color.wpSuccess)
+                    : .empty)
         }
         .buttonStyle(.plain)
     }
 
-    private var dateDisplayText: String {
-        guard let date = viewModel.resolvedDate else { return "" }
-        if Calendar.current.isDateInToday(date) { return "Today" }
-        if Calendar.current.isDateInYesterday(date) { return "Yesterday" }
-        return CurrencyFormatter.formatDate(date)
-    }
-
-    // MARK: - Category Pill
+    // MARK: - Category Pill (icon-only)
 
     private var categoryPill: some View {
         Menu {
@@ -200,28 +147,18 @@ struct QuickEntryView: View {
                 }
             }
         } label: {
-            let name = resolvedCategoryName
-            let hasCategory = name != nil
-            HStack(spacing: WPSpacing.xxs) {
-                Image(systemName: "tag")
-                if let name {
-                    Text(name)
-                }
-            }
-            .wpToolbarPill(
-                state: hasCategory ? .selected : .missing,
-                color: Color.wpPrimary
-            )
+            Image(systemName: "tag")
+                .wpIconPill(state: resolvedCategoryId != nil
+                    ? .filled(color: Color.wpPrimary)
+                    : .empty)
         }
     }
 
-    private var resolvedCategoryName: String? {
-        viewModel.resolvedCategoryId.flatMap { id in
-            viewModel.categories.first { $0.id == id }?.name
-        }
+    private var resolvedCategoryId: UUID? {
+        viewModel.resolvedCategoryId
     }
 
-    // MARK: - Account Pill
+    // MARK: - Account Pill (icon-only)
 
     private var accountPill: some View {
         Menu {
@@ -231,25 +168,20 @@ struct QuickEntryView: View {
                 }
             }
         } label: {
-            let name = resolvedAccountName
-            let hasAccount = name != nil
-            HStack(spacing: WPSpacing.xxs) {
-                Image(systemName: "building.columns")
-                if let name {
-                    Text(name)
-                }
-            }
-            .wpToolbarPill(
-                state: hasAccount ? .selected : .missing,
-                color: Color.wpSuccess
-            )
+            Image(systemName: "building.columns")
+                .wpIconPill(state: viewModel.resolvedAccountId != nil
+                    ? .filled(color: Color.wpSuccess)
+                    : .empty)
         }
     }
 
-    private var resolvedAccountName: String? {
-        viewModel.resolvedAccountId.flatMap { id in
-            viewModel.accounts.first { $0.id == id }?.name
-        }
+    // MARK: - Hashtag Pill (icon-only)
+
+    private var hashtagPills: some View {
+        Image(systemName: "number")
+            .wpIconPill(state: viewModel.parsedHashtags.isEmpty
+                ? .empty
+                : .filled(color: Color.wpHashtag))
     }
 
     // MARK: - Send Button

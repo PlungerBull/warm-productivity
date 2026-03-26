@@ -1,0 +1,1329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UI Polish Mockup — Light & Dark</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif;
+    background: #111;
+    color: #fafaf9;
+    padding: 32px;
+  }
+
+  h1 {
+    text-align: center;
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .subtitle {
+    text-align: center;
+    font-size: 14px;
+    color: #a8a29e;
+    margin-bottom: 40px;
+  }
+
+  .section-title {
+    text-align: center;
+    font-size: 20px;
+    font-weight: 600;
+    color: #ea580c;
+    margin: 48px 0 24px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+  }
+
+  .comparison {
+    display: flex;
+    gap: 32px;
+    justify-content: center;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    margin-bottom: 48px;
+  }
+
+  .panel { width: 375px; flex-shrink: 0; }
+
+  .panel-label {
+    text-align: center;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+    padding: 5px 16px;
+    border-radius: 20px;
+    display: block;
+  }
+  .panel-label.current {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+  }
+  .panel-label.proposed {
+    color: #4ade80;
+    background: rgba(74, 222, 128, 0.1);
+    border: 1px solid rgba(74, 222, 128, 0.3);
+  }
+  .panel-label.theme-label {
+    color: #a8a29e;
+    background: rgba(168, 162, 158, 0.08);
+    border: 1px solid rgba(168, 162, 158, 0.2);
+  }
+
+  /* ===== PHONE FRAME ===== */
+  .phone {
+    width: 375px;
+    border-radius: 40px;
+    overflow: hidden;
+    border: 3px solid #333;
+  }
+  .phone.light-border { border-color: #d6d3d1; }
+
+  /* ===== INLINE SVG ICONS ===== */
+  .icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+  }
+  .icon svg {
+    width: 14px;
+    height: 14px;
+  }
+  .icon-sm svg { width: 12px; height: 12px; }
+  .icon-lg { width: 20px; height: 20px; }
+  .icon-lg svg { width: 18px; height: 18px; }
+
+  /* ===== ANNOTATIONS ===== */
+  .annotation {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    margin: 8px 0;
+    padding: 8px 12px;
+    background: rgba(234, 88, 12, 0.06);
+    border-left: 3px solid #ea580c;
+    border-radius: 0 8px 8px 0;
+    font-size: 12px;
+    color: #a8a29e;
+    line-height: 1.5;
+  }
+  .annotation strong { color: #ea580c; }
+
+  .callout-badge {
+    position: absolute;
+    background: #ea580c;
+    color: white;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 10px;
+    white-space: nowrap;
+    z-index: 10;
+  }
+  .callout-badge.green { background: #22c55e; }
+
+  hr.section-sep {
+    border: none;
+    border-top: 1px solid #292524;
+    margin: 48px 0;
+  }
+
+  /* ============================================ */
+  /* DARK THEME TOKENS                            */
+  /* ============================================ */
+  .dark-theme {
+    --bg: #1c1917;
+    --surface: #3c3836;
+    --surface-elevated: #4a4543;
+    --border: #44403c;
+    --border-subtle: rgba(68, 64, 60, 0.25);
+    --text-primary: #fafaf9;
+    --text-secondary: #a8a29e;
+    --text-tertiary: #78716c;
+    --text-ghost: #44403c;
+    --primary: #ea580c;
+    --income: #4ade80;
+    --success: #22c55e;
+    --hashtag: #6b8af2;
+    --warning: #d97706;
+    --error: #ef4444;
+    --glass-bg: rgba(255,255,255,0.08);
+    --glass-border: rgba(255,255,255,0.12);
+    --ghost-bg: rgba(255,255,255,0.04);
+    --ghost-border: rgba(255,255,255,0.08);
+    --pill-filled-bg: rgba(255,255,255,0.08);
+    --pill-filled-border: rgba(255,255,255,0.15);
+    --drag-handle: rgba(255,255,255,0.25);
+    --on-primary: #ffffff;
+    --note-bg: #3c3836;
+    --note-border: rgba(68,64,60,0.4);
+  }
+
+  /* ============================================ */
+  /* LIGHT THEME TOKENS                           */
+  /* ============================================ */
+  .light-theme {
+    --bg: #ffffff;
+    --surface: #f5f5f4;
+    --surface-elevated: #ffffff;
+    --border: #e7e5e4;
+    --border-subtle: rgba(231, 229, 228, 0.6);
+    --text-primary: #1c1917;
+    --text-secondary: #78716c;
+    --text-tertiary: #a8a29e;
+    --text-ghost: #d6d3d1;
+    --primary: #c2410c;
+    --income: #2d8a4e;
+    --success: #16a34a;
+    --hashtag: #4f6bed;
+    --warning: #b45309;
+    --error: #dc2626;
+    --glass-bg: rgba(0,0,0,0.04);
+    --glass-border: rgba(0,0,0,0.08);
+    --ghost-bg: rgba(0,0,0,0.02);
+    --ghost-border: rgba(0,0,0,0.06);
+    --pill-filled-bg: rgba(0,0,0,0.05);
+    --pill-filled-border: rgba(0,0,0,0.1);
+    --drag-handle: rgba(0,0,0,0.2);
+    --on-primary: #ffffff;
+    --note-bg: #f5f5f4;
+    --note-border: rgba(231,229,228,0.8);
+  }
+
+  /* ===== SHARED SHEET STYLES ===== */
+  .sheet {
+    background: var(--bg);
+    min-height: 540px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* System drag handle */
+  .sys-drag-handle {
+    width: 36px;
+    height: 5px;
+    background: var(--drag-handle);
+    border-radius: 3px;
+    margin: 8px auto 0;
+  }
+
+  /* Hero section */
+  .hero {
+    text-align: center;
+    padding: 20px 16px 16px;
+  }
+  .hero .title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 10px;
+  }
+  .hero .amount {
+    font-size: 40px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .hero .amount .sign { color: var(--income); }
+  .hero .amount .currency {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-tertiary);
+    margin-right: 4px;
+  }
+  .hero .amount .number { color: var(--income); }
+
+  /* Pills row */
+  .pills {
+    display: flex;
+    gap: 8px;
+    padding: 8px 16px;
+    overflow-x: auto;
+  }
+  .pill {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .pill.glass {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    color: var(--text-secondary);
+  }
+  .pill.glass-green {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    color: var(--success);
+  }
+
+  /* Metadata rows */
+  .metadata-rows {
+    margin: 0 16px;
+  }
+  .meta-row {
+    display: flex;
+    align-items: center;
+    padding: 14px 0;
+    border-bottom: 0.5px solid var(--border-subtle);
+  }
+  .meta-row:last-child { border-bottom: none; }
+  .meta-row .meta-icon-box {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    flex-shrink: 0;
+  }
+  .meta-row .meta-label {
+    font-size: 15px;
+    font-weight: 400;
+    color: var(--text-secondary);
+    flex: 1;
+  }
+  .meta-row .meta-value {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+  .meta-row .meta-value.green { color: var(--income); }
+
+  /* Note field */
+  .note-field {
+    margin: 8px 16px;
+    padding: 14px;
+    background: var(--note-bg);
+    border: 1px solid var(--note-border);
+    border-radius: 12px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .note-field .note-icon {
+    color: var(--text-tertiary);
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .note-field .note-text {
+    font-size: 15px;
+    color: var(--text-ghost);
+    flex: 1;
+  }
+
+  /* Bottom bar with delete */
+  .bottom-bar-new {
+    padding: 12px 16px;
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .bottom-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .btn-save-full {
+    flex: 1;
+    background: var(--primary);
+    color: var(--on-primary);
+    border: none;
+    padding: 14px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.3px;
+  }
+  .btn-delete {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .btn-delete svg { color: var(--text-tertiary); }
+
+  /* ===== CURRENT DESIGN STYLES ===== */
+  .sheet-current { min-height: 540px; display: flex; flex-direction: column; }
+
+  .drag-handle-custom {
+    width: 36px;
+    height: 4px;
+    background: rgba(168, 162, 158, 0.4);
+    border-radius: 2px;
+    margin: 10px auto 0;
+  }
+
+  .hero-current {
+    text-align: center;
+    padding: 24px 16px 12px;
+  }
+  .hero-current .title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+  }
+  .hero-current .amount {
+    font-size: 36px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .hero-current .amount .sign { color: var(--income); }
+  .hero-current .amount .currency {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-tertiary);
+    margin-right: 4px;
+  }
+  .hero-current .amount .number { color: var(--income); }
+
+  .pill.missing-dashed {
+    background: rgba(217, 119, 6, 0.08);
+    border: 1px dashed rgba(217, 119, 6, 0.35);
+    color: var(--warning);
+  }
+
+  .details-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5px;
+    margin: 12px 16px;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .grid-cell {
+    padding: 12px;
+  }
+  .grid-cell .label {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+  .grid-cell .value {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  .grid-cell .value.green { color: var(--success); }
+  .grid-cell .value.income { color: var(--income); }
+
+  .note-card-current {
+    margin: 8px 16px;
+    padding: 12px;
+    border-radius: 12px;
+  }
+  .note-card-current .note-header {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .note-card-current .note-placeholder {
+    font-size: 15px;
+    color: var(--text-ghost);
+  }
+
+  .bottom-bar-current {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    border-top: 0.5px solid var(--border-subtle);
+    margin-top: auto;
+  }
+  .bottom-bar-current .spacer { flex: 1; }
+  .btn-save-small {
+    background: var(--primary);
+    color: var(--on-primary);
+    border: none;
+    padding: 8px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  /* ===== QUICK ENTRY ===== */
+  .qe-sheet {
+    padding: 12px 0 8px;
+  }
+  .qe-destination {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0 16px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    margin-bottom: 4px;
+  }
+  .qe-command-plain {
+    padding: 8px 16px;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-ghost);
+  }
+  .qe-note-placeholder {
+    padding: 4px 16px;
+    font-size: 15px;
+    color: var(--text-ghost);
+  }
+
+  .qe-toolbar {
+    display: flex;
+    align-items: center;
+    padding: 12px 12px 8px;
+    gap: 8px;
+  }
+  .qe-toolbar .pills-scroll {
+    display: flex;
+    gap: 8px;
+    flex: 1;
+    overflow: hidden;
+  }
+  .qe-send {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .qe-send.inactive {
+    background: rgba(168, 162, 158, 0.3);
+    color: white;
+  }
+  .qe-send.active {
+    background: var(--primary);
+    color: white;
+  }
+  .qe-send svg { width: 16px; height: 16px; }
+
+  /* Command with token highlighting */
+  .command-highlighted {
+    padding: 8px 16px;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.5;
+  }
+  .command-highlighted .tok-amount { color: var(--text-primary); }
+  .command-highlighted .tok-text { color: var(--text-primary); }
+  .command-highlighted .tok-category { color: var(--income); }
+  .command-highlighted .tok-account { color: var(--income); }
+  .command-highlighted .tok-hashtag { color: var(--hashtag); }
+
+  /* Icon-only pills */
+  .pill-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 30px;
+    border-radius: 6px;
+    flex-shrink: 0;
+  }
+  .pill-icon.empty {
+    background: var(--ghost-bg);
+    border: 1px solid var(--ghost-border);
+  }
+  .pill-icon.empty svg { color: var(--text-ghost); }
+
+  .pill-icon.filled {
+    border: 1px solid var(--pill-filled-border);
+  }
+
+  .pill-icon.filled-green {
+    background: rgba(34, 197, 94, 0.1);
+    border: 1px solid rgba(34, 197, 94, 0.25);
+  }
+  .pill-icon.filled-green svg { color: var(--success); }
+
+  .pill-icon.filled-income {
+    background: rgba(74, 222, 128, 0.1);
+    border: 1px solid rgba(74, 222, 128, 0.25);
+  }
+  .pill-icon.filled-income svg { color: var(--income); }
+
+  .pill-icon.filled-blue {
+    background: rgba(107, 138, 242, 0.1);
+    border: 1px solid rgba(107, 138, 242, 0.25);
+  }
+  .pill-icon.filled-blue svg { color: var(--hashtag); }
+
+  .pill-icon.filled-orange {
+    background: rgba(234, 88, 12, 0.1);
+    border: 1px solid rgba(234, 88, 12, 0.25);
+  }
+  .pill-icon.filled-orange svg { color: var(--primary); }
+
+  /* Light theme filled overrides */
+  .light-theme .pill-icon.filled-green {
+    background: rgba(22, 163, 74, 0.08);
+    border-color: rgba(22, 163, 74, 0.2);
+  }
+  .light-theme .pill-icon.filled-green svg { color: var(--success); }
+
+  .light-theme .pill-icon.filled-income {
+    background: rgba(45, 138, 78, 0.08);
+    border-color: rgba(45, 138, 78, 0.2);
+  }
+  .light-theme .pill-icon.filled-income svg { color: var(--income); }
+
+  .light-theme .pill-icon.filled-blue {
+    background: rgba(79, 107, 237, 0.08);
+    border-color: rgba(79, 107, 237, 0.2);
+  }
+  .light-theme .pill-icon.filled-blue svg { color: var(--hashtag); }
+
+  .light-theme .pill-icon.filled-orange {
+    background: rgba(194, 65, 12, 0.08);
+    border-color: rgba(194, 65, 12, 0.2);
+  }
+  .light-theme .pill-icon.filled-orange svg { color: var(--primary); }
+
+  /* Amount pill (wider, shows value) */
+  .pill-amount {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .pill-amount.empty {
+    background: var(--ghost-bg);
+    border: 1px solid var(--ghost-border);
+    color: var(--text-ghost);
+  }
+  .pill-amount.filled {
+    background: var(--pill-filled-bg);
+    border: 1px solid var(--pill-filled-border);
+    color: var(--text-primary);
+  }
+
+  /* ===== SURFACE CONTRAST ===== */
+  .surface-demo {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+    margin: 24px 0;
+    flex-wrap: wrap;
+  }
+  .surface-swatch {
+    width: 180px;
+    text-align: center;
+  }
+  .swatch-box {
+    width: 180px;
+    height: 90px;
+    border-radius: 12px;
+    border: 1px solid #333;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .swatch-inner {
+    width: 140px;
+    height: 60px;
+    border-radius: 8px;
+  }
+  .swatch-label { font-size: 11px; color: #78716c; }
+  .swatch-hex {
+    font-size: 12px;
+    font-weight: 600;
+    color: #a8a29e;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Floating margin demo */
+  .floating-margin-indicator {
+    position: relative;
+  }
+  .margin-bar {
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 8px;
+    background: rgba(239, 68, 68, 0.12);
+    border: 1px dashed rgba(239, 68, 68, 0.4);
+    z-index: 5;
+  }
+  .margin-bar.left { left: 0; border-right: none; border-radius: 0; }
+  .margin-bar.right { right: 0; border-left: none; border-radius: 0; }
+</style>
+</head>
+<body>
+
+<h1>UI Polish Mockup</h1>
+<p class="subtitle">Current vs. Proposed &mdash; Dark &amp; Light themes</p>
+
+<!-- ================================================ -->
+<!-- TRANSACTION DETAIL — DARK                        -->
+<!-- ================================================ -->
+
+<div class="section-title">Transaction Detail Sheet &mdash; Dark</div>
+
+<div class="comparison">
+
+  <!-- CURRENT DARK -->
+  <div class="panel dark-theme">
+    <div class="panel-label current">Current</div>
+    <div class="phone">
+      <div class="sheet-current" style="background: #1c1917;">
+
+        <div class="drag-handle-custom"></div>
+
+        <div class="hero-current">
+          <div class="title">testeanso</div>
+          <div class="amount">
+            <span class="sign">+</span><span class="currency">USD</span> <span class="number">45.00</span>
+          </div>
+        </div>
+
+        <div class="pills">
+          <div class="pill glass">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/></svg>
+            Mar 23
+          </div>
+          <div class="pill glass">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="6"/></svg>
+            Other
+          </div>
+          <div class="pill glass-green">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21V7a2 2 0 012-2h14a2 2 0 012 2v14"/><line x1="3" y1="11" x2="21" y2="11"/><path d="M9 5V3M15 5V3"/><path d="M7 15h2m6 0h2"/></svg>
+            BCP USD
+          </div>
+        </div>
+
+        <div style="height: 0.5px; background: rgba(68,64,60,0.3); margin: 12px 24px;"></div>
+
+        <div class="details-grid" style="background: rgba(68,64,60,0.5);">
+          <div class="grid-cell" style="background: #292524;">
+            <div class="label">TYPE</div>
+            <div class="value">Income</div>
+          </div>
+          <div class="grid-cell" style="background: #292524;">
+            <div class="label">STATUS</div>
+            <div class="value green">&#10003; Cleared</div>
+          </div>
+          <div class="grid-cell" style="background: #292524;">
+            <div class="label">EXCHANGE</div>
+            <div class="value">USD &rarr; PEN 1</div>
+          </div>
+          <div class="grid-cell" style="background: #292524;">
+            <div class="label">HOME AMOUNT</div>
+            <div class="value income">+PEN45.00</div>
+          </div>
+        </div>
+
+        <div class="note-card-current" style="background: #292524;">
+          <div class="note-header">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            NOTE
+          </div>
+          <div class="note-placeholder" style="color: #44403c;">Add a note...</div>
+        </div>
+
+        <div style="flex: 1; min-height: 48px;"></div>
+
+        <div class="bottom-bar-current" style="border-color: rgba(68,64,60,0.3);">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#78716c" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+          <span class="spacer"></span>
+          <button class="btn-save-small" style="background: #ea580c;">Save</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- PROPOSED DARK -->
+  <div class="panel dark-theme">
+    <div class="panel-label proposed">Proposed</div>
+    <div class="phone">
+      <div class="sheet" style="--bg: #1c1917; --surface: #3c3836; --border: #44403c; --border-subtle: rgba(68,64,60,0.25); --text-primary: #fafaf9; --text-secondary: #a8a29e; --text-tertiary: #78716c; --text-ghost: #44403c; --primary: #ea580c; --income: #4ade80; --success: #22c55e; --on-primary: #fff; --note-bg: #3c3836; --note-border: rgba(68,64,60,0.4);">
+
+        <div class="sys-drag-handle"></div>
+
+        <div class="hero">
+          <div class="title">testeanso</div>
+          <div class="amount">
+            <span class="sign">+</span><span class="currency">USD</span> <span class="number">45.00</span>
+          </div>
+        </div>
+
+        <div class="pills">
+          <div class="pill glass">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/></svg>
+            Mar 23
+          </div>
+          <div class="pill glass">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="6"/></svg>
+            Other
+          </div>
+          <div class="pill glass-green">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21V7a2 2 0 012-2h14a2 2 0 012 2v14"/><line x1="3" y1="11" x2="21" y2="11"/><path d="M7 15h2m6 0h2"/></svg>
+            BCP USD
+          </div>
+        </div>
+
+        <div style="height: 16px;"></div>
+        <div class="metadata-rows">
+          <div class="meta-row">
+            <div class="meta-icon-box" style="background: rgba(74,222,128,0.1);">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+            </div>
+            <div class="meta-label">Income</div>
+            <div class="meta-value green">+USD 45.00</div>
+          </div>
+          <div class="meta-row">
+            <div class="meta-icon-box" style="background: rgba(168,162,158,0.1);">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a8a29e" stroke-width="2"><polyline points="7 8 3 12 7 16"/><polyline points="17 8 21 12 17 16"/><line x1="3" y1="12" x2="21" y2="12"/></svg>
+            </div>
+            <div class="meta-label">Exchange rate</div>
+            <div class="meta-value">USD &rarr; PEN &times; 1.00</div>
+          </div>
+          <div class="meta-row">
+            <div class="meta-icon-box" style="background: rgba(168,162,158,0.1);">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a8a29e" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            </div>
+            <div class="meta-label">Home amount</div>
+            <div class="meta-value green">+PEN 45.00</div>
+          </div>
+        </div>
+
+        <!-- Note with background -->
+        <div class="note-field">
+          <div class="note-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#78716c" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          </div>
+          <div class="note-text">Add a note...</div>
+        </div>
+
+        <div style="flex: 1; min-height: 24px;"></div>
+
+        <!-- Bottom bar with delete + save -->
+        <div class="bottom-bar-new">
+          <div class="bottom-actions">
+            <button class="btn-delete" style="border-color: #44403c;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#78716c" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+            </button>
+            <button class="btn-save-full">Save</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ================================================ -->
+<!-- TRANSACTION DETAIL — LIGHT                       -->
+<!-- ================================================ -->
+
+<div class="section-title">Transaction Detail Sheet &mdash; Light</div>
+
+<div class="comparison">
+
+  <!-- CURRENT LIGHT -->
+  <div class="panel light-theme">
+    <div class="panel-label current">Current</div>
+    <div class="phone light-border">
+      <div class="sheet-current" style="background: #ffffff;">
+
+        <div class="drag-handle-custom" style="background: rgba(0,0,0,0.15);"></div>
+
+        <div class="hero-current">
+          <div class="title" style="color: #1c1917;">testeanso</div>
+          <div class="amount">
+            <span class="sign" style="color: #2d8a4e;">+</span><span class="currency" style="color: #a8a29e;">USD</span> <span class="number" style="color: #2d8a4e;">45.00</span>
+          </div>
+        </div>
+
+        <div class="pills">
+          <div class="pill" style="background: rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.08); color: #78716c;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/></svg>
+            Mar 23
+          </div>
+          <div class="pill" style="background: rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.08); color: #78716c;">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="6"/></svg>
+            Other
+          </div>
+          <div class="pill" style="background: rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.08); color: #16a34a;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21V7a2 2 0 012-2h14a2 2 0 012 2v14"/><line x1="3" y1="11" x2="21" y2="11"/><path d="M7 15h2m6 0h2"/></svg>
+            BCP USD
+          </div>
+        </div>
+
+        <div style="height: 0.5px; background: rgba(231,229,228,0.6); margin: 12px 24px;"></div>
+
+        <div class="details-grid" style="background: rgba(231,229,228,0.8);">
+          <div class="grid-cell" style="background: #fafaf9;">
+            <div class="label" style="color: #a8a29e;">TYPE</div>
+            <div class="value" style="color: #1c1917;">Income</div>
+          </div>
+          <div class="grid-cell" style="background: #fafaf9;">
+            <div class="label" style="color: #a8a29e;">STATUS</div>
+            <div class="value" style="color: #16a34a;">&#10003; Cleared</div>
+          </div>
+          <div class="grid-cell" style="background: #fafaf9;">
+            <div class="label" style="color: #a8a29e;">EXCHANGE</div>
+            <div class="value" style="color: #1c1917;">USD &rarr; PEN 1</div>
+          </div>
+          <div class="grid-cell" style="background: #fafaf9;">
+            <div class="label" style="color: #a8a29e;">HOME AMOUNT</div>
+            <div class="value" style="color: #2d8a4e;">+PEN45.00</div>
+          </div>
+        </div>
+
+        <div class="note-card-current" style="background: #fafaf9;">
+          <div class="note-header" style="color: #a8a29e;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            NOTE
+          </div>
+          <div class="note-placeholder" style="color: #d6d3d1;">Add a note...</div>
+        </div>
+
+        <div style="flex: 1; min-height: 48px;"></div>
+
+        <div class="bottom-bar-current" style="border-color: rgba(231,229,228,0.6);">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a8a29e" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+          <span class="spacer"></span>
+          <button class="btn-save-small" style="background: #c2410c;">Save</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- PROPOSED LIGHT -->
+  <div class="panel light-theme">
+    <div class="panel-label proposed">Proposed</div>
+    <div class="phone light-border">
+      <div class="sheet">
+
+        <div class="sys-drag-handle" style="background: rgba(0,0,0,0.2);"></div>
+
+        <div class="hero">
+          <div class="title">testeanso</div>
+          <div class="amount">
+            <span class="sign">+</span><span class="currency">USD</span> <span class="number">45.00</span>
+          </div>
+        </div>
+
+        <div class="pills">
+          <div class="pill glass">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/></svg>
+            Mar 23
+          </div>
+          <div class="pill glass">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="6"/></svg>
+            Other
+          </div>
+          <div class="pill glass" style="color: var(--success);">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21V7a2 2 0 012-2h14a2 2 0 012 2v14"/><line x1="3" y1="11" x2="21" y2="11"/><path d="M7 15h2m6 0h2"/></svg>
+            BCP USD
+          </div>
+        </div>
+
+        <div style="height: 16px;"></div>
+        <div class="metadata-rows">
+          <div class="meta-row">
+            <div class="meta-icon-box" style="background: rgba(45,138,78,0.08);">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--income)" stroke-width="2"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+            </div>
+            <div class="meta-label">Income</div>
+            <div class="meta-value" style="color: var(--income);">+USD 45.00</div>
+          </div>
+          <div class="meta-row">
+            <div class="meta-icon-box" style="background: rgba(120,113,108,0.08);">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="2"><polyline points="7 8 3 12 7 16"/><polyline points="17 8 21 12 17 16"/><line x1="3" y1="12" x2="21" y2="12"/></svg>
+            </div>
+            <div class="meta-label">Exchange rate</div>
+            <div class="meta-value">USD &rarr; PEN &times; 1.00</div>
+          </div>
+          <div class="meta-row">
+            <div class="meta-icon-box" style="background: rgba(120,113,108,0.08);">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            </div>
+            <div class="meta-label">Home amount</div>
+            <div class="meta-value" style="color: var(--income);">+PEN 45.00</div>
+          </div>
+        </div>
+
+        <div class="note-field">
+          <div class="note-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-tertiary)" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          </div>
+          <div class="note-text">Add a note...</div>
+        </div>
+
+        <div style="flex: 1; min-height: 24px;"></div>
+
+        <div class="bottom-bar-new">
+          <div class="bottom-actions">
+            <button class="btn-delete">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-tertiary)" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+            </button>
+            <button class="btn-save-full">Save</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<hr class="section-sep">
+
+<!-- ================================================ -->
+<!-- QUICK ENTRY — DARK                               -->
+<!-- ================================================ -->
+
+<div class="section-title">Quick Entry Popup &mdash; Dark</div>
+
+<div class="comparison">
+
+  <!-- CURRENT DARK -->
+  <div class="panel dark-theme">
+    <div class="panel-label current">Current</div>
+    <div class="phone" style="border-radius: 20px;">
+      <div class="qe-sheet" style="background: #1c1917;">
+
+        <div style="position: relative;">
+          <div class="callout-badge" style="top: -8px; left: 50%; transform: translateX(-50);">iOS 26 floating margins</div>
+          <div style="height: 8px; margin: 0 8px; background: rgba(239,68,68,0.1); border-radius: 12px 12px 0 0; border: 1px dashed rgba(239,68,68,0.3); border-bottom: none;"></div>
+        </div>
+
+        <div class="qe-destination">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12H16l-4 8V4l-4 8H2"/></svg>
+          Inbox
+        </div>
+        <div class="qe-command-plain" style="color: #44403c;">e.g. -45 Lunch @Food $BCP</div>
+        <div class="qe-note-placeholder" style="color: #44403c;">Add a note...</div>
+
+        <div class="qe-toolbar">
+          <div class="pills-scroll">
+            <div class="pill glass" style="font-size: 12px;">Amount</div>
+            <div class="pill glass" style="font-size: 12px;">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            </div>
+            <div class="pill missing-dashed" style="font-size: 12px;">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+            </div>
+            <div class="pill missing-dashed" style="font-size: 12px;">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21V7a2 2 0 012-2h14a2 2 0 012 2v14"/><line x1="3" y1="11" x2="21" y2="11"/><path d="M7 15h2m6 0h2"/></svg>
+            </div>
+            <div class="pill glass" style="font-size: 12px;">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg>
+            </div>
+          </div>
+          <div class="qe-send inactive">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- PROPOSED DARK -->
+  <div class="panel dark-theme">
+    <div class="panel-label proposed">Proposed</div>
+    <div class="phone" style="border-radius: 20px;">
+      <div class="qe-sheet" style="background: #1c1917;">
+
+        <div style="height: 8px;"></div>
+
+        <!-- Token-highlighted command -->
+        <div class="command-highlighted">
+          <span class="tok-amount">-45</span>
+          <span class="tok-text"> Lunch </span>
+          <span class="tok-category">@Food</span>
+          <span class="tok-text"> </span>
+          <span class="tok-account">$BCP</span>
+        </div>
+        <div class="qe-note-placeholder" style="color: #44403c;">Add a note...</div>
+
+        <div class="qe-toolbar">
+          <div class="pills-scroll">
+            <!-- Amount pill — shows value when filled -->
+            <div class="pill-amount filled" style="color: #fafaf9;">-PEN 45</div>
+            <!-- Calendar — filled -->
+            <div class="pill-icon filled-green">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/></svg>
+            </div>
+            <!-- Tag — filled -->
+            <div class="pill-icon filled-orange">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+            </div>
+            <!-- Account — empty -->
+            <div class="pill-icon empty">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21V7a2 2 0 012-2h14a2 2 0 012 2v14"/><line x1="3" y1="11" x2="21" y2="11"/><path d="M7 15h2m6 0h2"/></svg>
+            </div>
+            <!-- Hashtag — empty -->
+            <div class="pill-icon empty">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg>
+            </div>
+          </div>
+          <div class="qe-send active">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ================================================ -->
+<!-- QUICK ENTRY — LIGHT                              -->
+<!-- ================================================ -->
+
+<div class="section-title">Quick Entry Popup &mdash; Light</div>
+
+<div class="comparison">
+
+  <!-- CURRENT LIGHT -->
+  <div class="panel light-theme">
+    <div class="panel-label current">Current</div>
+    <div class="phone light-border" style="border-radius: 20px;">
+      <div class="qe-sheet" style="background: #ffffff;">
+
+        <div style="position: relative;">
+          <div class="callout-badge" style="top: -8px; left: 50%; transform: translateX(-50%);">iOS 26 floating margins</div>
+          <div style="height: 8px; margin: 0 8px; background: rgba(239,68,68,0.06); border-radius: 12px 12px 0 0; border: 1px dashed rgba(239,68,68,0.3); border-bottom: none;"></div>
+        </div>
+
+        <div class="qe-destination" style="color: #a8a29e;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12H16l-4 8V4l-4 8H2"/></svg>
+          Inbox
+        </div>
+        <div class="qe-command-plain" style="color: #d6d3d1;">e.g. -45 Lunch @Food $BCP</div>
+        <div class="qe-note-placeholder" style="color: #d6d3d1;">Add a note...</div>
+
+        <div class="qe-toolbar">
+          <div class="pills-scroll">
+            <div class="pill" style="font-size: 12px; background: rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.08); color: #a8a29e;">Amount</div>
+            <div class="pill" style="font-size: 12px; background: rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.08); color: #a8a29e;">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            </div>
+            <div class="pill" style="font-size: 12px; background: rgba(180,83,9,0.06); border: 1px dashed rgba(180,83,9,0.3); color: #b45309;">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+            </div>
+            <div class="pill" style="font-size: 12px; background: rgba(180,83,9,0.06); border: 1px dashed rgba(180,83,9,0.3); color: #b45309;">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21V7a2 2 0 012-2h14a2 2 0 012 2v14"/><line x1="3" y1="11" x2="21" y2="11"/><path d="M7 15h2m6 0h2"/></svg>
+            </div>
+            <div class="pill" style="font-size: 12px; background: rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.08); color: #a8a29e;">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg>
+            </div>
+          </div>
+          <div class="qe-send" style="background: rgba(168,162,158,0.3); color: #1c1917;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- PROPOSED LIGHT -->
+  <div class="panel light-theme">
+    <div class="panel-label proposed">Proposed</div>
+    <div class="phone light-border" style="border-radius: 20px;">
+      <div class="qe-sheet" style="background: #ffffff;">
+
+        <div style="height: 8px;"></div>
+
+        <div class="command-highlighted" style="--text-primary: #1c1917; --income: #2d8a4e; --hashtag: #4f6bed;">
+          <span class="tok-amount" style="color: #1c1917;">-45</span>
+          <span class="tok-text" style="color: #1c1917;"> Lunch </span>
+          <span class="tok-category" style="color: #2d8a4e;">@Food</span>
+          <span class="tok-text" style="color: #1c1917;"> </span>
+          <span class="tok-account" style="color: #2d8a4e;">$BCP</span>
+        </div>
+        <div class="qe-note-placeholder" style="color: #d6d3d1;">Add a note...</div>
+
+        <div class="qe-toolbar">
+          <div class="pills-scroll">
+            <div class="pill-amount" style="background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); color: #1c1917;">-PEN 45</div>
+            <div class="pill-icon" style="background: rgba(22,163,74,0.08); border: 1px solid rgba(22,163,74,0.2);">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/></svg>
+            </div>
+            <div class="pill-icon" style="background: rgba(194,65,12,0.08); border: 1px solid rgba(194,65,12,0.2);">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c2410c" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+            </div>
+            <div class="pill-icon" style="background: rgba(0,0,0,0.02); border: 1px solid rgba(0,0,0,0.06);">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d6d3d1" stroke-width="2"><path d="M3 21V7a2 2 0 012-2h14a2 2 0 012 2v14"/><line x1="3" y1="11" x2="21" y2="11"/><path d="M7 15h2m6 0h2"/></svg>
+            </div>
+            <div class="pill-icon" style="background: rgba(0,0,0,0.02); border: 1px solid rgba(0,0,0,0.06);">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d6d3d1" stroke-width="2"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg>
+            </div>
+          </div>
+          <div class="qe-send" style="background: #c2410c; color: white;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<hr class="section-sep">
+
+<!-- ================================================ -->
+<!-- PILL STATES — ICON ONLY                          -->
+<!-- ================================================ -->
+
+<div class="section-title">Pill States &mdash; Icon Only</div>
+
+<div class="comparison">
+
+  <!-- Dark pills -->
+  <div class="panel dark-theme">
+    <div class="panel-label theme-label">Dark Theme</div>
+    <div style="padding: 24px; background: #1c1917; border-radius: 16px; border: 1px solid #333;">
+
+      <div style="font-size: 11px; font-weight: 600; color: #78716c; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;">Empty (not yet filled)</div>
+      <div style="display: flex; gap: 10px; margin-bottom: 24px;">
+        <div class="pill-icon empty">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/></svg>
+        </div>
+        <div class="pill-icon empty">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+        </div>
+        <div class="pill-icon empty">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21V7a2 2 0 012-2h14a2 2 0 012 2v14"/><line x1="3" y1="11" x2="21" y2="11"/><path d="M7 15h2m6 0h2"/></svg>
+        </div>
+        <div class="pill-icon empty">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg>
+        </div>
+      </div>
+
+      <div style="font-size: 11px; font-weight: 600; color: #78716c; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;">Filled (value assigned)</div>
+      <div style="display: flex; gap: 10px;">
+        <div class="pill-icon filled-green">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/></svg>
+        </div>
+        <div class="pill-icon filled-orange">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+        </div>
+        <div class="pill-icon filled-green">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21V7a2 2 0 012-2h14a2 2 0 012 2v14"/><line x1="3" y1="11" x2="21" y2="11"/><path d="M7 15h2m6 0h2"/></svg>
+        </div>
+        <div class="pill-icon filled-blue">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Light pills -->
+  <div class="panel light-theme">
+    <div class="panel-label theme-label">Light Theme</div>
+    <div style="padding: 24px; background: #ffffff; border-radius: 16px; border: 1px solid #e7e5e4;">
+
+      <div style="font-size: 11px; font-weight: 600; color: #a8a29e; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;">Empty (not yet filled)</div>
+      <div style="display: flex; gap: 10px; margin-bottom: 24px;">
+        <div class="pill-icon" style="background: rgba(0,0,0,0.02); border: 1px solid rgba(0,0,0,0.06);">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d6d3d1" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/></svg>
+        </div>
+        <div class="pill-icon" style="background: rgba(0,0,0,0.02); border: 1px solid rgba(0,0,0,0.06);">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d6d3d1" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+        </div>
+        <div class="pill-icon" style="background: rgba(0,0,0,0.02); border: 1px solid rgba(0,0,0,0.06);">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d6d3d1" stroke-width="2"><path d="M3 21V7a2 2 0 012-2h14a2 2 0 012 2v14"/><line x1="3" y1="11" x2="21" y2="11"/><path d="M7 15h2m6 0h2"/></svg>
+        </div>
+        <div class="pill-icon" style="background: rgba(0,0,0,0.02); border: 1px solid rgba(0,0,0,0.06);">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d6d3d1" stroke-width="2"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg>
+        </div>
+      </div>
+
+      <div style="font-size: 11px; font-weight: 600; color: #a8a29e; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;">Filled (value assigned)</div>
+      <div style="display: flex; gap: 10px;">
+        <div class="pill-icon" style="background: rgba(22,163,74,0.08); border: 1px solid rgba(22,163,74,0.2);">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/></svg>
+        </div>
+        <div class="pill-icon" style="background: rgba(194,65,12,0.08); border: 1px solid rgba(194,65,12,0.2);">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c2410c" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+        </div>
+        <div class="pill-icon" style="background: rgba(22,163,74,0.08); border: 1px solid rgba(22,163,74,0.2);">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2"><path d="M3 21V7a2 2 0 012-2h14a2 2 0 012 2v14"/><line x1="3" y1="11" x2="21" y2="11"/><path d="M7 15h2m6 0h2"/></svg>
+        </div>
+        <div class="pill-icon" style="background: rgba(79,107,237,0.08); border: 1px solid rgba(79,107,237,0.2);">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4f6bed" stroke-width="2"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<hr class="section-sep">
+
+<!-- ================================================ -->
+<!-- SURFACE CONTRAST — CHOSEN                        -->
+<!-- ================================================ -->
+
+<div class="section-title">Dark Mode Surface Contrast &mdash; Strong Separation</div>
+
+<div class="surface-demo">
+  <div class="surface-swatch">
+    <div class="swatch-box" style="background: #1c1917;">
+      <div class="swatch-inner" style="background: #292524;"></div>
+    </div>
+    <div style="font-size: 11px; color: #ef4444; margin-bottom: 2px;">Current</div>
+    <div class="swatch-hex">bg #1c1917 / surface #292524</div>
+  </div>
+  <div class="surface-swatch">
+    <div class="swatch-box" style="background: #1c1917; border-color: #4ade80;">
+      <div class="swatch-inner" style="background: #3c3836;"></div>
+    </div>
+    <div style="font-size: 11px; color: #4ade80; margin-bottom: 2px;">Chosen &mdash; Strong</div>
+    <div class="swatch-hex">bg #1c1917 / surface #3c3836</div>
+  </div>
+</div>
+
+<div style="height: 80px;"></div>
+
+</body>
+</html>
