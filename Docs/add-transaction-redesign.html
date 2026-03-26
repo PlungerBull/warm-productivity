@@ -1,0 +1,1692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Transaction — Redesigned | Warm Productivity</title>
+    <style>
+        /* ================================================================
+           DESIGN TOKENS
+           Matching Packages/SharedUI/Sources/SharedUI/DesignSystem/
+           ================================================================ */
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            /* Page chrome */
+            --page-bg: #f0eeec;
+            --page-text: #1c1917;
+            --page-text-muted: #78716c;
+            --page-card-bg: #ffffff;
+            --page-card-border: #e7e5e4;
+
+            /* App tokens — Light Mode */
+            --wp-primary: #c2410c;
+            --wp-primary-soft: rgba(194, 65, 12, 0.10);
+            --wp-background: #ffffff;
+            --wp-surface: #fafaf9;
+            --wp-grouped-bg: #f5f5f4;
+            --wp-text-primary: #1c1917;
+            --wp-text-secondary: #78716c;
+            --wp-text-tertiary: #a8a29e;
+            --wp-border: #e7e5e4;
+            --wp-on-primary: #ffffff;
+            --wp-income: #2d8a4e;
+            --wp-income-soft: rgba(45, 138, 78, 0.10);
+            --wp-dimmed: rgba(0, 0, 0, 0.35);
+
+            /* Numpad */
+            --numpad-bg: #f5f5f4;
+            --numpad-key-bg: #ffffff;
+            --numpad-key-shadow: 0 1px 2px rgba(0,0,0,0.06);
+
+            /* Category palette */
+            --cat-food: #e74c3c;
+            --cat-home: #f59e0b;
+            --cat-car: #e67e22;
+            --cat-fun: #9b59b6;
+            --cat-shop: #3498db;
+            --cat-health: #2ecc71;
+            --cat-bills: #1abc9c;
+            --cat-salary: #2d8a4e;
+
+            /* Layout */
+            --phone-shadow: 0 25px 60px rgba(0,0,0,0.12), 0 8px 20px rgba(0,0,0,0.08);
+        }
+
+        .dark {
+            --page-bg: #0c0a09;
+            --page-text: #fafaf9;
+            --page-text-muted: #a8a29e;
+            --page-card-bg: #1c1917;
+            --page-card-border: #44403c;
+
+            --wp-primary: #ea580c;
+            --wp-primary-soft: rgba(234, 88, 12, 0.12);
+            --wp-background: #1c1917;
+            --wp-surface: #292524;
+            --wp-grouped-bg: #1c1917;
+            --wp-text-primary: #fafaf9;
+            --wp-text-secondary: #a8a29e;
+            --wp-text-tertiary: #78716c;
+            --wp-border: #44403c;
+            --wp-on-primary: #ffffff;
+            --wp-income: #4ade80;
+            --wp-income-soft: rgba(74, 222, 128, 0.12);
+            --wp-dimmed: rgba(0, 0, 0, 0.55);
+
+            --numpad-bg: #1c1917;
+            --numpad-key-bg: #292524;
+            --numpad-key-shadow: 0 1px 2px rgba(0,0,0,0.2);
+
+            --phone-shadow: 0 25px 60px rgba(0,0,0,0.4), 0 8px 20px rgba(0,0,0,0.3);
+        }
+
+        /* ================================================================
+           PAGE LAYOUT
+           ================================================================ */
+        body {
+            font-family: -apple-system, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif;
+            background: var(--page-bg);
+            color: var(--page-text);
+            min-height: 100vh;
+            transition: background 0.4s ease, color 0.4s ease;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .page-header {
+            text-align: center;
+            padding: 48px 24px 16px;
+        }
+        .page-header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+        }
+        .page-header p {
+            font-size: 16px;
+            color: var(--page-text-muted);
+            max-width: 520px;
+            margin: 0 auto 24px;
+            line-height: 1.5;
+        }
+
+        /* Theme toggle */
+        .toggle-row {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 40px;
+        }
+        .toggle-btn {
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 500;
+            padding: 8px 20px;
+            border-radius: 999px;
+            border: 1.5px solid var(--page-card-border);
+            background: var(--page-card-bg);
+            color: var(--page-text-muted);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .toggle-btn.active {
+            background: var(--wp-primary);
+            color: var(--wp-on-primary);
+            border-color: var(--wp-primary);
+        }
+
+        /* Section titles */
+        .section-title {
+            text-align: center;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            color: var(--page-text-muted);
+            margin: 48px 0 24px;
+        }
+
+        /* Phone grid */
+        .phone-grid {
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+            padding: 0 24px;
+            flex-wrap: wrap;
+        }
+
+        .phone-col {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+        .phone-col .label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--page-text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+        .phone-col .sublabel {
+            font-size: 12px;
+            color: var(--page-text-muted);
+            opacity: 0.7;
+            margin-top: -8px;
+        }
+
+        /* ================================================================
+           PHONE FRAME
+           ================================================================ */
+        .phone {
+            width: 320px;
+            height: 693px;
+            border-radius: 40px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: var(--phone-shadow);
+            border: 1px solid var(--wp-border);
+            background: var(--wp-background);
+            transition: background 0.4s, box-shadow 0.4s, border-color 0.4s;
+        }
+
+        /* Status bar */
+        .phone-statusbar {
+            height: 54px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            padding: 0 28px 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--wp-text-primary);
+            position: relative;
+            z-index: 2;
+        }
+        .phone-statusbar .time { font-variant-numeric: tabular-nums; }
+        .phone-statusbar .icons {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+            font-size: 12px;
+        }
+        .phone-statusbar .icons svg { width: 16px; height: 12px; fill: var(--wp-text-primary); }
+
+        /* Dynamic island */
+        .dynamic-island {
+            position: absolute;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 36px;
+            background: #000;
+            border-radius: 20px;
+            z-index: 10;
+        }
+
+        /* Dimmed overlay behind sheet */
+        .dimmed-bg {
+            position: absolute;
+            top: 54px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--wp-dimmed);
+            z-index: 1;
+        }
+
+        /* ================================================================
+           BOTTOM SHEET
+           ================================================================ */
+        .sheet {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--wp-background);
+            border-radius: 20px 20px 0 0;
+            z-index: 3;
+            display: flex;
+            flex-direction: column;
+            transition: background 0.4s;
+        }
+
+        /* Drag handle */
+        .drag-handle {
+            width: 36px;
+            height: 5px;
+            background: var(--wp-text-tertiary);
+            opacity: 0.4;
+            border-radius: 3px;
+            margin: 10px auto 6px;
+            flex-shrink: 0;
+        }
+
+        /* Sheet header */
+        .sheet-header {
+            display: flex;
+            align-items: center;
+            padding: 4px 20px 0;
+            height: 36px;
+            flex-shrink: 0;
+        }
+        .close-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: none;
+            background: var(--wp-grouped-bg);
+            color: var(--wp-text-secondary);
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: background 0.4s;
+            line-height: 1;
+        }
+        .type-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            margin: 0 auto;
+            background: var(--wp-grouped-bg);
+            border-radius: 999px;
+            padding: 3px;
+            transition: background 0.4s;
+        }
+        .type-toggle .seg {
+            font-size: 13px;
+            font-weight: 500;
+            padding: 5px 16px;
+            border-radius: 999px;
+            color: var(--wp-text-secondary);
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .type-toggle .seg.active {
+            background: var(--wp-background);
+            color: var(--wp-text-primary);
+            font-weight: 600;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+        .header-spacer { width: 30px; flex-shrink: 0; }
+
+        /* ================================================================
+           AMOUNT HERO
+           ================================================================ */
+        .amount-hero {
+            text-align: center;
+            padding: 20px 20px 0;
+            flex-shrink: 0;
+        }
+        .amount-meta {
+            font-size: 13px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        .amount-meta.expense { color: var(--wp-text-secondary); }
+        .amount-meta.income { color: var(--wp-income); }
+        .amount-meta.empty { color: var(--wp-text-tertiary); }
+
+        .amount-value {
+            font-size: 40px;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: -1px;
+            line-height: 1.1;
+        }
+        .amount-value.filled { color: var(--wp-text-primary); }
+        .amount-value.empty { color: var(--wp-text-tertiary); }
+        .amount-value.income { color: var(--wp-income); }
+
+        /* Blinking cursor for active amount */
+        .amount-cursor {
+            display: inline-block;
+            width: 2px;
+            height: 36px;
+            background: var(--wp-primary);
+            vertical-align: middle;
+            margin-left: 2px;
+            animation: blink 1s step-end infinite;
+        }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        /* ================================================================
+           TITLE FIELD
+           ================================================================ */
+        .title-field {
+            padding: 12px 40px 0;
+            flex-shrink: 0;
+        }
+        .title-input {
+            width: 100%;
+            text-align: center;
+            font-family: inherit;
+            font-size: 16px;
+            font-weight: 400;
+            border: none;
+            border-bottom: 1.5px solid var(--wp-border);
+            background: transparent;
+            color: var(--wp-text-primary);
+            padding: 8px 0;
+            outline: none;
+            transition: border-color 0.2s, color 0.4s;
+        }
+        .title-input::placeholder {
+            color: var(--wp-text-tertiary);
+            font-style: italic;
+        }
+        .title-input:focus,
+        .title-input.has-value {
+            border-color: var(--wp-primary);
+        }
+
+        /* ================================================================
+           METADATA PILLS
+           ================================================================ */
+        .metadata-row {
+            display: flex;
+            gap: 8px;
+            padding: 12px 20px 0;
+            flex-shrink: 0;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+        .metadata-row::-webkit-scrollbar { display: none; }
+        .meta-pill {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            height: 30px;
+            padding: 0 12px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+        .meta-pill.filled {
+            background: var(--wp-surface);
+            color: var(--wp-text-primary);
+            border: 1px solid var(--wp-border);
+        }
+        .meta-pill.empty {
+            background: transparent;
+            color: var(--wp-text-tertiary);
+            border: 1.5px dashed var(--wp-text-tertiary);
+            opacity: 0.7;
+        }
+        .meta-pill .pill-icon {
+            opacity: 0.7;
+            display: flex;
+            align-items: center;
+        }
+        .meta-pill .pill-icon svg {
+            width: 13px;
+            height: 13px;
+            stroke: currentColor;
+            stroke-width: 1.6;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            fill: none;
+        }
+        .meta-pill .pill-icon-text {
+            font-size: 13px;
+            font-weight: 600;
+            opacity: 0.7;
+        }
+        .meta-pill.filled .pill-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        /* ================================================================
+           NUMPAD
+           ================================================================ */
+        .numpad-area {
+            display: flex;
+            flex-direction: column;
+            padding: 12px 20px 0;
+        }
+        .numpad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            padding: 8px 0;
+        }
+        .numpad-key {
+            height: 44px;
+            border-radius: 12px;
+            border: none;
+            background: var(--numpad-key-bg);
+            color: var(--wp-text-primary);
+            font-family: inherit;
+            font-size: 20px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: var(--numpad-key-shadow);
+            transition: background 0.15s, transform 0.1s, color 0.4s;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        .numpad-key:active {
+            transform: scale(0.95);
+            background: var(--wp-border);
+        }
+        .numpad-key.backspace {
+            font-size: 18px;
+            color: var(--wp-text-secondary);
+        }
+
+        /* ================================================================
+           DESCRIPTION AREA (replaces numpad when Note pill tapped)
+           ================================================================ */
+        .description-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 0 20px;
+        }
+        .description-card {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: var(--wp-surface);
+            border: 1.5px solid var(--wp-primary);
+            border-radius: 12px;
+            padding: 12px 14px;
+            margin-top: 8px;
+            transition: background 0.4s, border-color 0.4s;
+        }
+        .description-card .desc-label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--wp-primary);
+            margin-bottom: 6px;
+        }
+        .description-card .desc-text {
+            font-size: 15px;
+            line-height: 1.5;
+            color: var(--wp-text-primary);
+            flex: 1;
+        }
+        .description-card .desc-text .desc-cursor {
+            display: inline-block;
+            width: 2px;
+            height: 16px;
+            background: var(--wp-primary);
+            vertical-align: text-bottom;
+            margin-left: 1px;
+            animation: blink 1s step-end infinite;
+        }
+        .description-card .desc-placeholder {
+            color: var(--wp-text-tertiary);
+            font-style: italic;
+        }
+
+        /* Simulated keyboard */
+        .keyboard-sim {
+            background: var(--numpad-bg);
+            border-top: 1px solid var(--wp-border);
+            padding: 6px 4px 4px;
+            margin-top: 8px;
+            border-radius: 0 0 0 0;
+            transition: background 0.4s, border-color 0.4s;
+        }
+        .keyboard-row {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            margin-bottom: 5px;
+        }
+        .kb-key {
+            height: 36px;
+            min-width: 26px;
+            padding: 0 6px;
+            border-radius: 6px;
+            border: none;
+            background: var(--numpad-key-bg);
+            color: var(--wp-text-primary);
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 400;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--numpad-key-shadow);
+            transition: background 0.4s, color 0.4s;
+        }
+        .kb-key.wide { min-width: 48px; font-size: 12px; color: var(--wp-text-secondary); }
+        .kb-key.space { flex: 1; }
+        .kb-key.action { background: var(--wp-primary); color: var(--wp-on-primary); font-weight: 500; min-width: 52px; }
+        .keyboard-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 4px 8px 2px;
+            font-size: 12px;
+            color: var(--wp-text-tertiary);
+        }
+        .keyboard-bar .kb-toolbar {
+            display: flex;
+            gap: 16px;
+        }
+        .keyboard-bar .kb-done {
+            font-weight: 600;
+            color: var(--wp-primary);
+            cursor: pointer;
+        }
+
+        /* ================================================================
+           SAVE BUTTON
+           ================================================================ */
+        .save-area {
+            padding: 10px 20px 28px;
+            flex-shrink: 0;
+        }
+        .save-btn {
+            width: 100%;
+            height: 48px;
+            border-radius: 14px;
+            border: none;
+            font-family: inherit;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+        .save-btn.primary {
+            background: var(--wp-primary);
+            color: var(--wp-on-primary);
+        }
+        .save-btn.primary:hover { opacity: 0.9; }
+        .save-btn.draft {
+            background: transparent;
+            color: var(--wp-primary);
+            border: 1.5px solid var(--wp-primary);
+        }
+        .save-btn.disabled {
+            background: var(--wp-grouped-bg);
+            color: var(--wp-text-tertiary);
+            cursor: default;
+        }
+        .save-btn .arrow {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+        .save-btn .btn-sub {
+            font-size: 11px;
+            font-weight: 400;
+            opacity: 0.7;
+            margin-left: 4px;
+        }
+
+        /* ================================================================
+           RATIONALE SECTION
+           ================================================================ */
+        .rationale {
+            max-width: 960px;
+            margin: 64px auto 80px;
+            padding: 0 24px;
+        }
+        .rationale h2 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+        .rationale-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+        }
+        .rationale-card {
+            background: var(--page-card-bg);
+            border: 1px solid var(--page-card-border);
+            border-radius: 16px;
+            padding: 20px;
+            transition: background 0.4s, border-color 0.4s;
+        }
+        .rationale-card .rc-tag {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--wp-primary);
+            margin-bottom: 8px;
+        }
+        .rationale-card h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+        .rationale-card p {
+            font-size: 14px;
+            color: var(--page-text-muted);
+            line-height: 1.5;
+        }
+
+        /* Comparison table */
+        .comparison {
+            max-width: 720px;
+            margin: 48px auto;
+            padding: 0 24px;
+        }
+        .comparison table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        .comparison th {
+            text-align: left;
+            font-weight: 600;
+            padding: 10px 12px;
+            border-bottom: 2px solid var(--page-card-border);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--page-text-muted);
+        }
+        .comparison td {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--page-card-border);
+            color: var(--page-text);
+            transition: color 0.4s;
+        }
+        .comparison .old { color: var(--page-text-muted); text-decoration: line-through; opacity: 0.6; }
+        .comparison .new { font-weight: 500; }
+        .comparison .badge {
+            display: inline-block;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 999px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .comparison .badge.removed { background: rgba(220,38,38,0.1); color: #dc2626; }
+        .comparison .badge.new-badge { background: rgba(45,138,78,0.1); color: #2d8a4e; }
+        .comparison .badge.changed { background: rgba(194,65,12,0.1); color: #c2410c; }
+
+        /* Annotation callout */
+        .annotation {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            background: var(--wp-primary-soft);
+            border-radius: 12px;
+            padding: 16px;
+            margin: 32px auto;
+            max-width: 720px;
+        }
+        .annotation .ann-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            background: var(--wp-primary-soft);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-top: 1px;
+            font-style: italic;
+        }
+        .annotation .ann-text {
+            font-size: 14px;
+            line-height: 1.5;
+            color: var(--page-text);
+        }
+        .annotation .ann-text strong { font-weight: 600; }
+
+        /* ================================================================
+           RESPONSIVE
+           ================================================================ */
+        @media (max-width: 1080px) {
+            .phone-grid { gap: 24px; }
+            .phone { width: 280px; height: 606px; border-radius: 36px; }
+            .sheet { top: 86px; }
+            .amount-value { font-size: 34px; }
+            .numpad-key { height: 38px; font-size: 18px; }
+            .dynamic-island { width: 100px; height: 30px; top: 10px; }
+        }
+        @media (max-width: 720px) {
+            .phone-grid { flex-direction: column; align-items: center; }
+            .phone { width: 320px; height: 693px; border-radius: 40px; }
+            .sheet { top: 98px; }
+            .amount-value { font-size: 40px; }
+            .numpad-key { height: 44px; font-size: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ============================================================
+         PAGE HEADER
+         ============================================================ -->
+    <header class="page-header">
+        <h1>Add Transaction &mdash; Redesigned</h1>
+        <p>
+            Replacing command-line entry with an amount-first, numpad-driven design.
+            Visual category selection, smart defaults, and progressive disclosure.
+        </p>
+        <div class="toggle-row">
+            <button class="toggle-btn active" onclick="setTheme('light')">Light</button>
+            <button class="toggle-btn" onclick="setTheme('dark')">Dark</button>
+        </div>
+    </header>
+
+    <main>
+
+        <!-- ============================================================
+             ROW 1: MAIN FLOW  (Empty → Entering → Complete)
+             ============================================================ -->
+        <div class="section-title">The Flow</div>
+        <div class="phone-grid">
+
+            <!-- ──────── STATE 1: JUST OPENED ──────── -->
+            <div class="phone-col">
+                <span class="label">1. Just Opened</span>
+                <span class="sublabel">Smart defaults applied</span>
+                <div class="phone">
+                    <div class="dynamic-island"></div>
+                    <div class="phone-statusbar">
+                        <span class="time">9:41</span>
+                        <span class="icons">
+                            <svg viewBox="0 0 16 12"><rect x="0" y="5" width="3" height="7" rx="0.5"/><rect x="4.5" y="3" width="3" height="9" rx="0.5"/><rect x="9" y="1" width="3" height="11" rx="0.5"/><rect x="13" y="0" width="3" height="12" rx="0.5"/></svg>
+                            <svg viewBox="0 0 24 12"><path d="M1 4a3 3 0 013-3h16a3 3 0 013 3v4a3 3 0 01-3 3H4a3 3 0 01-3-3V4z" fill="none" stroke="currentColor" stroke-width="1"/><rect x="3" y="3" width="14" height="6" rx="1.5"/></svg>
+                        </span>
+                    </div>
+                    <div class="dimmed-bg"></div>
+                    <div class="sheet">
+                        <div class="drag-handle"></div>
+                        <div class="sheet-header">
+                            <button class="close-btn">&times;</button>
+                            <div class="type-toggle">
+                                <span class="seg active">Expense</span>
+                                <span class="seg">Income</span>
+                            </div>
+                            <div class="header-spacer"></div>
+                        </div>
+                        <div class="amount-hero">
+                            <div class="amount-meta empty">USD</div>
+                            <div class="amount-value empty">0.00<span class="amount-cursor"></span></div>
+                        </div>
+                        <div class="title-field">
+                            <div class="title-input" style="color: var(--wp-text-tertiary); font-style: italic; border-bottom: 1.5px solid var(--wp-border); padding: 8px 0; font-size: 16px; text-align: center;">What was this for?</div>
+                        </div>
+                        <div class="metadata-row">
+                            <div class="meta-pill filled">
+                                <span class="pill-icon"><svg viewBox="0 0 16 16" stroke="currentColor" fill="none" stroke-width="1.4" stroke-linecap="round"><rect x="2" y="3.5" width="12" height="10.5" rx="1.5"/><line x1="2" y1="7" x2="14" y2="7"/><line x1="5.5" y1="1.5" x2="5.5" y2="4.5"/><line x1="10.5" y1="1.5" x2="10.5" y2="4.5"/></svg></span>
+                                <span>Today</span>
+                            </div>
+                            <div class="meta-pill empty">
+                                <span class="pill-icon"><svg viewBox="0 0 16 16" stroke="currentColor" fill="none" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 8.5v-6a1 1 0 011-1h6l6 6-7 7z"/><circle cx="5.5" cy="5.5" r="1" fill="currentColor" stroke="none"/></svg></span>
+                                <span>Category</span>
+                            </div>
+                            <div class="meta-pill filled">
+                                <span class="pill-dot" style="background: #3498db;"></span>
+                                <span>Chase</span>
+                            </div>
+                            <div class="meta-pill empty">
+                                <span class="pill-icon"><svg viewBox="0 0 16 16" stroke="currentColor" fill="none" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 1.5H4A1.5 1.5 0 002.5 3v10A1.5 1.5 0 004 14.5h8a1.5 1.5 0 001.5-1.5V6z"/><path d="M9.5 1.5V6h4"/><line x1="5.5" y1="9" x2="10.5" y2="9"/><line x1="5.5" y1="11.5" x2="8.5" y2="11.5"/></svg></span>
+                                <span>Note</span>
+                            </div>
+                            <div class="meta-pill empty">
+                                <span class="pill-icon">#</span>
+                                <span>Tag</span>
+                            </div>
+                        </div>
+                        <div class="numpad-area">
+                            <div class="numpad">
+                                <button class="numpad-key">1</button>
+                                <button class="numpad-key">2</button>
+                                <button class="numpad-key">3</button>
+                                <button class="numpad-key">4</button>
+                                <button class="numpad-key">5</button>
+                                <button class="numpad-key">6</button>
+                                <button class="numpad-key">7</button>
+                                <button class="numpad-key">8</button>
+                                <button class="numpad-key">9</button>
+                                <button class="numpad-key">.</button>
+                                <button class="numpad-key">0</button>
+                                <button class="numpad-key backspace">&#9003;</button>
+                            </div>
+                        </div>
+                        <div class="save-area">
+                            <button class="save-btn disabled">Save</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ──────── STATE 2: AMOUNT ENTERED ──────── -->
+            <div class="phone-col">
+                <span class="label">2. Amount Entered</span>
+                <span class="sublabel">Numpad active, typing in progress</span>
+                <div class="phone">
+                    <div class="dynamic-island"></div>
+                    <div class="phone-statusbar">
+                        <span class="time">9:41</span>
+                        <span class="icons">
+                            <svg viewBox="0 0 16 12"><rect x="0" y="5" width="3" height="7" rx="0.5"/><rect x="4.5" y="3" width="3" height="9" rx="0.5"/><rect x="9" y="1" width="3" height="11" rx="0.5"/><rect x="13" y="0" width="3" height="12" rx="0.5"/></svg>
+                            <svg viewBox="0 0 24 12"><path d="M1 4a3 3 0 013-3h16a3 3 0 013 3v4a3 3 0 01-3 3H4a3 3 0 01-3-3V4z" fill="none" stroke="currentColor" stroke-width="1"/><rect x="3" y="3" width="14" height="6" rx="1.5"/></svg>
+                        </span>
+                    </div>
+                    <div class="dimmed-bg"></div>
+                    <div class="sheet">
+                        <div class="drag-handle"></div>
+                        <div class="sheet-header">
+                            <button class="close-btn">&times;</button>
+                            <div class="type-toggle">
+                                <span class="seg active">Expense</span>
+                                <span class="seg">Income</span>
+                            </div>
+                            <div class="header-spacer"></div>
+                        </div>
+                        <div class="amount-hero">
+                            <div class="amount-meta expense">&minus; USD</div>
+                            <div class="amount-value filled">45.00<span class="amount-cursor"></span></div>
+                        </div>
+                        <div class="title-field">
+                            <div class="title-input" style="color: var(--wp-text-tertiary); font-style: italic; border-bottom: 1.5px solid var(--wp-border); padding: 8px 0; font-size: 16px; text-align: center;">What was this for?</div>
+                        </div>
+                        <div class="metadata-row">
+                            <div class="meta-pill filled">
+                                <span class="pill-icon"><svg viewBox="0 0 16 16" stroke="currentColor" fill="none" stroke-width="1.4" stroke-linecap="round"><rect x="2" y="3.5" width="12" height="10.5" rx="1.5"/><line x1="2" y1="7" x2="14" y2="7"/><line x1="5.5" y1="1.5" x2="5.5" y2="4.5"/><line x1="10.5" y1="1.5" x2="10.5" y2="4.5"/></svg></span>
+                                <span>Today</span>
+                            </div>
+                            <div class="meta-pill empty">
+                                <span class="pill-icon"><svg viewBox="0 0 16 16" stroke="currentColor" fill="none" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 8.5v-6a1 1 0 011-1h6l6 6-7 7z"/><circle cx="5.5" cy="5.5" r="1" fill="currentColor" stroke="none"/></svg></span>
+                                <span>Category</span>
+                            </div>
+                            <div class="meta-pill filled">
+                                <span class="pill-dot" style="background: #3498db;"></span>
+                                <span>Chase</span>
+                            </div>
+                            <div class="meta-pill empty">
+                                <span class="pill-icon"><svg viewBox="0 0 16 16" stroke="currentColor" fill="none" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 1.5H4A1.5 1.5 0 002.5 3v10A1.5 1.5 0 004 14.5h8a1.5 1.5 0 001.5-1.5V6z"/><path d="M9.5 1.5V6h4"/><line x1="5.5" y1="9" x2="10.5" y2="9"/><line x1="5.5" y1="11.5" x2="8.5" y2="11.5"/></svg></span>
+                                <span>Note</span>
+                            </div>
+                            <div class="meta-pill empty">
+                                <span class="pill-icon">#</span>
+                                <span>Tag</span>
+                            </div>
+                        </div>
+                        <div class="numpad-area">
+                            <div class="numpad">
+                                <button class="numpad-key">1</button>
+                                <button class="numpad-key">2</button>
+                                <button class="numpad-key">3</button>
+                                <button class="numpad-key">4</button>
+                                <button class="numpad-key">5</button>
+                                <button class="numpad-key">6</button>
+                                <button class="numpad-key">7</button>
+                                <button class="numpad-key">8</button>
+                                <button class="numpad-key">9</button>
+                                <button class="numpad-key">.</button>
+                                <button class="numpad-key">0</button>
+                                <button class="numpad-key backspace">&#9003;</button>
+                            </div>
+                        </div>
+                        <div class="save-area">
+                            <button class="save-btn draft">Save as Draft <span class="btn-sub">&rarr; Inbox</span></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ──────── STATE 3: READY TO SAVE ──────── -->
+            <div class="phone-col">
+                <span class="label">3. Ready to Save</span>
+                <span class="sublabel">All required fields filled</span>
+                <div class="phone">
+                    <div class="dynamic-island"></div>
+                    <div class="phone-statusbar">
+                        <span class="time">9:41</span>
+                        <span class="icons">
+                            <svg viewBox="0 0 16 12"><rect x="0" y="5" width="3" height="7" rx="0.5"/><rect x="4.5" y="3" width="3" height="9" rx="0.5"/><rect x="9" y="1" width="3" height="11" rx="0.5"/><rect x="13" y="0" width="3" height="12" rx="0.5"/></svg>
+                            <svg viewBox="0 0 24 12"><path d="M1 4a3 3 0 013-3h16a3 3 0 013 3v4a3 3 0 01-3 3H4a3 3 0 01-3-3V4z" fill="none" stroke="currentColor" stroke-width="1"/><rect x="3" y="3" width="14" height="6" rx="1.5"/></svg>
+                        </span>
+                    </div>
+                    <div class="dimmed-bg"></div>
+                    <div class="sheet">
+                        <div class="drag-handle"></div>
+                        <div class="sheet-header">
+                            <button class="close-btn">&times;</button>
+                            <div class="type-toggle">
+                                <span class="seg active">Expense</span>
+                                <span class="seg">Income</span>
+                            </div>
+                            <div class="header-spacer"></div>
+                        </div>
+                        <div class="amount-hero">
+                            <div class="amount-meta expense">&minus; USD</div>
+                            <div class="amount-value filled">45.00</div>
+                        </div>
+                        <div class="title-field">
+                            <div class="title-input has-value" style="color: var(--wp-text-primary); border-bottom: 1.5px solid var(--wp-primary); padding: 8px 0; font-size: 16px; text-align: center; font-weight: 400;">Lunch at the sushi place</div>
+                        </div>
+                        <div class="metadata-row">
+                            <div class="meta-pill filled">
+                                <span class="pill-icon"><svg viewBox="0 0 16 16" stroke="currentColor" fill="none" stroke-width="1.4" stroke-linecap="round"><rect x="2" y="3.5" width="12" height="10.5" rx="1.5"/><line x1="2" y1="7" x2="14" y2="7"/><line x1="5.5" y1="1.5" x2="5.5" y2="4.5"/><line x1="10.5" y1="1.5" x2="10.5" y2="4.5"/></svg></span>
+                                <span>Today</span>
+                            </div>
+                            <div class="meta-pill filled">
+                                <span class="pill-dot" style="background: #e74c3c;"></span>
+                                <span>Food</span>
+                            </div>
+                            <div class="meta-pill filled">
+                                <span class="pill-dot" style="background: #3498db;"></span>
+                                <span>Chase</span>
+                            </div>
+                            <div class="meta-pill filled">
+                                <span class="pill-icon"><svg viewBox="0 0 16 16" stroke="currentColor" fill="none" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 1.5H4A1.5 1.5 0 002.5 3v10A1.5 1.5 0 004 14.5h8a1.5 1.5 0 001.5-1.5V6z"/><path d="M9.5 1.5V6h4"/><line x1="5.5" y1="9" x2="10.5" y2="9"/><line x1="5.5" y1="11.5" x2="8.5" y2="11.5"/></svg></span>
+                                <span>Added</span>
+                            </div>
+                            <div class="meta-pill empty">
+                                <span class="pill-icon">#</span>
+                                <span>Tag</span>
+                            </div>
+                        </div>
+                        <div class="numpad-area">
+                            <div class="numpad">
+                                <button class="numpad-key">1</button>
+                                <button class="numpad-key">2</button>
+                                <button class="numpad-key">3</button>
+                                <button class="numpad-key">4</button>
+                                <button class="numpad-key">5</button>
+                                <button class="numpad-key">6</button>
+                                <button class="numpad-key">7</button>
+                                <button class="numpad-key">8</button>
+                                <button class="numpad-key">9</button>
+                                <button class="numpad-key">.</button>
+                                <button class="numpad-key">0</button>
+                                <button class="numpad-key backspace">&#9003;</button>
+                            </div>
+                        </div>
+                        <div class="save-area">
+                            <button class="save-btn primary">Save to Ledger <span class="arrow">&rarr;</span></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ============================================================
+             ROW 2: VARIANTS  (Income + Draft/Inbox)
+             ============================================================ -->
+        <div class="section-title">Variants</div>
+        <div class="phone-grid">
+
+            <!-- ──────── INCOME MODE ──────── -->
+            <div class="phone-col">
+                <span class="label">Income Mode</span>
+                <span class="sublabel">Toggle flipped, green accent</span>
+                <div class="phone">
+                    <div class="dynamic-island"></div>
+                    <div class="phone-statusbar">
+                        <span class="time">9:41</span>
+                        <span class="icons">
+                            <svg viewBox="0 0 16 12"><rect x="0" y="5" width="3" height="7" rx="0.5"/><rect x="4.5" y="3" width="3" height="9" rx="0.5"/><rect x="9" y="1" width="3" height="11" rx="0.5"/><rect x="13" y="0" width="3" height="12" rx="0.5"/></svg>
+                            <svg viewBox="0 0 24 12"><path d="M1 4a3 3 0 013-3h16a3 3 0 013 3v4a3 3 0 01-3 3H4a3 3 0 01-3-3V4z" fill="none" stroke="currentColor" stroke-width="1"/><rect x="3" y="3" width="14" height="6" rx="1.5"/></svg>
+                        </span>
+                    </div>
+                    <div class="dimmed-bg"></div>
+                    <div class="sheet">
+                        <div class="drag-handle"></div>
+                        <div class="sheet-header">
+                            <button class="close-btn">&times;</button>
+                            <div class="type-toggle">
+                                <span class="seg">Expense</span>
+                                <span class="seg active">Income</span>
+                            </div>
+                            <div class="header-spacer"></div>
+                        </div>
+                        <div class="amount-hero">
+                            <div class="amount-meta income">+ USD</div>
+                            <div class="amount-value income">1,200.00</div>
+                        </div>
+                        <div class="title-field">
+                            <div class="title-input has-value" style="color: var(--wp-text-primary); border-bottom: 1.5px solid var(--wp-primary); padding: 8px 0; font-size: 16px; text-align: center; font-weight: 400;">Monthly salary</div>
+                        </div>
+                        <div class="metadata-row">
+                            <div class="meta-pill filled">
+                                <span class="pill-icon"><svg viewBox="0 0 16 16" stroke="currentColor" fill="none" stroke-width="1.4" stroke-linecap="round"><rect x="2" y="3.5" width="12" height="10.5" rx="1.5"/><line x1="2" y1="7" x2="14" y2="7"/><line x1="5.5" y1="1.5" x2="5.5" y2="4.5"/><line x1="10.5" y1="1.5" x2="10.5" y2="4.5"/></svg></span>
+                                <span>Today</span>
+                            </div>
+                            <div class="meta-pill filled">
+                                <span class="pill-dot" style="background: #2d8a4e;"></span>
+                                <span>Salary</span>
+                            </div>
+                            <div class="meta-pill filled">
+                                <span class="pill-dot" style="background: #3498db;"></span>
+                                <span>Chase</span>
+                            </div>
+                            <div class="meta-pill empty">
+                                <span class="pill-icon"><svg viewBox="0 0 16 16" stroke="currentColor" fill="none" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 1.5H4A1.5 1.5 0 002.5 3v10A1.5 1.5 0 004 14.5h8a1.5 1.5 0 001.5-1.5V6z"/><path d="M9.5 1.5V6h4"/><line x1="5.5" y1="9" x2="10.5" y2="9"/><line x1="5.5" y1="11.5" x2="8.5" y2="11.5"/></svg></span>
+                                <span>Note</span>
+                            </div>
+                            <div class="meta-pill empty">
+                                <span class="pill-icon">#</span>
+                                <span>Tag</span>
+                            </div>
+                        </div>
+                        <div class="numpad-area">
+                            <div class="numpad">
+                                <button class="numpad-key">1</button>
+                                <button class="numpad-key">2</button>
+                                <button class="numpad-key">3</button>
+                                <button class="numpad-key">4</button>
+                                <button class="numpad-key">5</button>
+                                <button class="numpad-key">6</button>
+                                <button class="numpad-key">7</button>
+                                <button class="numpad-key">8</button>
+                                <button class="numpad-key">9</button>
+                                <button class="numpad-key">.</button>
+                                <button class="numpad-key">0</button>
+                                <button class="numpad-key backspace">&#9003;</button>
+                            </div>
+                        </div>
+                        <div class="save-area">
+                            <button class="save-btn primary" style="background: var(--wp-income);">Save to Ledger <span class="arrow">&rarr;</span></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ──────── DRAFT TO INBOX ──────── -->
+            <div class="phone-col">
+                <span class="label">Draft &rarr; Inbox</span>
+                <span class="sublabel">Missing category &mdash; saves as draft</span>
+                <div class="phone">
+                    <div class="dynamic-island"></div>
+                    <div class="phone-statusbar">
+                        <span class="time">9:41</span>
+                        <span class="icons">
+                            <svg viewBox="0 0 16 12"><rect x="0" y="5" width="3" height="7" rx="0.5"/><rect x="4.5" y="3" width="3" height="9" rx="0.5"/><rect x="9" y="1" width="3" height="11" rx="0.5"/><rect x="13" y="0" width="3" height="12" rx="0.5"/></svg>
+                            <svg viewBox="0 0 24 12"><path d="M1 4a3 3 0 013-3h16a3 3 0 013 3v4a3 3 0 01-3 3H4a3 3 0 01-3-3V4z" fill="none" stroke="currentColor" stroke-width="1"/><rect x="3" y="3" width="14" height="6" rx="1.5"/></svg>
+                        </span>
+                    </div>
+                    <div class="dimmed-bg"></div>
+                    <div class="sheet">
+                        <div class="drag-handle"></div>
+                        <div class="sheet-header">
+                            <button class="close-btn">&times;</button>
+                            <div class="type-toggle">
+                                <span class="seg active">Expense</span>
+                                <span class="seg">Income</span>
+                            </div>
+                            <div class="header-spacer"></div>
+                        </div>
+                        <div class="amount-hero">
+                            <div class="amount-meta expense">&minus; USD</div>
+                            <div class="amount-value filled">35.00</div>
+                        </div>
+                        <div class="title-field">
+                            <div class="title-input has-value" style="color: var(--wp-text-primary); border-bottom: 1.5px solid var(--wp-primary); padding: 8px 0; font-size: 16px; text-align: center; font-weight: 400;">Coffee with Maria</div>
+                        </div>
+                        <div class="metadata-row">
+                            <div class="meta-pill filled">
+                                <span class="pill-icon"><svg viewBox="0 0 16 16" stroke="currentColor" fill="none" stroke-width="1.4" stroke-linecap="round"><rect x="2" y="3.5" width="12" height="10.5" rx="1.5"/><line x1="2" y1="7" x2="14" y2="7"/><line x1="5.5" y1="1.5" x2="5.5" y2="4.5"/><line x1="10.5" y1="1.5" x2="10.5" y2="4.5"/></svg></span>
+                                <span>Today</span>
+                            </div>
+                            <div class="meta-pill empty">
+                                <span class="pill-icon"><svg viewBox="0 0 16 16" stroke="currentColor" fill="none" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 8.5v-6a1 1 0 011-1h6l6 6-7 7z"/><circle cx="5.5" cy="5.5" r="1" fill="currentColor" stroke="none"/></svg></span>
+                                <span>Category</span>
+                            </div>
+                            <div class="meta-pill filled">
+                                <span class="pill-dot" style="background: #3498db;"></span>
+                                <span>Chase</span>
+                            </div>
+                            <div class="meta-pill empty">
+                                <span class="pill-icon"><svg viewBox="0 0 16 16" stroke="currentColor" fill="none" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 1.5H4A1.5 1.5 0 002.5 3v10A1.5 1.5 0 004 14.5h8a1.5 1.5 0 001.5-1.5V6z"/><path d="M9.5 1.5V6h4"/><line x1="5.5" y1="9" x2="10.5" y2="9"/><line x1="5.5" y1="11.5" x2="8.5" y2="11.5"/></svg></span>
+                                <span>Note</span>
+                            </div>
+                            <div class="meta-pill empty">
+                                <span class="pill-icon">#</span>
+                                <span>Tag</span>
+                            </div>
+                        </div>
+                        <div class="numpad-area">
+                            <div class="numpad">
+                                <button class="numpad-key">1</button>
+                                <button class="numpad-key">2</button>
+                                <button class="numpad-key">3</button>
+                                <button class="numpad-key">4</button>
+                                <button class="numpad-key">5</button>
+                                <button class="numpad-key">6</button>
+                                <button class="numpad-key">7</button>
+                                <button class="numpad-key">8</button>
+                                <button class="numpad-key">9</button>
+                                <button class="numpad-key">.</button>
+                                <button class="numpad-key">0</button>
+                                <button class="numpad-key backspace">&#9003;</button>
+                            </div>
+                        </div>
+                        <div class="save-area">
+                            <button class="save-btn draft">Save as Draft <span class="btn-sub">&rarr; Inbox</span></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ──────── MULTI-CURRENCY ──────── -->
+            <div class="phone-col">
+                <span class="label">Multi-Currency</span>
+                <span class="sublabel">Foreign account selected</span>
+                <div class="phone">
+                    <div class="dynamic-island"></div>
+                    <div class="phone-statusbar">
+                        <span class="time">9:41</span>
+                        <span class="icons">
+                            <svg viewBox="0 0 16 12"><rect x="0" y="5" width="3" height="7" rx="0.5"/><rect x="4.5" y="3" width="3" height="9" rx="0.5"/><rect x="9" y="1" width="3" height="11" rx="0.5"/><rect x="13" y="0" width="3" height="12" rx="0.5"/></svg>
+                            <svg viewBox="0 0 24 12"><path d="M1 4a3 3 0 013-3h16a3 3 0 013 3v4a3 3 0 01-3 3H4a3 3 0 01-3-3V4z" fill="none" stroke="currentColor" stroke-width="1"/><rect x="3" y="3" width="14" height="6" rx="1.5"/></svg>
+                        </span>
+                    </div>
+                    <div class="dimmed-bg"></div>
+                    <div class="sheet">
+                        <div class="drag-handle"></div>
+                        <div class="sheet-header">
+                            <button class="close-btn">&times;</button>
+                            <div class="type-toggle">
+                                <span class="seg active">Expense</span>
+                                <span class="seg">Income</span>
+                            </div>
+                            <div class="header-spacer"></div>
+                        </div>
+                        <div class="amount-hero">
+                            <div class="amount-meta expense">&minus; PEN</div>
+                            <div class="amount-value filled">180.00</div>
+                        </div>
+                        <!-- Exchange rate sub-line -->
+                        <div style="text-align: center; font-size: 12px; color: var(--wp-text-secondary); padding-top: 4px; font-weight: 400;">
+                            &asymp; &minus;USD 48.39 <span style="opacity: 0.5;">&middot;</span> <span style="opacity: 0.7;">1 USD = 3.72 PEN</span>
+                        </div>
+                        <div class="title-field">
+                            <div class="title-input has-value" style="color: var(--wp-text-primary); border-bottom: 1.5px solid var(--wp-primary); padding: 8px 0; font-size: 16px; text-align: center; font-weight: 400;">Dinner in Lima</div>
+                        </div>
+                        <div class="metadata-row">
+                            <div class="meta-pill filled">
+                                <span class="pill-icon"><svg viewBox="0 0 16 16" stroke="currentColor" fill="none" stroke-width="1.4" stroke-linecap="round"><rect x="2" y="3.5" width="12" height="10.5" rx="1.5"/><line x1="2" y1="7" x2="14" y2="7"/><line x1="5.5" y1="1.5" x2="5.5" y2="4.5"/><line x1="10.5" y1="1.5" x2="10.5" y2="4.5"/></svg></span>
+                                <span>Today</span>
+                            </div>
+                            <div class="meta-pill filled">
+                                <span class="pill-dot" style="background: #e74c3c;"></span>
+                                <span>Food</span>
+                            </div>
+                            <div class="meta-pill filled">
+                                <span class="pill-dot" style="background: #e67e22;"></span>
+                                <span>Eliana (PEN)</span>
+                            </div>
+                            <div class="meta-pill empty">
+                                <span class="pill-icon"><svg viewBox="0 0 16 16" stroke="currentColor" fill="none" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 1.5H4A1.5 1.5 0 002.5 3v10A1.5 1.5 0 004 14.5h8a1.5 1.5 0 001.5-1.5V6z"/><path d="M9.5 1.5V6h4"/><line x1="5.5" y1="9" x2="10.5" y2="9"/><line x1="5.5" y1="11.5" x2="8.5" y2="11.5"/></svg></span>
+                                <span>Note</span>
+                            </div>
+                            <div class="meta-pill empty">
+                                <span class="pill-icon">#</span>
+                                <span>Tag</span>
+                            </div>
+                        </div>
+                        <div class="numpad-area">
+                            <div class="numpad">
+                                <button class="numpad-key">1</button>
+                                <button class="numpad-key">2</button>
+                                <button class="numpad-key">3</button>
+                                <button class="numpad-key">4</button>
+                                <button class="numpad-key">5</button>
+                                <button class="numpad-key">6</button>
+                                <button class="numpad-key">7</button>
+                                <button class="numpad-key">8</button>
+                                <button class="numpad-key">9</button>
+                                <button class="numpad-key">.</button>
+                                <button class="numpad-key">0</button>
+                                <button class="numpad-key backspace">&#9003;</button>
+                            </div>
+                        </div>
+                        <div class="save-area">
+                            <button class="save-btn primary">Save to Ledger <span class="arrow">&rarr;</span></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ============================================================
+             ROW 3: DESCRIPTION & TITLE ENTRY STATES
+             ============================================================ -->
+        <div class="section-title">Text Input States</div>
+        <div class="phone-grid">
+
+            <!-- ──────── ADDING A NOTE (Description active) ──────── -->
+            <div class="phone-col">
+                <span class="label">Note Active</span>
+                <span class="sublabel">Tapped Note pill &mdash; numpad replaced by text area + keyboard</span>
+                <div class="phone">
+                    <div class="dynamic-island"></div>
+                    <div class="phone-statusbar">
+                        <span class="time">9:41</span>
+                        <span class="icons">
+                            <svg viewBox="0 0 16 12"><rect x="0" y="5" width="3" height="7" rx="0.5"/><rect x="4.5" y="3" width="3" height="9" rx="0.5"/><rect x="9" y="1" width="3" height="11" rx="0.5"/><rect x="13" y="0" width="3" height="12" rx="0.5"/></svg>
+                            <svg viewBox="0 0 24 12"><path d="M1 4a3 3 0 013-3h16a3 3 0 013 3v4a3 3 0 01-3 3H4a3 3 0 01-3-3V4z" fill="none" stroke="currentColor" stroke-width="1"/><rect x="3" y="3" width="14" height="6" rx="1.5"/></svg>
+                        </span>
+                    </div>
+                    <div class="dimmed-bg"></div>
+                    <div class="sheet">
+                        <div class="drag-handle"></div>
+                        <div class="sheet-header">
+                            <button class="close-btn">&times;</button>
+                            <div class="type-toggle">
+                                <span class="seg active">Expense</span>
+                                <span class="seg">Income</span>
+                            </div>
+                            <div class="header-spacer"></div>
+                        </div>
+                        <div class="amount-hero">
+                            <div class="amount-meta expense">&minus; USD</div>
+                            <div class="amount-value filled">45.00</div>
+                        </div>
+                        <div class="title-field">
+                            <div class="title-input has-value" style="color: var(--wp-text-primary); border-bottom: 1.5px solid var(--wp-primary); padding: 8px 0; font-size: 16px; text-align: center; font-weight: 400;">Lunch at the sushi place</div>
+                        </div>
+                        <div class="metadata-row">
+                            <div class="meta-pill filled">
+                                <span class="pill-icon"><svg viewBox="0 0 16 16" stroke="currentColor" fill="none" stroke-width="1.4" stroke-linecap="round"><rect x="2" y="3.5" width="12" height="10.5" rx="1.5"/><line x1="2" y1="7" x2="14" y2="7"/><line x1="5.5" y1="1.5" x2="5.5" y2="4.5"/><line x1="10.5" y1="1.5" x2="10.5" y2="4.5"/></svg></span>
+                                <span>Today</span>
+                            </div>
+                            <div class="meta-pill filled">
+                                <span class="pill-dot" style="background: #e74c3c;"></span>
+                                <span>Food</span>
+                            </div>
+                            <div class="meta-pill filled">
+                                <span class="pill-dot" style="background: #3498db;"></span>
+                                <span>Chase</span>
+                            </div>
+                            <div class="meta-pill filled" style="border-color: var(--wp-primary); background: var(--wp-primary-soft);">
+                                <span class="pill-icon" style="color: var(--wp-primary);"><svg viewBox="0 0 16 16" stroke="currentColor" fill="none" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 1.5H4A1.5 1.5 0 002.5 3v10A1.5 1.5 0 004 14.5h8a1.5 1.5 0 001.5-1.5V6z"/><path d="M9.5 1.5V6h4"/><line x1="5.5" y1="9" x2="10.5" y2="9"/><line x1="5.5" y1="11.5" x2="8.5" y2="11.5"/></svg></span>
+                                <span style="color: var(--wp-primary); font-weight: 600;">Note</span>
+                            </div>
+                            <div class="meta-pill empty">
+                                <span class="pill-icon">#</span>
+                                <span>Tag</span>
+                            </div>
+                        </div>
+                        <!-- Description replaces the numpad -->
+                        <div class="description-area">
+                            <div class="description-card">
+                                <div class="desc-label">Description</div>
+                                <div class="desc-text">
+                                    Tried the new omakase set &mdash; the toro was incredible. Split the bill with Jake, he Venmo&rsquo;d me his half already.<span class="desc-cursor"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Simulated iOS keyboard -->
+                        <div class="keyboard-sim">
+                            <div class="keyboard-bar">
+                                <div class="kb-toolbar">
+                                    <span>&#9113;</span>
+                                    <span>Aa</span>
+                                </div>
+                                <span class="kb-done">Done</span>
+                            </div>
+                            <div class="keyboard-row">
+                                <button class="kb-key">Q</button>
+                                <button class="kb-key">W</button>
+                                <button class="kb-key">E</button>
+                                <button class="kb-key">R</button>
+                                <button class="kb-key">T</button>
+                                <button class="kb-key">Y</button>
+                                <button class="kb-key">U</button>
+                                <button class="kb-key">I</button>
+                                <button class="kb-key">O</button>
+                                <button class="kb-key">P</button>
+                            </div>
+                            <div class="keyboard-row">
+                                <button class="kb-key">A</button>
+                                <button class="kb-key">S</button>
+                                <button class="kb-key">D</button>
+                                <button class="kb-key">F</button>
+                                <button class="kb-key">G</button>
+                                <button class="kb-key">H</button>
+                                <button class="kb-key">J</button>
+                                <button class="kb-key">K</button>
+                                <button class="kb-key">L</button>
+                            </div>
+                            <div class="keyboard-row">
+                                <button class="kb-key wide">&#8679;</button>
+                                <button class="kb-key">Z</button>
+                                <button class="kb-key">X</button>
+                                <button class="kb-key">C</button>
+                                <button class="kb-key">V</button>
+                                <button class="kb-key">B</button>
+                                <button class="kb-key">N</button>
+                                <button class="kb-key">M</button>
+                                <button class="kb-key wide">&#9003;</button>
+                            </div>
+                            <div class="keyboard-row">
+                                <button class="kb-key wide">123</button>
+                                <button class="kb-key space">space</button>
+                                <button class="kb-key action">return</button>
+                            </div>
+                        </div>
+                        <div class="save-area" style="padding-top: 6px; padding-bottom: 16px;">
+                            <button class="save-btn primary">Save to Ledger <span class="arrow">&rarr;</span></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ──────── TITLE ENTRY (keyboard replaces numpad) ──────── -->
+            <div class="phone-col">
+                <span class="label">Title Entry</span>
+                <span class="sublabel">Tapped title field &mdash; standard keyboard appears</span>
+                <div class="phone">
+                    <div class="dynamic-island"></div>
+                    <div class="phone-statusbar">
+                        <span class="time">9:41</span>
+                        <span class="icons">
+                            <svg viewBox="0 0 16 12"><rect x="0" y="5" width="3" height="7" rx="0.5"/><rect x="4.5" y="3" width="3" height="9" rx="0.5"/><rect x="9" y="1" width="3" height="11" rx="0.5"/><rect x="13" y="0" width="3" height="12" rx="0.5"/></svg>
+                            <svg viewBox="0 0 24 12"><path d="M1 4a3 3 0 013-3h16a3 3 0 013 3v4a3 3 0 01-3 3H4a3 3 0 01-3-3V4z" fill="none" stroke="currentColor" stroke-width="1"/><rect x="3" y="3" width="14" height="6" rx="1.5"/></svg>
+                        </span>
+                    </div>
+                    <div class="dimmed-bg"></div>
+                    <div class="sheet">
+                        <div class="drag-handle"></div>
+                        <div class="sheet-header">
+                            <button class="close-btn">&times;</button>
+                            <div class="type-toggle">
+                                <span class="seg active">Expense</span>
+                                <span class="seg">Income</span>
+                            </div>
+                            <div class="header-spacer"></div>
+                        </div>
+                        <div class="amount-hero">
+                            <div class="amount-meta expense">&minus; USD</div>
+                            <div class="amount-value filled">45.00</div>
+                        </div>
+                        <div class="title-field">
+                            <div class="title-input has-value" style="color: var(--wp-text-primary); border-bottom: 1.5px solid var(--wp-primary); padding: 8px 0; font-size: 16px; text-align: center; font-weight: 400;">Lunch<span class="amount-cursor" style="height: 17px; vertical-align: text-bottom;"></span></div>
+                        </div>
+                        <div class="metadata-row">
+                            <div class="meta-pill filled">
+                                <span class="pill-icon"><svg viewBox="0 0 16 16" stroke="currentColor" fill="none" stroke-width="1.4" stroke-linecap="round"><rect x="2" y="3.5" width="12" height="10.5" rx="1.5"/><line x1="2" y1="7" x2="14" y2="7"/><line x1="5.5" y1="1.5" x2="5.5" y2="4.5"/><line x1="10.5" y1="1.5" x2="10.5" y2="4.5"/></svg></span>
+                                <span>Today</span>
+                            </div>
+                            <div class="meta-pill filled">
+                                <span class="pill-dot" style="background: #e74c3c;"></span>
+                                <span>Food</span>
+                            </div>
+                            <div class="meta-pill filled">
+                                <span class="pill-dot" style="background: #3498db;"></span>
+                                <span>Chase</span>
+                            </div>
+                            <div class="meta-pill empty">
+                                <span class="pill-icon"><svg viewBox="0 0 16 16" stroke="currentColor" fill="none" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 1.5H4A1.5 1.5 0 002.5 3v10A1.5 1.5 0 004 14.5h8a1.5 1.5 0 001.5-1.5V6z"/><path d="M9.5 1.5V6h4"/><line x1="5.5" y1="9" x2="10.5" y2="9"/><line x1="5.5" y1="11.5" x2="8.5" y2="11.5"/></svg></span>
+                                <span>Note</span>
+                            </div>
+                            <div class="meta-pill empty">
+                                <span class="pill-icon">#</span>
+                                <span>Tag</span>
+                            </div>
+                        </div>
+                        <!-- Keyboard replaces the numpad for title entry -->
+                        <!-- Simulated keyboard -->
+                        <div class="keyboard-sim">
+                            <div class="keyboard-bar">
+                                <div class="kb-toolbar">
+                                    <span>&#9113;</span>
+                                    <span>Aa</span>
+                                </div>
+                                <span class="kb-done">Done</span>
+                            </div>
+                            <div class="keyboard-row">
+                                <button class="kb-key">Q</button>
+                                <button class="kb-key">W</button>
+                                <button class="kb-key">E</button>
+                                <button class="kb-key">R</button>
+                                <button class="kb-key">T</button>
+                                <button class="kb-key">Y</button>
+                                <button class="kb-key">U</button>
+                                <button class="kb-key">I</button>
+                                <button class="kb-key">O</button>
+                                <button class="kb-key">P</button>
+                            </div>
+                            <div class="keyboard-row">
+                                <button class="kb-key">A</button>
+                                <button class="kb-key">S</button>
+                                <button class="kb-key">D</button>
+                                <button class="kb-key">F</button>
+                                <button class="kb-key">G</button>
+                                <button class="kb-key">H</button>
+                                <button class="kb-key">J</button>
+                                <button class="kb-key">K</button>
+                                <button class="kb-key">L</button>
+                            </div>
+                            <div class="keyboard-row">
+                                <button class="kb-key wide">&#8679;</button>
+                                <button class="kb-key">Z</button>
+                                <button class="kb-key">X</button>
+                                <button class="kb-key">C</button>
+                                <button class="kb-key">V</button>
+                                <button class="kb-key">B</button>
+                                <button class="kb-key">N</button>
+                                <button class="kb-key">M</button>
+                                <button class="kb-key wide">&#9003;</button>
+                            </div>
+                            <div class="keyboard-row">
+                                <button class="kb-key wide">123</button>
+                                <button class="kb-key space">space</button>
+                                <button class="kb-key action">return</button>
+                            </div>
+                        </div>
+                        <div class="save-area" style="padding-top: 6px; padding-bottom: 16px;">
+                            <button class="save-btn primary">Save to Ledger <span class="arrow">&rarr;</span></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Description interaction annotation -->
+        <div style="max-width: 720px; margin: 24px auto 0; padding: 0 24px;">
+            <div class="annotation">
+                <span class="ann-icon" style="font-size: 15px; font-weight: 700; color: var(--wp-primary);">iv</span>
+                <div class="ann-text">
+                    <strong>Three input zones, one slot:</strong> The bottom area of the sheet swaps between three states:
+                    <strong>(a)</strong> Custom numpad (default, for amount entry),
+                    <strong>(b)</strong> Standard keyboard + title suggestions (when title field tapped),
+                    <strong>(c)</strong> Description card + standard keyboard (when Note pill tapped).
+                    Tapping the amount hero returns to numpad. Tapping &ldquo;Done&rdquo; on the keyboard returns to numpad.
+                    The description is stored via the Universal Description Model (<code>note_entries</code> + <code>entity_links</code>) &mdash; not as a column on the transaction.
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================
+             BEFORE / AFTER COMPARISON
+             ============================================================ -->
+        <div class="comparison">
+            <div class="section-title">What Changed</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Element</th>
+                        <th>Before</th>
+                        <th>After</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Amount input</td>
+                        <td class="old">Inline in command text field, 17pt</td>
+                        <td class="new">Hero display, 40pt + custom numpad <span class="badge new-badge">New</span></td>
+                    </tr>
+                    <tr>
+                        <td>Command parser</td>
+                        <td class="old">Primary input method &mdash; "@Food $Chase -45"</td>
+                        <td class="new">Removed &mdash; replaced by visual selectors <span class="badge removed">Removed</span></td>
+                    </tr>
+                    <tr>
+                        <td>Category selection</td>
+                        <td class="old">@-prefix autocomplete in text field</td>
+                        <td class="new">Pill in scrollable row &mdash; tap opens picker sheet <span class="badge changed">Changed</span></td>
+                    </tr>
+                    <tr>
+                        <td>Account selection</td>
+                        <td class="old">$-prefix autocomplete in text field</td>
+                        <td class="new">Smart default (last used) + tappable pill <span class="badge changed">Changed</span></td>
+                    </tr>
+                    <tr>
+                        <td>Date</td>
+                        <td class="old">No default &mdash; user must set every time</td>
+                        <td class="new">Defaults to Today automatically <span class="badge new-badge">New</span></td>
+                    </tr>
+                    <tr>
+                        <td>Expense / Income</td>
+                        <td class="old">Determined by +/&minus; sign prefix</td>
+                        <td class="new">Explicit segmented toggle at top <span class="badge changed">Changed</span></td>
+                    </tr>
+                    <tr>
+                        <td>Save routing</td>
+                        <td class="old">Implicit &mdash; user may not know where it goes</td>
+                        <td class="new">Explicit button label: "Ledger" vs "Draft &rarr; Inbox" <span class="badge changed">Changed</span></td>
+                    </tr>
+                    <tr>
+                        <td>Multi-currency</td>
+                        <td class="old">Exchange rate in metadata rows</td>
+                        <td class="new">Inline conversion shown below amount hero <span class="badge changed">Changed</span></td>
+                    </tr>
+                    <tr>
+                        <td>Description (note)</td>
+                        <td class="old">Always-visible note card below metadata rows</td>
+                        <td class="new">Hidden behind Note pill &mdash; tap to expand text area in numpad slot <span class="badge changed">Changed</span></td>
+                    </tr>
+                    <tr>
+                        <td>Keyboard</td>
+                        <td class="old">Standard iOS keyboard (text mode)</td>
+                        <td class="new">Custom numpad for amounts; standard keyboard for title &amp; description <span class="badge new-badge">New</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- ============================================================
+             INTERACTION NOTES
+             ============================================================ -->
+        <div style="max-width: 720px; margin: 0 auto; padding: 0 24px;">
+            <div class="annotation">
+                <span class="ann-icon" style="font-size: 15px; font-weight: 700; color: var(--wp-primary);">i</span>
+                <div class="ann-text">
+                    <strong>Keyboard switching:</strong> The numpad is the default input when the sheet opens.
+                    Tapping the title field swaps the numpad for the standard iOS keyboard.
+                    Tapping the amount area or anywhere else swaps back to the numpad.
+                    The bottom area toggles fluidly between the two &mdash; same pattern as Copilot Money and Revolut.
+                </div>
+            </div>
+            <div class="annotation">
+                <span class="ann-icon" style="font-size: 15px; font-weight: 700; color: var(--wp-primary);">ii</span>
+                <div class="ann-text">
+                    <strong>Batch entry:</strong> After saving, the sheet plays a brief checkmark animation (200ms),
+                    then resets all fields while staying open. The user can immediately enter another transaction
+                    or swipe down to dismiss. This enables rapid-fire expense logging.
+                </div>
+            </div>
+            <div class="annotation">
+                <span class="ann-icon" style="font-size: 15px; font-weight: 700; color: var(--wp-primary);">iii</span>
+                <div class="ann-text">
+                    <strong>Smart defaults applied on open:</strong> Date &rarr; Today. Account &rarr; last used.
+                    Type &rarr; Expense (85%+ of manual entries). This means a minimal entry is just:
+                    type amount (3-5 numpad taps) + tap Category pill + pick from sheet (1 tap) + save (1 tap) = <strong>6-8 taps total</strong>.
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================
+             DESIGN RATIONALE
+             ============================================================ -->
+        <div class="rationale">
+            <div class="section-title">Design Rationale</div>
+            <div class="rationale-grid">
+                <div class="rationale-card">
+                    <div class="rc-tag">Amount First</div>
+                    <h3>The amount is the hero</h3>
+                    <p>Every top finance app (Copilot, Revolut, YNAB, Monarch) puts the amount as the largest, most prominent element. At 40pt bold with monospaced digits, it dominates the visual hierarchy and gives users confidence in what they're logging.</p>
+                </div>
+                <div class="rationale-card">
+                    <div class="rc-tag">Custom Numpad</div>
+                    <h3>Purpose-built for money</h3>
+                    <p>7 of 9 top finance apps use a custom numpad instead of the system keyboard for amounts. Larger tap targets, no mode-switching, and room for domain-specific keys. The numpad is the default; the standard keyboard appears only when typing the title.</p>
+                </div>
+                <div class="rationale-card">
+                    <div class="rc-tag">Unified Pill Row</div>
+                    <h3>All metadata in one scrollable strip</h3>
+                    <p>Date, Category, Account, Note, and Tags live in a single horizontally scrollable pill row. Filled pills show the value with a colored dot; empty pills show a dashed outline. Tapping any pill opens its picker sheet. Keeps the layout minimal and scannable.</p>
+                </div>
+                <div class="rationale-card">
+                    <div class="rc-tag">Smart Defaults</div>
+                    <h3>Two fields pre-filled on open</h3>
+                    <p>Date defaults to today (80%+ of entries are for today). Account defaults to last-used. This eliminates two mandatory fields from every entry, reducing the minimum interaction to: amount + category + save.</p>
+                </div>
+                <div class="rationale-card">
+                    <div class="rc-tag">Explicit Routing</div>
+                    <h3>Users always know where it goes</h3>
+                    <p>The save button clearly shows "Save to Ledger" (all fields complete) or "Save as Draft &rarr; Inbox" (missing required fields). No ambiguity about the destination. The inbox/ledger model remains &mdash; just surfaced more transparently.</p>
+                </div>
+                <div class="rationale-card">
+                    <div class="rc-tag">Progressive Disclosure</div>
+                    <h3>Required fields visible, optional on demand</h3>
+                    <p>Amount, title, and categories are always visible. Date and account are shown as filled pills (smart defaults). Notes and hashtags appear as ghost pills &mdash; tappable but not demanding attention. Nothing scrolls; everything fits in one view.</p>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ============================================================
+         JAVASCRIPT
+         ============================================================ -->
+    <script>
+        function setTheme(theme) {
+            document.body.classList.toggle('dark', theme === 'dark');
+            document.querySelectorAll('.toggle-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.textContent.trim().toLowerCase() === theme);
+            });
+        }
+
+        // Keyboard shortcut: press D to toggle dark mode
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'd' && !e.metaKey && !e.ctrlKey) {
+                const isDark = document.body.classList.contains('dark');
+                setTheme(isDark ? 'light' : 'dark');
+            }
+        });
+
+        // Respect system preference on load
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            setTheme('dark');
+        }
+    </script>
+
+</body>
+</html>

@@ -137,6 +137,16 @@ final class TransactionRepository {
         return transactions.filter { idSet.contains($0.id) }
     }
 
+    /// Fetches the most recently created transaction for smart-default account selection.
+    func fetchMostRecent(userId: UUID) throws -> ExpenseTransaction? {
+        var descriptor = FetchDescriptor<ExpenseTransaction>(
+            predicate: #Predicate { $0.userId == userId && $0.deletedAt == nil },
+            sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
+        )
+        descriptor.fetchLimit = 1
+        return try modelContext.fetch(descriptor).first
+    }
+
     // MARK: - Aggregate Queries
 
     /// Sum of amountHomeCents (falling back to amountCents) for all non-deleted transactions in an account.

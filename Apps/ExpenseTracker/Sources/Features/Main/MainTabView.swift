@@ -42,17 +42,17 @@ struct MainTabView: View {
             }
         }
         .sheet(isPresented: $showQuickEntry) {
-            QuickEntryView(
-                viewModel: makeQuickEntryViewModel(),
+            AddTransactionView(
+                viewModel: makeAddTransactionViewModel(),
                 onDismiss: { showQuickEntry = false }
             )
-            .presentationDetents([.medium])
-            .presentationDragIndicator(.hidden)
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
         }
     }
 
-    private func makeQuickEntryViewModel() -> QuickEntryViewModel {
-        QuickEntryViewModel(
+    private func makeAddTransactionViewModel() -> AddTransactionViewModel {
+        AddTransactionViewModel(
             transactionRepository: TransactionRepository(modelContext: modelContext),
             inboxRepository: InboxRepository(modelContext: modelContext),
             categoryRepository: CategoryRepository(modelContext: modelContext),

@@ -249,6 +249,86 @@ public struct WPBadgeStyle {
     public static let horizontalPadding: CGFloat = 6
 }
 
+// MARK: - Numpad Style
+
+/// Constants for the custom calculator-style numpad.
+public enum WPNumpadStyle {
+    public static let keyHeight: CGFloat = 44
+    public static let keyFontSize: CGFloat = 20
+    public static let backspaceIconSize: CGFloat = 18
+    public static let gridSpacing: CGFloat = WPSpacing.xs
+}
+
+// MARK: - Metadata Pill Style
+
+/// Pill state for the Add Transaction metadata row (Date, Category, Account, Note, Tag).
+public enum WPMetadataPillState {
+    case filled
+    case empty
+    case active
+}
+
+/// Pill modifier for the Add Transaction metadata row.
+public struct WPMetadataPillModifier: ViewModifier {
+    let state: WPMetadataPillState
+
+    public init(state: WPMetadataPillState) {
+        self.state = state
+    }
+
+    public func body(content: Content) -> some View {
+        content
+            .font(.system(size: 12, weight: .medium))
+            .padding(.horizontal, 12)
+            .frame(height: 30)
+            .foregroundStyle(foregroundColor)
+            .background(backgroundColor)
+            .clipShape(Capsule())
+            .overlay {
+                Capsule()
+                    .strokeBorder(borderColor, style: borderStyle)
+            }
+    }
+
+    private var foregroundColor: Color {
+        switch state {
+        case .filled: Color.wpTextPrimary
+        case .empty: Color.wpTextTertiary
+        case .active: Color.wpPrimary
+        }
+    }
+
+    private var backgroundColor: Color {
+        switch state {
+        case .filled: Color.wpSurface
+        case .empty: Color.clear
+        case .active: Color.wpPrimary.opacity(0.10)
+        }
+    }
+
+    private var borderColor: Color {
+        switch state {
+        case .filled: Color.wpBorder
+        case .empty: Color.wpTextTertiary
+        case .active: Color.wpPrimary
+        }
+    }
+
+    private var borderStyle: StrokeStyle {
+        switch state {
+        case .filled: StrokeStyle(lineWidth: 1)
+        case .empty: StrokeStyle(lineWidth: 1.5, dash: [4, 3])
+        case .active: StrokeStyle(lineWidth: 1.5)
+        }
+    }
+}
+
+public extension View {
+    func wpMetadataPill(state: WPMetadataPillState) -> some View {
+        modifier(WPMetadataPillModifier(state: state))
+    }
+}
+
 // MARK: - Horizontal Pill Scroll
 
 /// Horizontally scrollable single-line pill container with trailing fade hint.
