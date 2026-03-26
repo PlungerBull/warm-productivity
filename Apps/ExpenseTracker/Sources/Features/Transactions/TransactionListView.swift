@@ -69,7 +69,7 @@ struct TransactionListView: View {
             Button { dismiss() } label: {
                 HStack(spacing: WPSpacing.xxs) {
                     Image(systemName: "chevron.left")
-                        .font(.system(size: 16, weight: .semibold))
+                        .font(.wpNavChevron)
                     Text("Back")
                         .font(.wpBody)
                 }

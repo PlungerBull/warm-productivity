@@ -106,13 +106,14 @@ struct TransactionDetailView: View {
     // MARK: - Hero Section
 
     private var heroSection: some View {
-        let fontSize = isCompact ? WPContentSheetStyle.compactAmountFontSize : WPContentSheetStyle.heroAmountFontSize
-        let titleSize = isCompact ? WPContentSheetStyle.compactTitleFontSize : WPContentSheetStyle.heroTitleFontSize
+        let amountFont = isCompact ? Font.wpCompactAmount : Font.wpHeroAmount
+        let titleFont = isCompact ? Font.wpCompactTitle : Font.wpHeroTitle
+        let currencyFont = isCompact ? Font.wpCompactCurrencyCode : Font.wpHeroCurrencyCode
 
         return VStack(spacing: WPSpacing.xs) {
             // Title
             TextField("Untitled transaction", text: $viewModel.title)
-                .font(.system(size: titleSize, weight: .bold))
+                .font(titleFont)
                 .foregroundStyle(Color.wpTextPrimary)
                 .multilineTextAlignment(.center)
                 .textFieldStyle(.plain)
@@ -135,7 +136,7 @@ struct TransactionDetailView: View {
                     viewModel.isExpense.toggle()
                 } label: {
                     Text(viewModel.isExpense ? "\u{2212}" : "+")
-                        .font(.system(size: fontSize, weight: .bold).monospacedDigit())
+                        .font(amountFont)
                         .foregroundStyle(amountColor)
                 }
                 .buttonStyle(.plain)
@@ -144,7 +145,7 @@ struct TransactionDetailView: View {
                 // Currency code — same line, after sign
                 if let currency = viewModel.accountCurrency {
                     Text(currency)
-                        .font(.system(size: fontSize * 0.5, weight: .bold))
+                        .font(currencyFont)
                         .foregroundStyle(Color.wpTextTertiary)
                         .alignmentGuide(.firstTextBaseline) { d in d[.firstTextBaseline] }
                         .padding(.trailing, WPSpacing.xxs)
@@ -152,7 +153,7 @@ struct TransactionDetailView: View {
 
                 // Amount field
                 TextField("0.00", text: $viewModel.amountString)
-                    .font(.system(size: fontSize, weight: .bold).monospacedDigit())
+                    .font(amountFont)
                     .foregroundStyle(amountColor)
                     .textFieldStyle(.plain)
                     .keyboardType(.decimalPad)
@@ -186,7 +187,7 @@ struct TransactionDetailView: View {
                     Image(systemName: "calendar")
                         .font(.wpCaption)
                     Text(formattedDate)
-                        .font(.system(size: 13, weight: .medium))
+                        .font(.wpPillLabel)
                 }
                 .wpToolbarPill(state: .selected, color: Color.wpTextSecondary)
             }
@@ -207,13 +208,13 @@ struct TransactionDetailView: View {
                 if let category = selectedCategory {
                     HStack(spacing: WPSpacing.xxs) {
                         Circle().fill(Color(hex: category.color)).frame(width: 7, height: 7)
-                        Text(category.name).font(.system(size: 13, weight: .medium))
+                        Text(category.name).font(.wpPillLabel)
                     }
                     .wpToolbarPill(state: .selected, color: Color(hex: category.color))
                 } else {
                     HStack(spacing: WPSpacing.xxs) {
                         Image(systemName: "tag").font(.wpCaption)
-                        Text("Category").font(.system(size: 13, weight: .medium))
+                        Text("Category").font(.wpPillLabel)
                     }
                     .wpToolbarPill(state: .missing, color: Color.wpWarning)
                 }
@@ -224,7 +225,7 @@ struct TransactionDetailView: View {
             Button { showAccountPicker = true } label: {
                 HStack(spacing: WPSpacing.xxs) {
                     Image(systemName: "building.columns").font(.wpCaption)
-                    Text(selectedAccountName).font(.system(size: 13, weight: .medium))
+                    Text(selectedAccountName).font(.wpPillLabel)
                 }
                 .wpToolbarPill(
                     state: viewModel.selectedAccountId != nil ? .selected : .missing,
@@ -237,7 +238,7 @@ struct TransactionDetailView: View {
             ForEach(selectedHashtags, id: \.id) { hashtag in
                 Button { showHashtagPicker = true } label: {
                     Text("#\(hashtag.name)")
-                        .font(.system(size: 13, weight: .medium))
+                        .font(.wpPillLabel)
                         .wpToolbarPill(state: .selected, color: Color.wpHashtag)
                 }
                 .buttonStyle(.plain)

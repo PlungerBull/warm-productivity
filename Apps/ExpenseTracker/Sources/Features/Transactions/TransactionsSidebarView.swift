@@ -171,7 +171,7 @@ struct TransactionsSidebarView: View {
             Spacer()
             Button(action: { onSearch?() }) {
                 Image(systemName: "magnifyingglass")
-                    .font(.system(size: 15, weight: .medium))
+                    .font(.wpSubheadline)
                     .foregroundStyle(Color.wpTextTertiary)
                     .frame(width: 32, height: 32)
                     .contentShape(Circle())
@@ -186,7 +186,7 @@ struct TransactionsSidebarView: View {
         Button { onSelect(.inbox) } label: {
             HStack(spacing: WPSpacing.sm) {
                 Image(systemName: "tray.and.arrow.down")
-                    .font(.system(size: 18, weight: .regular))
+                    .font(.wpBody)
                     .foregroundStyle(Color.wpPrimary)
                     .frame(width: 28, height: 28)
                 Text("Inbox")
@@ -216,7 +216,7 @@ struct TransactionsSidebarView: View {
         Button { onSelect(.ledger) } label: {
             HStack(spacing: WPSpacing.sm) {
                 Image(systemName: "creditcard")
-                    .font(.system(size: 18, weight: .regular))
+                    .font(.wpBody)
                     .foregroundStyle(Color.wpPrimary)
                     .frame(width: 28, height: 28)
                 Text("Ledger")
@@ -281,12 +281,12 @@ struct TransactionsSidebarView: View {
                 } label: {
                     HStack(spacing: WPSpacing.xxs) {
                         Image(systemName: "chevron.right")
-                            .font(.system(size: 10, weight: .semibold))
+                            .font(.wpSectionChevron)
                             .foregroundStyle(Color.wpTextTertiary)
                             .rotationEffect(.degrees(isExpanded.wrappedValue ? 90 : 0))
 
                         Text(title.uppercased())
-                            .font(.system(size: 11, weight: .semibold))
+                            .font(.wpSectionHeader)
                             .foregroundStyle(Color.wpTextTertiary)
                             .tracking(0.6)
                     }
@@ -298,7 +298,7 @@ struct TransactionsSidebarView: View {
 
                 Button(action: onCreate) {
                     Image(systemName: "plus")
-                        .font(.system(size: 14, weight: .medium))
+                        .font(.wpActionIcon)
                         .foregroundStyle(Color.wpTextTertiary)
                         .frame(width: 28, height: 28)
                         .contentShape(Circle())

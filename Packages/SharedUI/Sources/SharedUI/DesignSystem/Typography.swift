@@ -47,4 +47,41 @@ public extension Font {
 
     /// Decorative icon — empty state / import screen illustrations.
     static let wpIconDecorative = Font.system(size: 48, weight: .light)
+
+    // MARK: - Hero (transaction detail sheet)
+
+    /// Hero title — transaction name in expanded detail sheet.
+    static let wpHeroTitle = Font.system(size: 20, weight: .bold)
+
+    /// Hero amount — sign and digits in expanded detail sheet.
+    static let wpHeroAmount = Font.system(size: 36, weight: .bold).monospacedDigit()
+
+    /// Hero currency code — ISO code beside hero amount.
+    static let wpHeroCurrencyCode = Font.system(size: 18, weight: .bold)
+
+    /// Compact title — transaction name in collapsed detail sheet.
+    static let wpCompactTitle = Font.system(size: 17, weight: .bold)
+
+    /// Compact amount — sign and digits in collapsed detail sheet.
+    static let wpCompactAmount = Font.system(size: 28, weight: .bold).monospacedDigit()
+
+    /// Compact currency code — ISO code beside compact amount.
+    static let wpCompactCurrencyCode = Font.system(size: 14, weight: .bold)
+
+    // MARK: - UI Controls
+
+    /// Pill label — text inside toolbar pills (date, category, account, hashtag).
+    static let wpPillLabel = Font.system(size: 13, weight: .medium)
+
+    /// Section chevron — expand/collapse arrow in sidebar sections.
+    static let wpSectionChevron = Font.system(size: 10, weight: .semibold)
+
+    /// Section header — uppercase section title in sidebar.
+    static let wpSectionHeader = Font.system(size: 11, weight: .semibold)
+
+    /// Action icon — small interactive icons (plus, edit) in section headers.
+    static let wpActionIcon = Font.system(size: 14, weight: .medium)
+
+    /// Nav chevron — back navigation arrow.
+    static let wpNavChevron = Font.system(size: 16, weight: .semibold)
 }

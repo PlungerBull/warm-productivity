@@ -152,10 +152,6 @@ public struct WPContentSheetStyle {
     public static let handleCornerRadius: CGFloat = 2
     public static let titleFontSize: CGFloat = 22
     public static let amountFontSize: CGFloat = 28
-    public static let heroTitleFontSize: CGFloat = 20
-    public static let heroAmountFontSize: CGFloat = 36
-    public static let compactTitleFontSize: CGFloat = 17
-    public static let compactAmountFontSize: CGFloat = 28
     public static let noteMaxLines: Int = 3
 }
 
