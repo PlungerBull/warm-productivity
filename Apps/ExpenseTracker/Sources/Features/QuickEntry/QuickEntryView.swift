@@ -60,7 +60,7 @@ struct QuickEntryView: View {
                 .padding(.top, WPSpacing.sm)
                 .padding(.bottom, WPSpacing.xs)
         }
-        .ignoresSafeArea(.keyboard)
+        .fixedSize(horizontal: false, vertical: true)
         .onAppear {
             isCommandFocused = true
         }

@@ -20,11 +20,6 @@ struct TransactionDetailView: View {
         case title, amount, note
     }
     @FocusState private var focusedField: DetailFocusField?
-    @State private var selectedDetent: PresentationDetent = .large
-
-    private var isCompact: Bool {
-        focusedField != nil
-    }
 
     private var isNoteEditing: Bool {
         focusedField == .note
@@ -41,6 +36,7 @@ struct TransactionDetailView: View {
             sheetContent
             bottomBar
         }
+        .fixedSize(horizontal: false, vertical: true)
         .background(.background)
         .alert("Delete Transaction", isPresented: $viewModel.showDeleteConfirmation) {
             Button("Cancel", role: .cancel) {}
@@ -64,13 +60,7 @@ struct TransactionDetailView: View {
             hashtagPickerSheet
         }
         .presentationSizing(.fitted)
-        .presentationDetents([.large], selection: $selectedDetent)
         .presentationDragIndicator(.visible)
-        .onChange(of: focusedField) { _, newValue in
-            withAnimation {
-                selectedDetent = .large
-            }
-        }
         .task {
             viewModel.load(mode: mode)
         }
@@ -94,9 +84,9 @@ struct TransactionDetailView: View {
     // MARK: - Hero Section
 
     private var heroSection: some View {
-        let amountFont = isCompact ? Font.wpCompactAmount : Font.wpHeroAmount
-        let titleFont = isCompact ? Font.wpCompactTitle : Font.wpHeroTitle
-        let currencyFont = isCompact ? Font.wpCompactCurrencyCode : Font.wpHeroCurrencyCode
+        let amountFont = Font.wpHeroAmount
+        let titleFont = Font.wpHeroTitle
+        let currencyFont = Font.wpHeroCurrencyCode
 
         return VStack(spacing: WPSpacing.xs) {
             // Title
