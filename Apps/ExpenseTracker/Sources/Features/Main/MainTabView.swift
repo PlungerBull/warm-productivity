@@ -9,7 +9,6 @@ struct MainTabView: View {
     @Environment(\.modelContext) private var modelContext
     @State private var selectedTab = 0
     @State private var showQuickEntry = false
-    @State private var quickEntryHeight: CGFloat = 140
 
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -45,12 +44,10 @@ struct MainTabView: View {
         .sheet(isPresented: $showQuickEntry) {
             QuickEntryView(
                 viewModel: makeQuickEntryViewModel(),
-                onDismiss: { showQuickEntry = false },
-                sheetHeight: $quickEntryHeight
+                onDismiss: { showQuickEntry = false }
             )
-            .presentationDetents([.height(quickEntryHeight)])
+            .presentationSizing(.fitted)
             .presentationDragIndicator(.hidden)
-            .presentationSizing(.page)
         }
     }
 

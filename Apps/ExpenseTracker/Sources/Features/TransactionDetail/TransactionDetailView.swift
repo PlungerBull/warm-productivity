@@ -20,7 +20,7 @@ struct TransactionDetailView: View {
         case title, amount, note
     }
     @FocusState private var focusedField: DetailFocusField?
-    @State private var selectedDetent: PresentationDetent = .fraction(0.75)
+    @State private var selectedDetent: PresentationDetent = .large
 
     private var isCompact: Bool {
         focusedField != nil
@@ -63,12 +63,12 @@ struct TransactionDetailView: View {
         .sheet(isPresented: $showHashtagPicker) {
             hashtagPickerSheet
         }
-        .presentationDetents([.fraction(0.75), .large], selection: $selectedDetent)
+        .presentationSizing(.fitted)
+        .presentationDetents([.large], selection: $selectedDetent)
         .presentationDragIndicator(.visible)
-        .presentationSizing(.page)
         .onChange(of: focusedField) { _, newValue in
             withAnimation {
-                selectedDetent = newValue != nil ? .large : .fraction(0.75)
+                selectedDetent = .large
             }
         }
         .task {
@@ -82,14 +82,12 @@ struct TransactionDetailView: View {
         VStack(spacing: 0) {
             heroSection
             pillsSection
-            ScrollView {
-                VStack(spacing: WPSpacing.sm) {
-                    metadataRows
-                    noteCard
-                }
-                .padding(.horizontal, WPSpacing.md)
-                .padding(.vertical, WPSpacing.sm)
+            VStack(spacing: WPSpacing.sm) {
+                metadataRows
+                noteCard
             }
+            .padding(.horizontal, WPSpacing.md)
+            .padding(.vertical, WPSpacing.sm)
         }
     }
 

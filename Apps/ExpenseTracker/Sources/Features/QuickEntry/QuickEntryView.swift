@@ -6,19 +6,15 @@ import SharedUtilities
 struct QuickEntryView: View {
     @State private var viewModel: QuickEntryViewModel
     let onDismiss: () -> Void
-    @Binding var sheetHeight: CGFloat
 
     @State private var showDatePicker: Bool = false
     @State private var showCategoryPicker: Bool = false
     @State private var showAccountPicker: Bool = false
     @FocusState private var isCommandFocused: Bool
 
-    private static let maxSheetHeight: CGFloat = 350
-
-    init(viewModel: QuickEntryViewModel, onDismiss: @escaping () -> Void, sheetHeight: Binding<CGFloat>) {
+    init(viewModel: QuickEntryViewModel, onDismiss: @escaping () -> Void) {
         _viewModel = State(initialValue: viewModel)
         self.onDismiss = onDismiss
-        _sheetHeight = sheetHeight
     }
 
     var body: some View {
@@ -65,11 +61,6 @@ struct QuickEntryView: View {
                 .padding(.bottom, WPSpacing.xs)
         }
         .ignoresSafeArea(.keyboard)
-        .onGeometryChange(for: CGFloat.self) { proxy in
-            proxy.size.height
-        } action: { newHeight in
-            sheetHeight = min(newHeight, Self.maxSheetHeight)
-        }
         .onAppear {
             isCommandFocused = true
         }
