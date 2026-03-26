@@ -354,3 +354,22 @@ Deployment target is iOS 26.0. TabView uses automatic Liquid Glass tab bar. The 
 5. **Overflow menu** (`...`) for extra actions.
 
 **Data flow:** Command string → `CommandParser` parses → chips reflect parsed tokens. Same code path for new and edit.
+
+### Sheet Sizing on iPhone — Measured Height Detent
+
+**`.presentationSizing(.fitted)` is iPad-only.** On iPhone (compact horizontal size class), it is silently ignored and sheets default to full height. The `.form`, `.page`, and `.fitted` values only affect iPad form-sheet card sizing.
+
+**The correct pattern for content-hugging sheets on iPhone:**
+```swift
+// In the sheet content view:
+.onGeometryChange(for: CGFloat.self) { proxy in
+    proxy.size.height
+} action: { newHeight in
+    sheetHeight = newHeight
+}
+
+// On the .sheet() presentation:
+.presentationDetents([.height(sheetHeight)])
+```
+
+Both `QuickEntryView` and `TransactionDetailView` use this pattern. Never use `.presentationSizing(.fitted)` for iPhone sheets.
