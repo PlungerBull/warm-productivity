@@ -3,17 +3,17 @@ import Foundation
 enum SidebarDestination: Hashable {
     case inbox
     case ledger
-    case bankAccount(id: UUID)
-    case category(id: UUID)
-    case hashtag(id: UUID)
+    case bankAccount(id: UUID, name: String)
+    case category(id: UUID, name: String)
+    case hashtag(id: UUID, name: String)
 
     var title: String {
         switch self {
         case .inbox: "Inbox"
         case .ledger: "Ledger"
-        case .bankAccount: "Account"
-        case .category: "Category"
-        case .hashtag: "Hashtag"
+        case .bankAccount(_, let name): name
+        case .category(_, let name): name
+        case .hashtag(_, let name): name
         }
     }
 

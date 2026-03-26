@@ -34,9 +34,11 @@ This principle governs how every app is built. It applies to Steps 7, 9, and 11 
 
 **3a. Polish at natural milestones.** After a group of phases delivers a usable, testable feature set, take a dedicated UI polish pass before adding new feature complexity. Polish covers spacing, transitions, empty/loading/error states, dark mode, accessibility, and micro-interactions. This prevents visual debt from compounding across phases — fixing spacing on 5 screens is manageable, fixing it on 25 is not.
 
-**4. Layer features one at a time.** After the core is solid, add the next feature slice. Test it. Harden it. Then add the next. Each layer builds on a proven foundation.
+**4. Sync early, sync continuously.** Once the core flow is hardened, build the sync engine before adding more features. Every subsequent feature is then built and tested with sync from day one — no retrofitting. The rhythm is: new feature → verify sync → new feature → verify sync. This keeps the sync surface area small and debuggable at every step, rather than bolting sync onto a finished app and discovering edge cases across dozens of screens at once.
 
-**5. Standalone first, cross-app UI last, AI last of all.** Each app is built as a fully functional standalone tool before any cross-app UI integration happens. The distinction is between data layer and UI:
+**5. Layer features one at a time.** After the core is solid, add the next feature slice. Test it. Harden it. Then add the next. Each layer builds on a proven foundation.
+
+**6. Standalone first, cross-app UI last, AI last of all.** Each app is built as a fully functional standalone tool before any cross-app UI integration happens. The distinction is between data layer and UI:
 
 - **Data layer (immediate):** Writing to shared tables (`note_entries`, `entity_links`, `activity_log`) happens from day one. The schema is deployed upfront, and apps write to shared tables as part of their standalone functionality. An expense description creating a `note_entry` is data-layer work — it doesn't require the Notes app UI to exist.
 - **Cross-app UI (deferred):** Any feature where one app's UI surfaces or interacts with another app's data is deferred until all three standalone apps are complete. This includes: slash commands in Notes, Expense Planning showing task due dates, task→expense generation UI, cross-app linked references, dashboards, and budget tracking. Note: each app's own activity view (filtered by entity_type) is part of its standalone build, not cross-app UI.
@@ -162,6 +164,7 @@ This step is unique because you're building two things at once: the expense trac
 - Common flat category + hashtag system used across all apps
 - Shared UI component library (buttons, inputs, modals, layouts)
 - Database connection layer and shared utilities
+- Sync engine (built after Phase 2 — delta sync, version tracking, conflict resolution. Every subsequent feature is built sync-ready from day one)
 - Recurrence engine (built during Phase 5 — shared date calculation, schedule anchoring, next-occurrence logic reused by To-Do app)
 - Base deployment pipeline
 
@@ -170,9 +173,10 @@ This step is unique because you're building two things at once: the expense trac
 1. Core Tracking — inbox/ledger, categories, hashtags, multi-currency, accounts, descriptions, CSV import
 2. Search & Filtering — category breakdown, hashtag filtering, search
 — **UI Polish Pass 1** — visual refinement of all Phase 1–2 screens (spacing, transitions, empty/loading/error states, dark mode, accessibility)
-3. Reconciliation — batch reconciliation, field locking
-4. People & Transfers — `/` syntax, person accounts, debt tracking, cross-user sharing
-5. Expense Planning + Recurrence Engine — planned expenses, recurring templates, future-date routing, shared recurrence engine (reused by To-Do Phase 3)
+— **Sync Engine** — build SyncEngine package, wire up delta sync for all Phase 1–2 entities. Every subsequent phase is built and tested with sync from day one.
+3. Reconciliation — batch reconciliation, field locking *(+ sync verification)*
+4. People & Transfers — `/` syntax, person accounts, debt tracking, cross-user sharing *(+ sync verification)*
+5. Expense Planning + Recurrence Engine — planned expenses, recurring templates, future-date routing, shared recurrence engine (reused by To-Do Phase 3) *(+ sync verification)*
 6. Polish & Utilities — receipt photos, CSV export, final full-app polish pass
 
 **Included in Phase 5 (Expense Planning):** Future-date routing (creates inbox record + linked task when a future date is entered via the FAB). The data model is defined in the Cross-App Integration Map; the feature UI ships with Expense Planning.

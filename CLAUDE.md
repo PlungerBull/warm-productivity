@@ -175,6 +175,9 @@ Because all writes go to SwiftData first (offline-first), the Swift repositories
 - **CHECK constraints** — enforce all CHECK clauses (e.g., `is_pinned = true` requires `notebookId != nil`).
 - **Currency from account** — a transaction's currency is derived from its account's `currencyCode`. When an account is selected, `exchangeRate` must be auto-populated if account currency ≠ home currency.
 
+**8. Sync Early, Sync Continuously**
+Build the sync engine once the core flow is hardened — before adding more features. Every subsequent feature is built and tested with sync from day one. The rhythm is: new feature → verify sync → new feature → verify sync. This prevents the anti-pattern of bolting sync onto a finished app and discovering edge cases across dozens of screens at once. Small sync surface area at each step keeps integration debuggable.
+
 ---
 
 ## Schema Conventions
@@ -327,7 +330,7 @@ Deployment target is iOS 26.0. TabView uses automatic Liquid Glass tab bar. The 
 - No red for expenses. The sign (`-`) already communicates direction; red is reserved for `wpError` (validation, destructive states).
 - This rule applies to transaction rows, detail views, search results, category breakdowns, sidebar balances — no exceptions.
 
-**Currency format:** Always use the 3-letter ISO currency code (e.g. `USD`, `PEN`), never the locale symbol (`$`, `S/`). Many currencies share `$`; the code is unambiguous. Format: `-USD67.32`, `+PEN1,500.00`.
+**Currency format:** Always use the 3-letter ISO currency code (e.g. `USD`, `PEN`), never the locale symbol (`$`, `S/`). Many currencies share `$`; the code is unambiguous. A space always separates the code from the number. Format: `-USD 67.32`, `+PEN 1,500.00`, `USD 0.00`.
 
 ### Transaction Row Layout Convention
 

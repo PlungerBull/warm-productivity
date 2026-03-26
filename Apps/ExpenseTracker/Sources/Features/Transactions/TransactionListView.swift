@@ -197,9 +197,13 @@ struct TransactionListView: View {
             guard let accountId = item.accountId else { return "" }
             return viewModel.accountName(for: accountId)
         }()
+        let formatter: CurrencyFormatter = {
+            guard let accountId = item.accountId else { return viewModel.currencyFormatter }
+            return viewModel.accountCurrencyFormatter(for: accountId)
+        }()
         return TransactionRow(
             title: isUntitled ? "Untitled" : item.title,
-            amount: viewModel.currencyFormatter.formatOptionalSigned(item.amountCents),
+            amount: formatter.formatOptionalSigned(item.amountCents),
             isExpense: (item.amountCents ?? 0) < 0,
             isUntitled: isUntitled,
             style: .inbox(isReady: viewModel.isReadyToPromote(item), accountName: accountName)
@@ -269,9 +273,10 @@ struct TransactionListView: View {
     }
 
     private func ledgerRow(_ transaction: ExpenseTransaction) -> some View {
-        TransactionRow(
+        let formatter = viewModel.accountCurrencyFormatter(for: transaction.accountId)
+        return TransactionRow(
             title: transaction.title,
-            amount: viewModel.currencyFormatter.formatSigned(transaction.amountCents),
+            amount: formatter.formatSigned(transaction.amountCents),
             isExpense: transaction.amountCents < 0,
             style: .ledger(
                 categoryColor: viewModel.categoryColor(for: transaction.categoryId),

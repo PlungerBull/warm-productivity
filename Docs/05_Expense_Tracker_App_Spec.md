@@ -41,9 +41,10 @@ UI polish passes happen at natural milestones — after a group of phases delive
 | 1 | Core Tracking | Inbox/ledger, categories, hashtags, multi-currency, accounts, descriptions, CSV import |
 | 2 | Search & Filtering | Category breakdown, hashtag filtering, search |
 | — | **UI Polish Pass 1** | Visual refinement of all Phase 1–2 screens: spacing, alignment, transitions, empty states, loading states, error states, dark mode consistency, accessibility |
-| 3 | Reconciliation | Batch reconciliation, field locking |
-| 4 | People & Transfers | `/` syntax, person accounts, debt tracking, cross-user sharing |
-| 5 | Expense Planning + Recurrence | Planned expenses, recurring templates, overdue section, shared recurrence engine |
+| — | **Sync Engine** | Build SyncEngine package, wire up delta sync for all Phase 1–2 entities. Every subsequent phase is built and tested with sync from day one |
+| 3 | Reconciliation | Batch reconciliation, field locking + sync verification |
+| 4 | People & Transfers | `/` syntax, person accounts, debt tracking, cross-user sharing + sync verification |
+| 5 | Expense Planning + Recurrence | Planned expenses, recurring templates, overdue section, shared recurrence engine + sync verification |
 | 6 | Polish & Utilities | Receipt photos, CSV export, final full-app polish pass |
 
 **Deferred to Step 12 (Cross-App UI):** Budget tracking UI, dashboard.

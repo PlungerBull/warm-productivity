@@ -52,7 +52,7 @@ struct TransactionsSidebarView: View {
                                     value: (viewModel.accountCurrencyFormatters[account.id] ?? viewModel.currencyFormatter).format(viewModel.accountBalances[account.id] ?? 0),
                                     valueColor: (viewModel.accountBalances[account.id] ?? 0) >= 0 ? Color.wpIncome : Color.wpExpense
                                 ) {
-                                    onSelect(.bankAccount(id: account.id))
+                                    onSelect(.bankAccount(id: account.id, name: account.name))
                                 }
                                 .contextMenu {
                                     Button { viewModel.renamingItemId = account.id; viewModel.renameText = account.name } label: { Label("Rename", systemImage: "pencil") }
@@ -85,7 +85,7 @@ struct TransactionsSidebarView: View {
                                     value: viewModel.currencyFormatter.format(viewModel.categorySpend[category.id] ?? 0),
                                     valueColor: Color.wpTextSecondary
                                 ) {
-                                    onSelect(.category(id: category.id))
+                                    onSelect(.category(id: category.id, name: category.name))
                                 }
                                 .contextMenu {
                                     if !viewModel.isSystemCategory(category) {
@@ -117,7 +117,7 @@ struct TransactionsSidebarView: View {
                                 color: Color.wpHashtag,
                                 label: hashtag.name
                             ) {
-                                onSelect(.hashtag(id: hashtag.id))
+                                onSelect(.hashtag(id: hashtag.id, name: hashtag.name))
                             }
                             .contextMenu {
                                 Button { viewModel.renamingItemId = hashtag.id; viewModel.renameText = hashtag.name } label: { Label("Rename", systemImage: "pencil") }

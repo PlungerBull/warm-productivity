@@ -24,21 +24,21 @@ public struct CurrencyFormatter: Sendable {
         return formatter.string(from: NSNumber(value: value)) ?? "0"
     }
 
-    /// Formats cents with currency code: "USD1,234.56".
+    /// Formats cents with currency code: "USD 1,234.56".
     /// Always uses the absolute value — caller controls sign display.
     public func format(_ cents: Int64) -> String {
-        "\(currencyCode)\(formatDecimal(cents))"
+        "\(currencyCode) \(formatDecimal(cents))"
     }
 
-    /// Formats cents with sign and 3-letter currency code: "-USD67.32" for expenses, "+USD2,320.00" for income.
+    /// Formats cents with sign and 3-letter currency code: "-USD 67.32" for expenses, "+USD 2,320.00" for income.
     public func formatSigned(_ cents: Int64) -> String {
         let base = formatDecimal(cents)
         if cents < 0 {
-            return "-\(currencyCode)\(base)"
+            return "-\(currencyCode) \(base)"
         } else if cents > 0 {
-            return "+\(currencyCode)\(base)"
+            return "+\(currencyCode) \(base)"
         }
-        return "\(currencyCode)\(base)"
+        return "\(currencyCode) \(base)"
     }
 
     /// Formats optional cents with currency code, returning "\u{2014}" for nil.

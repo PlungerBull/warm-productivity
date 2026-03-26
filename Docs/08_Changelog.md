@@ -65,3 +65,11 @@ This is the project decision log. Append-only — never edit or delete past entr
 **What changed:** Added UI Polish Pass 1 as a dedicated milestone between Expense Tracker Phase 2 (Search & Filtering) and Phase 3 (Reconciliation). Updated build principle to include "polish at natural milestones" (3a). Phase 6 description updated to include a final full-app polish pass.
 **Why:** Phases 1 and 2 are complete. Rather than accumulating visual debt across all 6 phases and fixing it at the end, a dedicated polish pass now — while the screen count is manageable — prevents compounding UI inconsistencies and ensures a solid visual foundation before reconciliation adds complexity.
 **Affected documents:** 04_Development_Roadmap.md, 05_Expense_Tracker_App_Spec.md
+
+---
+
+## 2026-03-25
+
+**What changed:** Added "Sync Early, Sync Continuously" as a core build principle (#8 in CLAUDE.md, #4 in Roadmap build principles). Sync Engine added as a dedicated milestone after UI Polish Pass 1, before Phase 3. Phases 3–5 now include "sync verification" as part of their scope. Added sync engine to shared infrastructure list.
+**Why:** With Phases 1–2 complete, syncing now while the surface area is small means every future feature ships sync-ready. Deferring sync to the end would require retrofitting across dozens of screens — the same compounding-debt problem that motivated the polish pass decision.
+**Affected documents:** CLAUDE.md, 04_Development_Roadmap.md, 05_Expense_Tracker_App_Spec.md, 08_Changelog.md

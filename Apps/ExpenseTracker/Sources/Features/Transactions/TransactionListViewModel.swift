@@ -84,13 +84,13 @@ final class TransactionListViewModel {
             case .ledger:
                 ledgerItems = try transactionRepository.fetchAll(userId: userId)
                 inboxItems = []
-            case .bankAccount(let id):
+            case .bankAccount(let id, _):
                 ledgerItems = try transactionRepository.fetchByAccount(userId: userId, accountId: id)
                 inboxItems = []
-            case .category(let id):
+            case .category(let id, _):
                 ledgerItems = try transactionRepository.fetchByCategory(userId: userId, categoryId: id)
                 inboxItems = []
-            case .hashtag(let id):
+            case .hashtag(let id, _):
                 let transactionIds = try transactionHashtagRepository.fetchTransactionIds(hashtagId: id)
                 ledgerItems = try transactionRepository.fetchByIds(userId: userId, ids: transactionIds)
                 inboxItems = []
@@ -110,6 +110,11 @@ final class TransactionListViewModel {
 
     func accountName(for accountId: UUID) -> String {
         accountLookup[accountId]?.name ?? ""
+    }
+
+    func accountCurrencyFormatter(for accountId: UUID) -> CurrencyFormatter {
+        guard let code = accountLookup[accountId]?.currencyCode else { return currencyFormatter }
+        return CurrencyFormatter(currencyCode: code)
     }
 
     func isReadyToPromote(_ item: ExpenseTransactionInbox) -> Bool {
