@@ -45,4 +45,29 @@ final class EntityLinkRepository {
             try modelContext.save()
         }
     }
+
+    /// Soft-delete all entity_links where the given entity appears as source OR target.
+    /// Per deletion matrix: any entity deletion must clean up all referencing links.
+    func softDeleteAllReferences(entityType: EntitySourceType, entityId: UUID) throws {
+        // Links where entity is source
+        let sourceDescriptor = FetchDescriptor<EntityLink>(
+            predicate: #Predicate {
+                $0.sourceId == entityId && $0.deletedAt == nil
+            }
+        )
+        let sourceLinks = try modelContext.fetch(sourceDescriptor).filter { $0.sourceType == entityType }
+
+        // Links where entity is target
+        let targetDescriptor = FetchDescriptor<EntityLink>(
+            predicate: #Predicate {
+                $0.targetId == entityId && $0.deletedAt == nil
+            }
+        )
+        let targetLinks = try modelContext.fetch(targetDescriptor).filter { $0.targetType == entityType }
+
+        let allLinks = sourceLinks + targetLinks
+        for link in allLinks {
+            link.markDeleted()
+        }
+    }
 }

@@ -40,6 +40,9 @@ final class NoteEntryRepository {
     func softDelete(id: UUID) throws {
         guard let entry = try fetchById(id) else { return }
         entry.markDeleted()
+        // CASCADE: soft-delete all entity_links referencing this note
+        let entityLinkRepo = EntityLinkRepository(modelContext: modelContext)
+        try entityLinkRepo.softDeleteAllReferences(entityType: .note, entityId: id)
         try modelContext.save()
     }
 }

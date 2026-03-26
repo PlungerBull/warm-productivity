@@ -21,8 +21,11 @@ final class BankAccountRepository {
             }
         )
         let transactions = try modelContext.fetch(descriptor)
+        let entityLinkRepo = EntityLinkRepository(modelContext: modelContext)
         for transaction in transactions {
             transaction.markDeleted()
+            // CASCADE: soft-delete entity_links for each cascaded transaction
+            try entityLinkRepo.softDeleteAllReferences(entityType: .expenseLedger, entityId: transaction.id)
         }
     }
 

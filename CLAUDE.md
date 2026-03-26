@@ -70,10 +70,9 @@ warm-productivity/
 │   ├── SupabaseClient/          ← Supabase SDK configuration, auth, API helpers
 │   ├── SharedUI/                ← Design system: colors, typography, spacing, shared components
 │   └── SharedUtilities/         ← Common helpers, extensions, formatters
-├── Supabase/
-│   ├── migrations/              ← Numbered SQL migration files
-│   ├── functions/               ← Edge Functions (complex writes, exchange rates)
-│   └── seed.sql                 ← Initial data (default categories, onboarding content)
+├── supabase/
+│   ├── config.toml              ← Supabase CLI configuration
+│   └── migrations/              ← Numbered SQL migration files (9 files)
 ├── Docs/
 │   ├── 01_Vision_and_Philosophy.md
 │   ├── 02_System_Architecture.md
@@ -82,7 +81,10 @@ warm-productivity/
 │   ├── 05_Expense_Tracker_App_Spec.md
 │   ├── 06_Notes_App_Spec.md
 │   ├── 07_Todo_App_Spec.md
-│   └── 08_Changelog.md
+│   ├── 08_Changelog.md
+│   ├── ui-blueprints.md         ← UI layout specifications
+│   ├── ui-polish-mockups.html   ← Visual mockups for polish pass
+│   └── sketches/                ← UI sketches and wireframes
 ├── Skills/                      ← Claude skills for AI-assisted development
 └── CLAUDE.md                    ← Project-level AI instruction file
 ```
@@ -91,10 +93,12 @@ warm-productivity/
 
 **SharedUI package contents (defined before Phase 1 UI begins):**
 - Color palette (primary, secondary, background, surface, error, success — light and dark variants)
-- Typography scale (title, headline, body, caption — using SF Pro)
+- Typography scale (title, headline, body, caption — using SF Pro) + hero/compact/control tokens
 - Spacing system (4pt grid: 4, 8, 12, 16, 24, 32, 48)
 - Corner radius tokens (small: 8, medium: 12, large: 16)
-- Shared components: FABButton, TransactionRow, EmptyStateView, LoadingView, ErrorBanner, TokenAutocompleteField
+- Component styles (reusable style constants for shared components)
+- Size tokens (avatar, icon, button dimensions)
+- Shared components: FABButton, TransactionRow, EmptyStateView, LoadingView, ErrorBanner, TokenAutocompleteField, SymbolBadge
 
 **SharedUtilities package contents:**
 - `CommandParser` — pure Swift struct. Takes a raw FAB/quick-add string and returns a typed `ParsedCommand` struct with all recognised tokens (title, amount, currency, category, account, person, hashtags, date). No UI, no SwiftData imports. Fully unit-testable. Used by Expense Tracker (FAB) and To-Do (quick-add).

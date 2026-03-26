@@ -94,6 +94,7 @@ final class CategoryRepository {
             }
         )
         let transactions = try modelContext.fetch(descriptor)
+        let entityLinkRepo = EntityLinkRepository(modelContext: modelContext)
         for transaction in transactions {
             transaction.markDeleted()
             // Balance trigger: subtract from account
@@ -105,6 +106,8 @@ final class CategoryRepository {
                 account.currentBalanceCents -= transaction.amountCents
                 account.markUpdated()
             }
+            // CASCADE: soft-delete entity_links for each cascaded transaction
+            try entityLinkRepo.softDeleteAllReferences(entityType: .expenseLedger, entityId: transaction.id)
         }
         // SET NULL: nullify categoryId on inbox items referencing this category
         let inboxDescriptor = FetchDescriptor<ExpenseTransactionInbox>(

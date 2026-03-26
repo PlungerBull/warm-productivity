@@ -54,6 +54,9 @@ final class InboxRepository {
         )
         guard let item = try modelContext.fetch(descriptor).first else { return }
         item.markDeleted()
+        // CASCADE: soft-delete all entity_links referencing this inbox item
+        let entityLinkRepo = EntityLinkRepository(modelContext: modelContext)
+        try entityLinkRepo.softDeleteAllReferences(entityType: .expenseInbox, entityId: id)
         try modelContext.save()
     }
 }

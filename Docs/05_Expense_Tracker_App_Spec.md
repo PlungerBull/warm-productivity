@@ -554,6 +554,12 @@ Past month columns show final numbers only — no progress bars (they're always 
 
 7. **How far back can the user scroll?** As far back as budget data exists. If there is no budget data for a given month (before budget mode was enabled), show an empty state: "No budget data for January 2026. Budget mode was enabled in February 2026."
 
+8. **Category type changes while budget mode active:** Categories have `category_type` ('income' or 'expense'). Budgets apply only to expense-type categories. If a category's type is changed from 'expense' to 'income' while budget mode is active, its budget row is soft-deleted and the category moves to the income section of the dashboard. If changed back to 'expense', the user is prompted to set a new budget (same flow as Screen 4 — new category prompt). Historical months retain original budget data for the category under its type at the time.
+
+9. **Re-enabling budget mode:** When the user disables and later re-enables budget mode, all historical budget data is preserved. The current month carries forward the most recent budget amounts. If new categories were created while budget mode was off, the Screen 3 setup prompt reappears for those categories only.
+
+10. **Main currency changes while budget mode active:** Budget amounts are stored in `amount_cents` without a currency column — they are denominated in the user's `main_currency` at the time of entry. If `main_currency` changes, existing budget amounts are NOT automatically converted. The user must manually update budget amounts to reflect the new currency. A one-time banner warns: "Your home currency changed. Review your budget amounts."
+
 ---
 
 ### Reconciliations Tab

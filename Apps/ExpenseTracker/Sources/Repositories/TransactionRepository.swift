@@ -102,6 +102,9 @@ final class TransactionRepository {
             try adjustAccountBalance(accountId: transaction.accountId, delta: -transaction.amountCents)
         }
         transaction.markDeleted()
+        // CASCADE: soft-delete all entity_links referencing this transaction
+        let entityLinkRepo = EntityLinkRepository(modelContext: modelContext)
+        try entityLinkRepo.softDeleteAllReferences(entityType: .expenseLedger, entityId: id)
         try modelContext.save()
     }
 

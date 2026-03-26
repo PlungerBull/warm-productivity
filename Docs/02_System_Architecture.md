@@ -839,9 +839,26 @@ The `entity_links` table is how the ecosystem holds together. Every cross-app re
 
 **Deletion behavior:** "Remove from here" soft-deletes the `entity_links` row (sets `deleted_at`). "Delete everywhere" soft-deletes all `entity_links` rows referencing the item, then soft-deletes the item itself. Both propagate to other devices via the standard tombstone sync pattern.
 
+**Entity Links Deletion Matrix:**
+
+| Action | entity_links result | note_entry result | Other entity result |
+|---|---|---|---|
+| Delete expense (ledger) | All links where entity is source OR target get `deleted_at` | Linked note gets `deleted_at` | — |
+| Delete inbox item | All links where entity is source OR target get `deleted_at` | Linked note gets `deleted_at` | — |
+| Delete task | All links where entity is source OR target get `deleted_at` | Linked note gets `deleted_at` | Previously generated expenses survive standalone |
+| Delete note in Notes only | Links kept (no `deleted_at`) | `hidden_in_notes_app = true` | Source entity still sees note as description |
+| Delete note everywhere | All links where note is source OR target get `deleted_at` | `deleted_at` set | Source entity loses description; `/todo` tasks survive independently |
+| Delete category (CASCADE) | Each cascaded transaction's links get `deleted_at` | Each cascaded transaction's linked notes get `deleted_at` | — |
+| Delete bank account (CASCADE) | Each cascaded transaction's links get `deleted_at` | Each cascaded transaction's linked notes get `deleted_at` | — |
+| Delete notebook (CASCADE notes) | Each cascaded note's links get `deleted_at` | Each note gets `deleted_at` | Source entities lose descriptions |
+
+**Repository enforcement (FIX NOW, NO FUTURE DEBT):** Every repository `softDelete()` that removes an entity which may appear as source or target in `entity_links` must also soft-delete all referencing `entity_links` rows and their linked `note_entry` records. This includes cascade scenarios — when a parent deletion triggers child deletions, entity_links cleanup must cascade with them.
+
 ### Slash Commands in Notes
 
 Notes can contain slash commands (`/expense`, `/todo`) that create entities in other apps.
+
+**Ownership:** The Notes app detects `/expense` and `/todo` prefixes in note content and triggers the creation flow. Parsing uses the shared `CommandParser` from `SharedUtilities` (same parser used by the Expense Tracker FAB). Entity creation and `entity_links` wiring are handled by a Supabase Edge Function. The inline preview card and marker rendering are Notes-app UI components.
 
 **Slash commands are quick capture tools, not full-featured forms.** They capture the core fields in the note. If the user needs to add more detail (exchange rate, priority, people splits, etc.), they go to the actual app.
 
